@@ -1,0 +1,27 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: hello-world-strip-prefix
+  namespace: staging
+spec:
+  stripPrefix:
+    prefixes:
+      - /hello-staging
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: hello-world-route
+  namespace: staging
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: PathPrefix(`/hello-staging`)
+      kind: Rule
+      middlewares:
+        - name: hello-world-strip-prefix
+      services:
+        - name: hello-world
+          port: 80
+
