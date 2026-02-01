@@ -4,6 +4,7 @@ service:
   annotations:
     oci.oraclecloud.com/load-balancer-type: "nlb"
     oci.oraclecloud.com/reserved-ips: "129.80.30.193"
+    oci-network-load-balancer.oraclecloud.com/security-list-management-mode: "All"
 entryPoints:
   web:
     address: ":8000"
