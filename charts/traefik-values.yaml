@@ -5,6 +5,7 @@ service:
     oci.oraclecloud.com/load-balancer-type: "nlb"
     oci.oraclecloud.com/reserved-ips: "129.80.30.193"
     oci-network-load-balancer.oraclecloud.com/security-list-management-mode: "All"
+    oci-network-load-balancer.oraclecloud.com/subnet: "ocid1.subnet.oc1.iad.aaaaaaaaybggpbshn27rfl4egcyoe7w7dcyiubyrlxro5lehv2skzssphzza"
 entryPoints:
   web:
     address: ":8000"
