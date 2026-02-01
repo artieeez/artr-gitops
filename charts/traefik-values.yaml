@@ -3,6 +3,7 @@ service:
   type: LoadBalancer
   annotations:
     service.beta.kubernetes.io/oci-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/oci-load-balancer-reserved-ip: "ocid1.publicip.oc1.iad.amaaaaaaf42hwaaaxv25so75nijwkzgnah34qwevenxkj3nrdfdqipv4fj6a"
 entryPoints:
   web:
     address: ":8000"
