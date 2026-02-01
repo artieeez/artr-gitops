@@ -3,7 +3,7 @@ service:
   type: LoadBalancer
   annotations:
     oci.oraclecloud.com/load-balancer-type: "nlb"
-    oci.oraclecloud.com/reserved-ips: "ocid1.publicip.oc1.iad.amaaaaaaf42hwaaaxv25so75nijwkzgnah34qwevenxkj3nrdfdqipv4fj6a"
+    oci.oraclecloud.com/reserved-ips: "129.80.30.193"
 entryPoints:
   web:
     address: ":8000"
