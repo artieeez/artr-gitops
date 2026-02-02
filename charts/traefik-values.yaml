@@ -9,6 +9,8 @@ service:
 entryPoints:
   web:
     address: ":8000"
+  websecure:
+    address: ":8443"
   traefik:
     address: ":8080"
 providers:

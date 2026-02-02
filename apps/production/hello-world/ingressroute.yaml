@@ -15,7 +15,7 @@ metadata:
   namespace: production
 spec:
   entryPoints:
-    - web
+    - websecure
   routes:
     - match: PathPrefix(`/hello`)
       kind: Rule
@@ -24,4 +24,6 @@ spec:
       services:
         - name: hello-world
           port: 80
+  tls:
+    secretName: wildcard-artr-com-br-tls
 
