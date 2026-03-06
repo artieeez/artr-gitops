@@ -45,7 +45,7 @@ spec:
               mountPath: /shared/config
               mountPropagation: Bidirectional
         - name: filebrowser
-          image: docker.io/filebrowser/filebrowser:1.2.1-stable
+          image: docker.io/gtstef/filebrowser:1.2.1-stable
           ports:
             - containerPort: 80
               name: http
