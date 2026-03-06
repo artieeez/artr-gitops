@@ -26,7 +26,7 @@ spec:
               topologyKey: kubernetes.io/hostname
       containers:
         - name: filebrowser
-          image: docker.io/filebrowser/filebrowser:2.61.2
+          image: docker.io/filebrowser/filebrowser:1.2.1-stable
           ports:
             - containerPort: 80
               name: http
