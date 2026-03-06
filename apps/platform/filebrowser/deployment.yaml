@@ -34,8 +34,8 @@ spec:
             - |
               set -e
               for i in $(seq 1 24); do
-                if mount -t nfs nfs-server.platform.svc.cluster.local:/exports /shared/data && \
-                   mount -t nfs nfs-server.platform.svc.cluster.local:/exports/review/filebrowser /shared/config; then
+                if mount -t nfs -o vers=4 nfs-server.platform.svc.cluster.local:/exports /shared/data && \
+                   mount -t nfs -o vers=4 nfs-server.platform.svc.cluster.local:/exports/review/filebrowser /shared/config; then
                   echo "NFS mounted successfully"
                   exit 0
                 fi

@@ -25,7 +25,7 @@ spec:
             - sh
             - -c
             - |
-              mount -t nfs nfs-server.platform.svc.cluster.local:/exports/review/shared-postgre-db /shared/pgdata
+              mount -t nfs -o vers=4 nfs-server.platform.svc.cluster.local:/exports/review/shared-postgre-db /shared/pgdata
               exec sleep infinity
           securityContext:
             privileged: true
