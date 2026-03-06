@@ -21,7 +21,6 @@ spec:
             - -c
             - |
               mkdir -p /exports/review/shared-postgre-db /exports/production/shared-postgre-db /exports/review/filebrowser
-              chown -R nobody:nogroup /exports
           volumeMounts:
             - name: exports
               mountPath: /exports
