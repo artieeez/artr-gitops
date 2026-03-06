@@ -17,7 +17,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: PathPrefix(`/hello`)
+    - match: Host(`artr.com.br`) && PathPrefix(`/hello`)
       kind: Rule
       middlewares:
         - name: hello-world-strip-prefix
