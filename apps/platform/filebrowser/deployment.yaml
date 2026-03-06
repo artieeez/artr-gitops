@@ -44,11 +44,11 @@ spec:
       volumes:
         - name: data
           nfs:
-            server: nfs-server.platform.svc.cluster.local
+            server: 10.96.0.100
             path: /exports
             readOnly: false
         - name: config
           nfs:
-            server: nfs-server.platform.svc.cluster.local
+            server: 10.96.0.100
             path: /exports
             readOnly: false
