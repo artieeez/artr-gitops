@@ -1,4 +1,4 @@
-# NFS is mounted by a sidecar (pod DNS works); shared to filebrowser via mountPropagation.
+# NFS is mounted in an init container (pod DNS works); mount persists so filebrowser sees existing config/db.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -25,7 +25,7 @@ spec:
               namespaces:
                 - platform
               topologyKey: kubernetes.io/hostname
-      containers:
+      initContainers:
         - name: nfs-mount
           image: docker.io/library/busybox:1.36
           command:
@@ -34,7 +34,6 @@ spec:
             - |
               mount -t nfs nfs-server.platform.svc.cluster.local:/exports /shared/data
               mount -t nfs nfs-server.platform.svc.cluster.local:/exports/review/filebrowser /shared/config
-              exec sleep infinity
           securityContext:
             privileged: true
           volumeMounts:
@@ -44,6 +43,7 @@ spec:
             - name: config
               mountPath: /shared/config
               mountPropagation: Bidirectional
+      containers:
         - name: filebrowser
           image: docker.io/gtstef/filebrowser:1.2.1-stable
           ports:
