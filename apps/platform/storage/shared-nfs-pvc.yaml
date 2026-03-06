@@ -1,0 +1,14 @@
+# Shared NFS PVC for apps. Use with volumeMounts.subPath: "review/shared-postgre-db"
+# or "production/shared-postgre-db" (and reference this PVC from app namespaces as needed).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-nfs
+  namespace: platform
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi
+  volumeName: shared-nfs-export

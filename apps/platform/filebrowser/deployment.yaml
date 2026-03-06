@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: filebrowser
+  namespace: platform
+  labels:
+    app: filebrowser
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: filebrowser
+  template:
+    metadata:
+      labels:
+        app: filebrowser
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: nfs-server
+              namespaces:
+                - platform
+              topologyKey: kubernetes.io/hostname
+      containers:
+        - name: filebrowser
+          image: filebrowser/filebrowser:latest
+          ports:
+            - containerPort: 80
+              name: http
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+          volumeMounts:
+            - name: data
+              mountPath: /srv
+            - name: config
+              mountPath: /config
+              subPath: review/filebrowser
+      volumes:
+        - name: data
+          nfs:
+            server: nfs-server.platform.svc.cluster.local
+            path: /exports
+            readOnly: false
+        - name: config
+          nfs:
+            server: nfs-server.platform.svc.cluster.local
+            path: /exports
+            readOnly: false

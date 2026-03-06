@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-server
+  namespace: platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nfs-server
+  template:
+    metadata:
+      labels:
+        app: nfs-server
+    spec:
+      initContainers:
+        - name: create-dirs
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /exports/review/shared-postgre-db /exports/production/shared-postgre-db /exports/review/filebrowser
+              chown -R nobody:nogroup /exports
+          volumeMounts:
+            - name: exports
+              mountPath: /exports
+      containers:
+        - name: nfs-server
+          image: itsthenetwork/nfs-server-alpine:latest
+          env:
+            - name: SHARED_DIRECTORY
+              value: /exports
+          ports:
+            - containerPort: 2049
+              name: nfs
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: exports
+              mountPath: /exports
+      volumes:
+        - name: exports
+          persistentVolumeClaim:
+            claimName: nfs-server-pvc

@@ -1,0 +1,20 @@
+# Pre-provisioned OCI Block Volume (50GB). Run scripts/update-storage-pv-from-terraform.sh
+# to inject volume OCID and availability domain from Terraform output.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: shared-50g-block
+  annotations:
+    pv.kubernetes.io/provisioned-by: blockvolume.csi.oraclecloud.com
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: oci-bv
+  csi:
+    driver: blockvolume.csi.oraclecloud.com
+    volumeHandle: ocid1.volume.oc1.sa-vinhedo-1.ab3ggljrtcxlpx2r24j7battihokghyqjn5hjjlfgxsiqbki2ua53lza5ntq
+    volumeAttributes:
+      availabilityDomain: oZZp:SA-VINHEDO-1-AD-1

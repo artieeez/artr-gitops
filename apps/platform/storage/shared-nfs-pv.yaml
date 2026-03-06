@@ -1,0 +1,15 @@
+# NFS PV pointing at the in-cluster NFS server. Apps use shared-nfs-pvc with subPath
+# (e.g. review/shared-postgre-db, production/shared-postgre-db).
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: shared-nfs-export
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: nfs-server.platform.svc.cluster.local
+    path: /exports
