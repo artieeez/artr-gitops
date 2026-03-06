@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: artr-monitoring
+  name: namespaces
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/artieeez/artr-gitops
     targetRevision: HEAD
-    path: argocd/applications/monitoring
+    path: infrastructure/namespaces
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
@@ -29,4 +29,3 @@ spec:
         duration: 5s
         factor: 2
         maxDuration: 3m
-
