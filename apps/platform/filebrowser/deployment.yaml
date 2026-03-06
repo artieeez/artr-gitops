@@ -32,8 +32,20 @@ spec:
             - sh
             - -c
             - |
-              mount -t nfs nfs-server.platform.svc.cluster.local:/exports /shared/data
-              mount -t nfs nfs-server.platform.svc.cluster.local:/exports/review/filebrowser /shared/config
+              set -e
+              for i in $(seq 1 24); do
+                if mount -t nfs nfs-server.platform.svc.cluster.local:/exports /shared/data && \
+                   mount -t nfs nfs-server.platform.svc.cluster.local:/exports/review/filebrowser /shared/config; then
+                  echo "NFS mounted successfully"
+                  exit 0
+                fi
+                umount /shared/config 2>/dev/null || true
+                umount /shared/data 2>/dev/null || true
+                echo "Mount attempt $i failed, retrying in 5s..."
+                sleep 5
+              done
+              echo "NFS mount failed after 24 attempts"
+              exit 1
           securityContext:
             privileged: true
           volumeMounts:
