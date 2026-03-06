@@ -4,6 +4,9 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: shared-nfs-export
+  annotations:
+    # PV has no ArgoCD built-in health; without this the app stays Progressing.
+    argocd.argoproj.io/ignore-healthcheck: "true"
 spec:
   capacity:
     storage: 50Gi
