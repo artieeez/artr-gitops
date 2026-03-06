@@ -12,3 +12,4 @@ spec:
     requests:
       storage: 50Gi
   volumeName: shared-nfs-export
+  storageClassName: ""   # NFS PV has no class; empty prevents default class so binding works
