@@ -11,15 +11,14 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: monitoring
----
-apiVersion: v1
-kind: Namespace
-metadata:
   name: cert-manager
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: sealed-secrets
-
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: platform
