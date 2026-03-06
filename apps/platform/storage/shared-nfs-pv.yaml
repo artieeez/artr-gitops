@@ -1,5 +1,5 @@
 # NFS PV pointing at the in-cluster NFS server. Apps use shared-nfs-pvc with subPath
-# (e.g. review/shared-postgre-db, production/shared-postgre-db).
+# (e.g. staging-postgre, platform-filebrowser).
 apiVersion: v1
 kind: PersistentVolume
 metadata:

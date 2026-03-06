@@ -20,7 +20,7 @@ spec:
             - sh
             - -c
             - |
-              mkdir -p /exports/review/shared-postgre-db /exports/production/shared-postgre-db /exports/review/filebrowser
+              mkdir -p /exports/staging-postgre /exports/platform-filebrowser
           volumeMounts:
             - name: exports
               mountPath: /exports

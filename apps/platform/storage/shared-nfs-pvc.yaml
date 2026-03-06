@@ -1,5 +1,5 @@
-# Shared NFS PVC for apps. Use with volumeMounts.subPath: "review/shared-postgre-db"
-# or "production/shared-postgre-db" (and reference this PVC from app namespaces as needed).
+# Shared NFS PVC for apps. Use with volumeMounts.subPath: "staging-postgre"
+# or "platform-filebrowser" (and reference this PVC from app namespaces as needed).
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
