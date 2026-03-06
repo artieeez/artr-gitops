@@ -54,6 +54,13 @@ spec:
               value: "1000"
             - name: PGID
               value: "1000"
+            # First login: admin / (password from secret). Set via: kubectl create secret generic filebrowser-admin -n platform --from-literal=password=YOUR_PASSWORD
+            - name: FILEBROWSER_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: filebrowser-admin
+                  key: password
+                  optional: true
           volumeMounts:
             - name: data
               mountPath: /srv
