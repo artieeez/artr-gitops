@@ -1,12 +1,9 @@
-# Fixed clusterIP so NFS mounts work from nodes (kubelet often can't resolve in-cluster DNS).
-# If 10.96.0.100 conflicts with your service CIDR, pick another free IP in your cluster's range.
 apiVersion: v1
 kind: Service
 metadata:
   name: nfs-server
   namespace: platform
 spec:
-  clusterIP: 10.96.0.100
   selector:
     app: nfs-server
   ports:

@@ -12,5 +12,5 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""   # Must match PVC; no class for static NFS PV
   nfs:
-    server: 10.96.0.100
+    server: nfs-server.platform.svc.cluster.local
     path: /exports
