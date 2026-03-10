@@ -55,27 +55,6 @@ spec:
             - name: config
               mountPath: /shared/config
               mountPropagation: Bidirectional
-        - name: ensure-config
-          image: docker.io/library/busybox:1.36
-          command:
-            - sh
-            - -c
-            - |
-              if [ ! -f /config-data/config.yaml ]; then
-                echo 'server:
-  database: "/home/filebrowser/data/database.db"
-  sources:
-    - path: "/srv"
-      config:
-        defaultEnabled: true
-auth:
-  adminUsername: admin' > /config-data/config.yaml
-                echo "Created default config.yaml"
-              fi
-          volumeMounts:
-            - name: config
-              mountPath: /config-data
-              mountPropagation: HostToContainer
       containers:
         - name: filebrowser
           image: docker.io/gtstef/filebrowser:1.2.2-stable
@@ -94,16 +73,25 @@ auth:
                   name: filebrowser-admin
                   key: password
                   optional: true
+            - name: FILEBROWSER_CONFIG
+              value: "/etc/filebrowser/config.yaml"
           volumeMounts:
             - name: data
               mountPath: /srv
               mountPropagation: HostToContainer
-            # App expects config + SQLite DB here (not /config); must persist for users/settings.
+            # App expects database under /home/filebrowser/data, which is NFS-backed.
             - name: config
               mountPath: /home/filebrowser/data
               mountPropagation: HostToContainer
+            # Read-only config file from ConfigMap, points DB to /home/filebrowser/data/database.db and source to /srv.
+            - name: filebrowser-config
+              mountPath: /etc/filebrowser
+              readOnly: true
       volumes:
         - name: data
           emptyDir: {}
         - name: config
           emptyDir: {}
+        - name: filebrowser-config
+          configMap:
+            name: filebrowser-config
