@@ -22,10 +22,6 @@ spec:
             - containerPort: 80
               name: http
           env:
-            - name: PUID
-              value: "1000"
-            - name: PGID
-              value: "1000"
             # First login: admin / (password from secret). Set via: kubectl create secret generic filebrowser-admin -n platform --from-literal=password=YOUR_PASSWORD
             - name: FILEBROWSER_ADMIN_PASSWORD
               valueFrom:
