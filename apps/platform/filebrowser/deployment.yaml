@@ -16,15 +16,6 @@ spec:
       labels:
         app: filebrowser
     spec:
-      affinity:
-        podAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchLabels:
-                  app: nfs-server
-              namespaces:
-                - platform
-              topologyKey: kubernetes.io/hostname
       initContainers:
         - name: nfs-mount
           image: docker.io/library/busybox:1.36
