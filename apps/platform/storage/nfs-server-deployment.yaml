@@ -20,7 +20,11 @@ spec:
             - sh
             - -c
             - |
-              mkdir -p /exports/staging-postgre /exports/platform-filebrowser
+              mkdir -p \
+                /exports/staging-postgre \
+                /exports/platform-filebrowser \
+                /exports/platform-pocketid \
+                /exports/platform-tinyauth
           volumeMounts:
             - name: exports
               mountPath: /exports
