@@ -77,8 +77,9 @@ spec:
             - name: data
               mountPath: /srv
               mountPropagation: HostToContainer
+            # App expects config + SQLite DB here (not /config); must persist for users/settings.
             - name: config
-              mountPath: /config
+              mountPath: /home/filebrowser/data
               mountPropagation: HostToContainer
       volumes:
         - name: data
