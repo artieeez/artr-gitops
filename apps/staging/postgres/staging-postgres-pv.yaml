@@ -12,5 +12,5 @@ spec:
   nfs:
     # Must match the ClusterIP of the nfs-server Service.
     server: 10.96.0.100
-    path: /staging-postgre
+    path: /staging/postgre
 
