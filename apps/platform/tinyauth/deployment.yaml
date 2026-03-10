@@ -15,20 +15,6 @@ spec:
       labels:
         app: tinyauth
     spec:
-      initContainers:
-        - name: nfs-mount
-          image: docker.io/library/busybox:1.36
-          command:
-            - sh
-            - -c
-            - |
-              mount -t nfs -o vers=4 nfs-server.platform.svc.cluster.local:/platform-tinyauth /shared/data
-          securityContext:
-            privileged: true
-          volumeMounts:
-            - name: data
-              mountPath: /shared/data
-              mountPropagation: Bidirectional
       containers:
         - name: tinyauth
           image: ghcr.io/steveiliop56/tinyauth:v5
@@ -65,7 +51,7 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
-              mountPropagation: HostToContainer
       volumes:
         - name: data
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: platform-tinyauth-data
