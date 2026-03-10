@@ -4,7 +4,7 @@ metadata:
   name: nfs-server
   namespace: platform
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: nfs-server
