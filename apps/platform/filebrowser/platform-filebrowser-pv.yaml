@@ -11,5 +11,6 @@ spec:
   storageClassName: ""        # static NFS PV (no StorageClass)
   nfs:
     server: 10.96.0.100
-    path: /platform-filebrowser
+    # Mount the NFS export root so FileBrowser can see all app folders
+    path: /
 
