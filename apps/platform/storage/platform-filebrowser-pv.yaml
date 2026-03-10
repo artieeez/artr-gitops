@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: platform-filebrowser-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""        # static NFS PV (no StorageClass)
+  nfs:
+    server: 10.96.0.100
+    path: /platform-filebrowser
+
