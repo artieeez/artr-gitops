@@ -11,5 +11,5 @@ spec:
   storageClassName: ""        # static NFS PV (no StorageClass)
   nfs:
     server: 10.96.0.100
-    path: /platform-filebrowser
+    path: /
 
