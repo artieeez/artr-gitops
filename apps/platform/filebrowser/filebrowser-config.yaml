@@ -6,7 +6,7 @@ metadata:
 data:
   config.yaml: |
     server:
-      database: "/home/filebrowser/data/database.db"
+      database: "/home/filebrowser/data/platform-filebrowser/database.db"
       sources:
         - path: "/srv"
           config:
