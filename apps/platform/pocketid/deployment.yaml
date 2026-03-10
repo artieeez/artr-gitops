@@ -16,6 +16,20 @@ spec:
         app: pocketid
     spec:
       containers:
+        - name: nfs-mount
+          image: docker.io/library/busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              mount -t nfs -o vers=4 nfs-server.platform.svc.cluster.local:/platform-pocketid /shared/data
+              exec sleep infinity
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: data
+              mountPath: /shared/data
+              mountPropagation: Bidirectional
         - name: pocketid
           image: 11notes/pocket-id:latest
           imagePullPolicy: IfNotPresent
@@ -34,9 +48,8 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
-              subPath: platform-pocketid
+              mountPropagation: HostToContainer
       volumes:
         - name: data
-          persistentVolumeClaim:
-            claimName: shared-nfs
+          emptyDir: {}
 
