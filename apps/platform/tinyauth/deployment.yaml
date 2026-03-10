@@ -15,7 +15,7 @@ spec:
       labels:
         app: tinyauth
     spec:
-      containers:
+      initContainers:
         - name: nfs-mount
           image: docker.io/library/busybox:1.36
           command:
@@ -23,13 +23,13 @@ spec:
             - -c
             - |
               mount -t nfs -o vers=4 nfs-server.platform.svc.cluster.local:/platform-tinyauth /shared/data
-              exec sleep infinity
           securityContext:
             privileged: true
           volumeMounts:
             - name: data
               mountPath: /shared/data
               mountPropagation: Bidirectional
+      containers:
         - name: tinyauth
           image: ghcr.io/steveiliop56/tinyauth:v5
           imagePullPolicy: IfNotPresent

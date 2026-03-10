@@ -1,4 +1,4 @@
-# NFS is mounted by a sidecar (pod DNS works); shared to postgres via mountPropagation.
+# NFS is mounted in an init container (pod DNS works); mount persists so postgres sees existing data.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,21 +18,32 @@ spec:
         app: postgres
         environment: staging
     spec:
-      containers:
+      initContainers:
         - name: nfs-mount
           image: docker.io/library/busybox:1.36
           command:
             - sh
             - -c
             - |
-              mount -t nfs -o vers=4 nfs-server.platform.svc.cluster.local:/staging-postgre /shared/pgdata
-              exec sleep infinity
+              set -e
+              for i in $(seq 1 24); do
+                if mount -t nfs -o vers=4 nfs-server.platform.svc.cluster.local:/staging-postgre /shared/pgdata; then
+                  echo "NFS mounted successfully"
+                  exit 0
+                fi
+                umount /shared/pgdata 2>/dev/null || true
+                echo "Mount attempt $i failed, retrying in 5s..."
+                sleep 5
+              done
+              echo "NFS mount failed after 24 attempts"
+              exit 1
           securityContext:
             privileged: true
           volumeMounts:
             - name: pgdata
               mountPath: /shared/pgdata
               mountPropagation: Bidirectional
+      containers:
         - name: postgres
           image: docker.io/library/postgres:16-alpine
           ports:
