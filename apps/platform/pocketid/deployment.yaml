@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pocketid
+  namespace: platform
+  labels:
+    app: pocketid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pocketid
+  template:
+    metadata:
+      labels:
+        app: pocketid
+    spec:
+      containers:
+        - name: pocketid
+          image: 11notes/pocket-id:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: APP_URL
+              value: "https://pocketid.artr.com.br"
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: pocketid-credentials
+                  key: encryption-key
+            - name: TRUST_PROXY
+              value: "true"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+              subPath: platform-pocketid
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: shared-nfs
+

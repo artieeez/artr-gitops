@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tinyauth
+  namespace: platform
+  labels:
+    app: tinyauth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tinyauth
+  template:
+    metadata:
+      labels:
+        app: tinyauth
+    spec:
+      containers:
+        - name: tinyauth
+          image: ghcr.io/steveiliop56/tinyauth:v5
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            # Core Tinyauth settings (v5-style)
+            - name: TINYAUTH_SERVER_PUBLICURL
+              value: "https://tinyauth.artr.com.br"
+            # Pocket ID OAuth provider (v5-style, per docs)
+            - name: TINYAUTH_OAUTH_PROVIDERS_POCKETID_CLIENTID
+              valueFrom:
+                secretKeyRef:
+                  name: pocketid-credentials
+                  key: client-id
+            - name: TINYAUTH_OAUTH_PROVIDERS_POCKETID_CLIENTSECRET
+              valueFrom:
+                secretKeyRef:
+                  name: pocketid-credentials
+                  key: client-secret
+            - name: TINYAUTH_OAUTH_PROVIDERS_POCKETID_AUTHURL
+              value: "https://pocketid.artr.com.br/authorize"
+            - name: TINYAUTH_OAUTH_PROVIDERS_POCKETID_TOKENURL
+              value: "https://pocketid.artr.com.br/api/oidc/token"
+            - name: TINYAUTH_OAUTH_PROVIDERS_POCKETID_USERINFOURL
+              value: "https://pocketid.artr.com.br/api/oidc/userinfo"
+            - name: TINYAUTH_OAUTH_PROVIDERS_POCKETID_REDIRECTURL
+              value: "https://tinyauth.artr.com.br/api/oauth/callback/pocketid"
+            - name: TINYAUTH_OAUTH_PROVIDERS_POCKETID_SCOPES
+              value: "openid email profile groups"
+            - name: TINYAUTH_OAUTH_PROVIDERS_POCKETID_NAME
+              value: "Pocket ID"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+              subPath: platform-tinyauth
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: shared-nfs
