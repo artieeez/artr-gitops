@@ -78,7 +78,7 @@ auth:
               mountPropagation: HostToContainer
       containers:
         - name: filebrowser
-          image: docker.io/gtstef/filebrowser:1.2.1-stable
+          image: docker.io/gtstef/filebrowser:1.2.2-stable
           ports:
             - containerPort: 80
               name: http
