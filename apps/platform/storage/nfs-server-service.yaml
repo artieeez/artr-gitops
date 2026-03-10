@@ -11,3 +11,4 @@ spec:
       port: 2049
       targetPort: 2049
   type: ClusterIP
+  clusterIP: 10.96.0.100
