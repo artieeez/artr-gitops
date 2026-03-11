@@ -28,4 +28,5 @@ spec:
       - CreateNamespace=false
       - PrunePropagationPolicy=foreground
       - ServerSideApply=false
+      - Replace=true
 
