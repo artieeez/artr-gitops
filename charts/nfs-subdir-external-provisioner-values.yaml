@@ -1,0 +1,20 @@
+replicaCount: 1
+
+nfs:
+  server: nfs-server.platform.svc.cluster.local
+  path: /exports
+
+storageClass:
+  create: true
+  defaultClass: false
+  name: nfs-client
+  accessModes:
+    - ReadWriteOnce
+  reclaimPolicy: Retain
+  archiveOnDelete: true
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+

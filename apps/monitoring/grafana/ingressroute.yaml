@@ -1,0 +1,17 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`grafana.artr.com.br`)
+      kind: Rule
+      services:
+        - name: platform-monitoring-grafana
+          port: 80
+  tls:
+    secretName: wildcard-artr-com-br-tls
+
