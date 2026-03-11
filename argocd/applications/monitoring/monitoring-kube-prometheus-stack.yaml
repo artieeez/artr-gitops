@@ -27,4 +27,5 @@ spec:
     syncOptions:
       - CreateNamespace=false
       - PrunePropagationPolicy=foreground
+      - ServerSideApply=false
 
