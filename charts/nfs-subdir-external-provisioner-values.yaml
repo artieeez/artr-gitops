@@ -8,6 +8,7 @@ storageClass:
   create: true
   defaultClass: false
   name: nfs-client
+  pathPattern: "${.PVC.namespace}/${.PVC.name}-${.PV.name}"
   accessModes:
     - ReadWriteOnce
   reclaimPolicy: Retain
