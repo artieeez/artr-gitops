@@ -1,0 +1,15 @@
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: postgres-sitio-staging-auth
+  namespace: sitio-staging
+spec:
+  encryptedData:
+    password: AgAh9NjNexeClX2YhljpcSosECDrSNKroUurZU3uB7SScC5ZINkaYIjRftr7HT+JOydXxnQ10oKNGYUkINZ7ycXXwIYeYtTKj6I7Jn5erExnrN/b1purwnZJHlaIlSGNAl/f8BiToKThmO/mv0Mr2p/OMwbKtRdUyUyX7zhzdeM5OVrBNZA89Jp0DuZJ8kYL1vHZrA0eiSvt+l7wsK5mWCvAOLCj1TF+8XKqTS3IV8m2ow4+8SpyDwKLH7nOYVVMwbO9RcbuNKaOcVOGZ/FJa7EywjS/XBAtav0mcKj2RNVEP5BWPTdY8sjd4UkIh8boVzXrnzrusek67HbgFvilOF5fWWB9NjawhEdFlosX8T9/5Sb21PCpWfVgbZfnBzuWAwJNr/manodVpjy2XAvhEYS/uoEutNT7l7S9pFeQwbTZKPEtyMD0VAglFLUaWdL/jrtQMALCyLr93GwP5r8cu7YbAL8FEBHvC8B3vUkupZh0EHzbIkjnTCcNc3kWz0/w9dDoqZMgkrVKNInwvKyXQZifQ494Ad4YXCbuu2w+aCN3EdfZIvR+HPQxJ/Jf+l0o3QHUePXWg1NDMK9Qsb+Hi/Zeyu2eUbtJsykJviYy+UjJQgPWMxv8W2NZBjR8K7g8yNsoM89aAsPV7ABaLs1PV0WoxA7JiMl5yeiyD/n8mgEogwEbhpVXKHALDV1lJxL/5Q+GIZ2uLZDfnA==
+  template:
+    metadata:
+      name: postgres-sitio-staging-auth
+      namespace: sitio-staging
+    type: Opaque
+    data: {}
+
