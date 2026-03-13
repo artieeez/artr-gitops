@@ -21,6 +21,10 @@ spec:
           ports:
             - containerPort: 80
               name: http
+          envFrom:
+            - secretRef:
+                name: filebrowser-oidc-secret
+                optional: true
           env:
             # First login: admin / (password from secret). Set via: kubectl create secret generic filebrowser-admin -n platform --from-literal=password=YOUR_PASSWORD
             - name: FILEBROWSER_ADMIN_PASSWORD

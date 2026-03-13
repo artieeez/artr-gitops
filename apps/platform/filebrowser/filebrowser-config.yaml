@@ -11,6 +11,20 @@ data:
         - path: "/srv"
           config:
             defaultEnabled: true
+            # Optional: deny by default and use access rules for OIDC groups (see docs)
+            # denyByDefault: true
     auth:
       adminUsername: admin
+      methods:
+        password:
+          enabled: true
+        oidc:
+          enabled: true
+          # clientId and clientSecret from env (Secret filebrowser-oidc-secret)
+          issuerUrl: "https://pocketid.artr.com.br"
+          scopes: "email openid profile groups"
+          userIdentifier: "preferred_username"
+          adminGroup: "admin"
+          # Optional: restrict login to specific groups (v1.3.x+)
+          # userGroups: ["admin", "admin_view_only"]
 
