@@ -20,7 +20,7 @@ spec:
           image: docker.io/11notes/pocket-id:2
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 3000
+            - containerPort: 1411
           env:
             - name: APP_URL
               value: "https://pocketid.artr.com.br"

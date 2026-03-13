@@ -10,6 +10,6 @@ spec:
     app: pocketid
   ports:
     - name: http
-      port: 3000
-      targetPort: 3000
+      port: 1411
+      targetPort: 1411
 
