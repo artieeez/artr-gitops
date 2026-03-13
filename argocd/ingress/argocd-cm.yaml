@@ -12,7 +12,7 @@ data:
   oidc.config: |
     name: PocketID
     issuer: https://pocketid.artr.com.br
-    clientID: 68515ac7-9075-4188-b00b-1e17f2e2e37d
+    clientID: argocd-pocketid-client
     clientSecret: $argocd-oidc-secret:clientSecret
     requestedScopes:
       - openid
