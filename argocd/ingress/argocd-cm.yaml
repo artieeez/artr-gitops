@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  url: https://argo.artr.com.br
+
+  oidc.config: |
+    name: PocketID
+    issuer: https://pocketid.artr.com.br
+    clientID: 68515ac7-9075-4188-b00b-1e17f2e2e37d
+    clientSecret: $argocd-oidc-secret:clientSecret
+    requestedScopes:
+      - openid
+      - profile
+      - email
+      - groups
+    requestedIDTokenClaims:
+      groups:
+        essential: true
+
