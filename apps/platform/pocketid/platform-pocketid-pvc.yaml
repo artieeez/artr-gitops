@@ -9,6 +9,5 @@ spec:
   resources:
     requests:
       storage: 5Gi
-  volumeName: platform-pocketid-pv
-  storageClassName: ""        # must match PV
+  storageClassName: nfs-client
 

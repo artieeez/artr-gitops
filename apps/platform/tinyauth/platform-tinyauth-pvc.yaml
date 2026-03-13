@@ -9,6 +9,5 @@ spec:
   resources:
     requests:
       storage: 5Gi
-  volumeName: platform-tinyauth-pv
-  storageClassName: ""        # must match PV
+  storageClassName: nfs-client
 
