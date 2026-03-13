@@ -25,6 +25,7 @@ data:
           scopes: "email openid profile groups"
           userIdentifier: "preferred_username"
           adminGroup: "admin"
+          createUser: true
           # Optional: restrict login to specific groups (v1.3.x+)
           # userGroups: ["admin", "admin_view_only"]
 
