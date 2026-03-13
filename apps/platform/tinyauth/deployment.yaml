@@ -23,7 +23,7 @@ spec:
             - containerPort: 3000
           env:
             # Core Tinyauth settings (v5-style)
-            - name: TINYAUTH_SERVER_PUBLICURL
+            - name: TINYAUTH_APPURL
               value: "https://tinyauth.artr.com.br"
             # Pocket ID OAuth provider (v5-style, per docs)
             - name: TINYAUTH_OAUTH_PROVIDERS_POCKETID_CLIENTID
