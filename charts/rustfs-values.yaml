@@ -1,5 +1,8 @@
 # RustFS – TLS at Traefik (IngressRoute in rustfs/), storage on NFS.
 # See: https://github.com/rustfs/helm
+# Deployed in platform namespace so NFS path is platform/platform-rustfs (pathPattern: ${.PVC.namespace}/${.PVC.name})
+
+fullnameOverride: platform-rustfs
 
 # Fully qualified images (required when cluster enforces short-name resolution, e.g. CRI-O)
 image:
