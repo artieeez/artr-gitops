@@ -26,4 +26,4 @@ kubeseal --controller-namespace=sealed-secrets --controller-name=sealed-secrets 
 
 ### 3. Commit
 
-Move `rustfs-credentials-sealed.yaml` into this `rustfs/` directory and commit. The RustFS Application syncs this path; the chart is configured with `secret.existingSecret: rustfs-credentials`.
+Move `rustfs-credentials-sealed.yaml` into this directory (`apps/platform/rustfs/`) and commit. The platform-rustfs Application syncs this path; the chart is configured with `secret.existingSecret: rustfs-credentials`.

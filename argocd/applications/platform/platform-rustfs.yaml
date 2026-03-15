@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: rustfs
+  name: platform-rustfs
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -11,6 +11,7 @@ spec:
     server: https://kubernetes.default.svc
     namespace: rustfs
   sources:
+    # RustFS Helm chart
     - repoURL: https://charts.rustfs.com
       chart: rustfs
       targetRevision: "0.0.86"
@@ -21,12 +22,20 @@ spec:
     - repoURL: https://github.com/artieeez/artr-gitops
       targetRevision: HEAD
       ref: values
+    # IngressRoute + SealedSecret (apps/platform/rustfs)
     - repoURL: https://github.com/artieeez/artr-gitops
       targetRevision: HEAD
-      path: rustfs
+      path: apps/platform/rustfs
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
