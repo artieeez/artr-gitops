@@ -1,0 +1,26 @@
+# RustFS – TLS at Traefik (IngressRoute in rustfs/), storage on NFS.
+# See: https://github.com/rustfs/helm
+
+# Standalone: one pod, one PVC (NFS). Use distributed + replicaCount for multi-pod.
+mode:
+  standalone:
+    enabled: true
+  distributed:
+    enabled: false
+
+# Storage on NFS (nfs-subdir-external-provisioner → nfs-server)
+storageclass:
+  name: nfs-client
+
+# Ingress: Traefik class, no TLS (TLS in IngressRoute)
+ingress:
+  className: traefik
+  # Host for chart-created Ingress (HTTP). HTTPS via rustfs/ingressroute.yaml
+  host: rustfs.artr.com.br
+tls:
+  enabled: false
+
+# Credentials from existing Secret (SealedSecret in rustfs/rustfs-credentials-sealed.yaml)
+# Secret must have keys: RUSTFS_ACCESS_KEY, RUSTFS_SECRET_KEY
+secret:
+  existingSecret: rustfs-credentials
