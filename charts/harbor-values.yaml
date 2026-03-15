@@ -8,6 +8,10 @@ expose:
   type: clusterIP
   clusterIP:
     name: harbor
+  # Required by chart template even when not using ingress TLS (used internally)
+  tls:
+    auto:
+      commonName: harbor.artr.com.br
 
 # Admin password from existing Secret (SealedSecret in harbor/harbor-admin-password-sealed.yaml)
 existingSecretAdminPassword: harbor-admin-password
