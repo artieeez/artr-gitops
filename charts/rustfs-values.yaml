@@ -1,6 +1,13 @@
 # RustFS – TLS at Traefik (IngressRoute in rustfs/), storage on NFS.
 # See: https://github.com/rustfs/helm
 
+# Fully qualified images (required when cluster enforces short-name resolution, e.g. CRI-O)
+image:
+  rustfs:
+    repository: docker.io/rustfs/rustfs
+  initImage:
+    repository: docker.io/library/busybox
+
 # Standalone: one pod, one PVC (NFS). Use distributed + replicaCount for multi-pod.
 mode:
   standalone:
