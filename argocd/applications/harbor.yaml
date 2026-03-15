@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: harbor
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: harbor
+  sources:
+    - repoURL: https://helm.goharbor.io
+      chart: harbor
+      targetRevision: "1.18.0"
+      helm:
+        valueFiles:
+          - $values/charts/harbor-values.yaml
+    - repoURL: https://github.com/artieeez/artr-gitops
+      targetRevision: HEAD
+      ref: values
+    - repoURL: https://github.com/artieeez/artr-gitops
+      targetRevision: HEAD
+      path: harbor
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  ignoreDifferences:
+    # Harbor chart may mutate these
+    - group: batch
+      kind: Job
+      jqPathExpressions:
+        - .metadata.annotations

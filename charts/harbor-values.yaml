@@ -1,0 +1,34 @@
+# Harbor Helm values – TLS is terminated at Traefik via IngressRoute (harbor/ingressroute.yaml).
+# See: https://github.com/goharbor/harbor-helm#configuration
+
+externalURL: https://harbor.artr.com.br
+
+# Use ClusterIP so the chart does not create an Ingress; Traefik IngressRoute handles routing + TLS.
+expose:
+  type: clusterIP
+  clusterIP:
+    name: harbor
+
+# Admin password from existing Secret (SealedSecret in harbor/harbor-admin-password-sealed.yaml)
+existingSecretAdminPassword: harbor-admin-password
+existingSecretAdminPasswordKey: HARBOR_ADMIN_PASSWORD
+
+# Encryption key for Harbor data (must be 16 chars). From SealedSecret harbor/harbor-secret-key-sealed.yaml
+existingSecretSecretKey: harbor-secret-key
+
+# Persistence on NFS via nfs-subdir-external-provisioner (StorageClass: nfs-client)
+persistence:
+  enabled: true
+  resourcePolicy: keep
+  persistentVolumeClaim:
+    registry:
+      storageClass: nfs-client
+    jobservice:
+      jobLog:
+        storageClass: nfs-client
+    database:
+      storageClass: nfs-client
+    redis:
+      storageClass: nfs-client
+    trivy:
+      storageClass: nfs-client
