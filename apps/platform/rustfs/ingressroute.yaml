@@ -10,7 +10,7 @@ spec:
     - match: Host(`rustfs.artr.com.br`)
       kind: Rule
       services:
-        - name: rustfs
-          port: 80
+        - name: rustfs-svc
+          port: 9001
   tls:
     secretName: wildcard-artr-com-br-tls

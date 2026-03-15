@@ -19,12 +19,8 @@ mode:
 storageclass:
   name: nfs-client
 
-# Ingress: Traefik class, no TLS (TLS in IngressRoute)
+# Ingress disabled – routing and TLS via IngressRoute (apps/platform/rustfs/ingressroute.yaml)
 ingress:
-  className: traefik
-  # Host for chart-created Ingress (HTTP). HTTPS via rustfs/ingressroute.yaml
-  host: rustfs.artr.com.br
-tls:
   enabled: false
 
 # Credentials from existing Secret (SealedSecret in rustfs/rustfs-credentials-sealed.yaml)
