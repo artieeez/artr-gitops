@@ -67,17 +67,3 @@ spec:
   issuerRef:
     name: letsencrypt-cloudflare
     kind: ClusterIssuer
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: wildcard-artr-com-br
-  namespace: harbor
-spec:
-  secretName: wildcard-artr-com-br-tls
-  dnsNames:
-    - artr.com.br
-    - "*.artr.com.br"
-  issuerRef:
-    name: letsencrypt-cloudflare
-    kind: ClusterIssuer
