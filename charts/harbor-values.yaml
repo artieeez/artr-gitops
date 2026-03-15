@@ -3,13 +3,50 @@
 
 externalURL: https://harbor.artr.com.br
 
+# Fully qualified images (required when cluster enforces short-name resolution, e.g. CRI-O)
+nginx:
+  image:
+    repository: docker.io/goharbor/nginx-photon
+portal:
+  image:
+    repository: docker.io/goharbor/harbor-portal
+core:
+  image:
+    repository: docker.io/goharbor/harbor-core
+jobservice:
+  image:
+    repository: docker.io/goharbor/harbor-jobservice
+registry:
+  registry:
+    image:
+      repository: docker.io/goharbor/registry-photon
+  controller:
+    image:
+      repository: docker.io/goharbor/harbor-registryctl
+trivy:
+  image:
+    repository: docker.io/goharbor/trivy-adapter-photon
+database:
+  internal:
+    image:
+      repository: docker.io/goharbor/harbor-db
+redis:
+  internal:
+    image:
+      repository: docker.io/goharbor/redis-photon
+exporter:
+  image:
+    repository: docker.io/goharbor/harbor-exporter
+
 # Use ClusterIP so the chart does not create an Ingress; Traefik IngressRoute handles routing + TLS.
 expose:
   type: clusterIP
   clusterIP:
     name: harbor
-  # Required by chart template even when not using ingress TLS (used internally)
+  # TLS is terminated at Traefik (IngressRoute), not at Harbor
   tls:
+    enabled: false
+    # Required by chart template (nginx/secret.yaml) even when TLS is disabled
     auto:
       commonName: harbor.artr.com.br
 
