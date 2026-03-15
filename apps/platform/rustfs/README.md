@@ -18,7 +18,7 @@ echo "Save secret_key for login: $RUSTFS_SECRET_KEY"
 kubectl create secret generic rustfs-credentials \
   --from-literal=RUSTFS_ACCESS_KEY="${RUSTFS_ACCESS_KEY}" \
   --from-literal=RUSTFS_SECRET_KEY="${RUSTFS_SECRET_KEY}" \
-  --namespace=rustfs \
+  --namespace=platform \
   --dry-run=client -o yaml | \
 kubeseal --controller-namespace=sealed-secrets --controller-name=sealed-secrets -o yaml \
   > rustfs-credentials-sealed.yaml
