@@ -6,6 +6,12 @@ service:
     oci.oraclecloud.com/reserved-ips: "204.216.137.207"   # set by scripts/update-traefik-oci-from-terraform.sh from terraform output reserved_public_ip_address
     oci-network-load-balancer.oraclecloud.com/security-list-management-mode: "All"
     oci-network-load-balancer.oraclecloud.com/subnet: "ocid1.subnet.oc1.sa-vinhedo-1.aaaaaaaalq77jobfgruaz5bcbpc5owopwsw63jkfp6lvajgcokjj5omblb2q"   # set by scripts/update-traefik-oci-from-terraform.sh from terraform output public_subnet_id
+ports:
+  postgres:
+    port: 5432          # internal Traefik service port
+    expose: true        # expose via LoadBalancer Service
+    exposedPort: 5432   # NLB listener port
+    protocol: TCP
 entryPoints:
   web:
     address: ":8000"
@@ -13,6 +19,8 @@ entryPoints:
     address: ":8443"
   traefik:
     address: ":8080"
+  postgres:
+    address: ":5432"
 providers:
   kubernetesCRD:
     enabled: true

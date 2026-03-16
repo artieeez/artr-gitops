@@ -1,17 +1,14 @@
 apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
+kind: IngressRouteTCP
 metadata:
   name: postgres-staging
   namespace: staging
 spec:
   entryPoints:
-    - websecure
+    - postgres
   routes:
-    - match: Host(`postgres-ufrgs.artr.com.br`)
-      kind: Rule
+    - match: HostSNI(`*`)
       services:
         - name: postgres
           port: 5432
-  tls:
-    secretName: wildcard-artr-com-br-tls
 
