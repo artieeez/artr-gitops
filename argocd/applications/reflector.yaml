@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: reflector
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: reflector
+  sources:
+    - repoURL: https://emberstack.github.io/helm-charts
+      chart: reflector
+      targetRevision: "10.0.20"
+      helm:
+        valueFiles:
+          - $values/charts/reflector-values.yaml
+    - repoURL: https://github.com/artieeez/artr-gitops
+      targetRevision: HEAD
+      ref: values
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

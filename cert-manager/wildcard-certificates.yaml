@@ -1,3 +1,4 @@
+# Single wildcard cert in cert-manager; reflector copies the Secret to other namespaces.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -11,59 +12,9 @@ spec:
   issuerRef:
     name: letsencrypt-cloudflare
     kind: ClusterIssuer
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: wildcard-artr-com-br
-  namespace: staging
-spec:
-  secretName: wildcard-artr-com-br-tls
-  dnsNames:
-    - artr.com.br
-    - "*.artr.com.br"
-  issuerRef:
-    name: letsencrypt-cloudflare
-    kind: ClusterIssuer
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: wildcard-artr-com-br
-  namespace: production
-spec:
-  secretName: wildcard-artr-com-br-tls
-  dnsNames:
-    - artr.com.br
-    - "*.artr.com.br"
-  issuerRef:
-    name: letsencrypt-cloudflare
-    kind: ClusterIssuer
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: wildcard-artr-com-br
-  namespace: platform
-spec:
-  secretName: wildcard-artr-com-br-tls
-  dnsNames:
-    - artr.com.br
-    - "*.artr.com.br"
-  issuerRef:
-    name: letsencrypt-cloudflare
-    kind: ClusterIssuer
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: wildcard-artr-com-br
-  namespace: argocd
-spec:
-  secretName: wildcard-artr-com-br-tls
-  dnsNames:
-    - artr.com.br
-    - "*.artr.com.br"
-  issuerRef:
-    name: letsencrypt-cloudflare
-    kind: ClusterIssuer
+  secretTemplate:
+    annotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "argocd,staging,production,platform,monitoring"
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "argocd,staging,production,platform,monitoring"

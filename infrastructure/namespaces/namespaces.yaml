@@ -32,4 +32,9 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
+  name: reflector
+---
+apiVersion: v1
+kind: Namespace
+metadata:
   name: sitio-staging

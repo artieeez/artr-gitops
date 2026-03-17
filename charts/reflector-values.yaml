@@ -1,0 +1,2 @@
+# Reflector copies the wildcard TLS secret from cert-manager to other namespaces.
+# Source secret is annotated via cert-manager Certificate secretTemplate.
