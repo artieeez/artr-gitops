@@ -7,11 +7,11 @@ service:
     oci-network-load-balancer.oraclecloud.com/security-list-management-mode: "All"
     oci-network-load-balancer.oraclecloud.com/subnet: "ocid1.subnet.oc1.sa-vinhedo-1.aaaaaaaalq77jobfgruaz5bcbpc5owopwsw63jkfp6lvajgcokjj5omblb2q"   # set by scripts/update-traefik-oci-from-terraform.sh from terraform output public_subnet_id
 ports:
-  postgres:
-    port: 5432          # internal Traefik service port
+  postgres-staging:
+    port: 5435          # internal Traefik service port
     expose:
       default: true     # expose via LoadBalancer Service
-    exposedPort: 5432   # NLB listener port
+    exposedPort: 5435   # NLB listener port
     protocol: TCP
 entryPoints:
   web:
@@ -20,8 +20,8 @@ entryPoints:
     address: ":8443"
   traefik:
     address: ":8080"
-  postgres:
-    address: ":5432"
+  postgres-staging:
+    address: ":5435"
 providers:
   kubernetesCRD:
     enabled: true
