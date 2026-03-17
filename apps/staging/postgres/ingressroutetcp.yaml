@@ -5,7 +5,7 @@ metadata:
   namespace: staging
 spec:
   entryPoints:
-    - postgres-staging
+    - postgres1
   routes:
     - match: HostSNI(`*`)
       services:
