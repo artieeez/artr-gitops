@@ -9,7 +9,8 @@ service:
 ports:
   postgres:
     port: 5432          # internal Traefik service port
-    expose: true        # expose via LoadBalancer Service
+    expose:
+      default: true     # expose via LoadBalancer Service
     exposedPort: 5432   # NLB listener port
     protocol: TCP
 entryPoints:
