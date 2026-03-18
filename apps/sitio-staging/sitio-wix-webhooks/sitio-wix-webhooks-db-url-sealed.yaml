@@ -1,19 +1,22 @@
 {
-  "kind": "SealedSecret",
   "apiVersion": "bitnami.com/v1alpha1",
+  "kind": "SealedSecret",
   "metadata": {
+    "creationTimestamp": null,
     "name": "sitio-wix-webhooks-db-url",
     "namespace": "sitio-staging"
   },
   "spec": {
+    "encryptedData": {
+      "DATABASE_URL": "AgASdJkMAUVGqZm0TQqFCy9UnAyPEnBVwlQqEaw547T2FMBAsJp5nf660LtKkhVgR8sT5lh++qmip/C85O3dbv4ATZimBmKNc65XEGIn86ZpDKP/uz82a9lrOSeYJSiDz8GcF6w8BOorlMaDECPic8emZT5aJnWwmda0Hmsvcdf8wC/GqPZ11MleaR48zWPg77WKgOZiig987giSECgvaQRtQRy6XN+7L+baeIEBmzIOHMpvOtj8Ct9QvyzsU6AZCXl3G7GPyuJvztL1UNeuhvzLB5daUntwza1SiQ71wUpJbfcUIa0z6wImGHjkzXHvAj0ZXs/q8UUV7DtGkDd4q0lVbFtl/hUBuA1AXTSrkR7PstgEvHn+HjIAJHPGJwtOjv6NejYx8MCjzGKoVA4nQAgXzLxaO2V/gHD/doztlWYy+Zqe5xfPg0ycGqyUGm0v96r/MBb/TkGNjVy3nj//rQ1jjDJvLRnDRfQp0TNG95ybYxKrHXBnGSvUt9jTx3IrxMkTUSlX3cWUki88HTL7VY37tNBG88CpZvsjmVsJiVIxLu949ZUsyqXbQfaAUyIrnMwv6MSstOfsUHpPUk/OUKvKoOj+pVP6Do1yPgSPn2BW2NfwtPGGqKxDd6Y5QYMHZMmSQJlZxqGQN0y/52s7b/bHSaLzp9dF1b1mabSNbCTNveLJz/9JnwPj4BFN0BIEVogGMYm6OaXaiG2JvmRErowKjSF7RQH+fzoJC16U3hkHzDbyFT799jyWSN0EHqKisiUuhrcALCv4Vwn8OIkyNw/NP0Y496CT5HQ26FUdjuSEbA=="
+    },
     "template": {
       "metadata": {
+        "creationTimestamp": null,
         "name": "sitio-wix-webhooks-db-url",
         "namespace": "sitio-staging"
-      }
-    },
-    "encryptedData": {
-      "DATABASE_URL": "AgC4tuK7UMUzkzfJfEOq87486OFWzpOAQiq6s32RKkkTSfpji7QFtWx/0+L/V8+DAoY3AZgbN2et0a9nLhJaK+jiNJWgfxmrxv7LC30cMI+ltEA6AtuHRzy/fXqL3NlV8qIp0Iun7qE5ENkzg8nj8bmrfj6bzk8aeIsipPiIK/2dKNb01Kc3XdYzwRxj2UJ0UGn3fuDd1AEX26bVuLVryGnR/uW1c9JVhHrhcfhZ6YGhSh7M9vLQRETiDmUqgnea7aDgMpJFb2a5qnCudxN3ZmlGWo6dLkznU6BudRQEB2VsjyiiJ58zVESOzIi9QBrRCCAJzhN8TuuKQIWaKkhg67hx3G6umO6AQ3fGlJqCKORtHGGmF9t7r0HB5CsKbOnimVUsfgERn2M7HnG/3ZdfcwK4RQ6OVWln377vnKu69IFt5aixmimmqjC62oKRNx9ElmM1d6U6Y77ZTrclmOIVhc4YrWEUAqG6x17zo9SRoV1G9Bk2M/9e0psL0WVCY+jFHNy3S/3wkpLsVUZvthbyu53H0bd8oYMFA+IsIKGPsEkAY5T0TL36rq1gd7gniN4pLlDr4+o09b3pMo9Ipt+t4UdscgAj8kJ0E1ZIVXaDTkWCMyTvJ+Oiu82VVaJD2JHQrwx6SRdeGr3W+G44BX35Zsqmnx+r6OGNrmq0EwwznJS3Xr1o6Tr+NaZCNOPQ0u1M7TV6sw/IChyG+loGwjVLmtkIZxNbvYn6PiU0n2qpiDqfKOEJWMqq/nyHNOBSa/ItcnXP8/7BLADYbn+EeuxQbuEX9lGxUtvQKFa9e7RqL8gdSN2zRwmTkXwZQLgdA6Qo"
+      },
+      "type": "Opaque"
     }
   }
 }
