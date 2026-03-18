@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: sitio-wix-webhooks-db-url
+  namespace: sitio-staging
+spec:
+  encryptedData:
+    DATABASE_URL: AgBe4rb1UJGTpx+8zu08Hi6mTSej4z4AGt1+w5cMLRTXtxSR3PjS5jvRkktfjTzhLbVrpQN8JTkRxBhOA5dX+kcgEijiTvEB8JxBLM8D7HgzalkwMNU/tMt0k38yfGWbqaKYZrpMzRFu0FxB9A+y0G8tcI7oxAwqqoianXeLzK7Qw3jGCTZJ3tWfpTIhEP6Bk2M+EEQCFxEmgDBoMw2rWnWx4fhgAHIAQTjQCygLL9ZwB84aTqEnmuXdE8IRIS+DkgPjFluJEbpFVKatXh4SE4wh8EncXHn//QyGtZDi5BmWafJuBUQ8uwvoo12Jm25hDL0VdjiybUNzu/+rFv+6fkdMbgORgM0e8vMurpPgzZtpMwayDexAkPAr1G02paczNePZNgYXqit5BBDgdrAi4tqecOfMC43q2LqYAVU/MyBwojVz5iDJQ7AMHWzv4BrKhGzg4QHTEhjqnTYW3CHf5t1+wmIjOQiAt9271cyx3jI3C5gEtQPXhPYb8v6BOS9O/7gvnUpPtanb4Oo7ycgWYg+MIrnigij/SY7uja1XsOc7HpUJ4iJ4gKPpKT1vaQdqCVr8orJ0HgWtBPxh0Tjq0ImOPZRiV0rt1T6jvDb92+ozfeNMvCQm8d6ETFD2IG+zqPo+sApnjq4lOVTjHtzQlVS9tPz13kEB+6tb+biPtVUqCiuU8MMK40fUrnBmZajMv7XCIPGljDT4wdUJP7/F0/wzsS6hpT00b2oyF5rG1NUbMeFsBbb89e86NBK0UDayzH5Sfjtwk1BpTMBbbOkKtDvywcQYg7i2DbDwmdy8fRVVyPGPbHO9VxJkWE2LFQM4
+  template:
+    metadata:
+      name: sitio-wix-webhooks-db-url
+      namespace: sitio-staging
