@@ -1,0 +1,16 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sitio-wix-webhooks
+  namespace: sitio-staging
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`sitio-wix-webhooks-staging.artr.com.br`)
+      kind: Rule
+      services:
+        - name: sitio-wix-webhooks
+          port: 80
+  tls:
+    secretName: wildcard-artr-com-br-tls
