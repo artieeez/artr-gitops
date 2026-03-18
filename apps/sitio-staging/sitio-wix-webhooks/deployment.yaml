@@ -21,9 +21,7 @@ spec:
         - name: docker-registry-pull
       containers:
         - name: sitio-wix-webhooks
-          # In-cluster pull via registry ClusterIP (must match charts/docker-registry-values.yaml service.clusterIP).
-          # Nodes need containerd HTTP mirror for this host:5000 — see docs/registry-internal-image-pull.md.
-          image: 10.96.240.50:5000/sitio-wix-webhooks-microservice:sha-15335bd
+          image: docker.artr.com.br/sitio-wix-webhooks-microservice:sha-15335bd
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
