@@ -1,20 +1,22 @@
 {
-  "kind": "SealedSecret",
   "apiVersion": "bitnami.com/v1alpha1",
+  "kind": "SealedSecret",
   "metadata": {
+    "creationTimestamp": null,
     "name": "postgres-sitio-staging-auth",
     "namespace": "sitio-staging"
   },
   "spec": {
+    "encryptedData": {
+      "password": "AgAPLkQjUBo8sOlHy2XXSHQLQUrGDSFR/pu5L0pPTvd30ntCxjed7g5Drf7xuD79RksRQXzlowtae2Tu/tFnhxkNMlnQREHyd+RWHK9yFnpPz7Y6Xg8wOor73ZjcPPAVp/iz86GQNjbuVf+phAGXbeHMCeRubvRsnhrLpUSyip73JhZPHNdi88PyAKCxMIjFhQbQupxKZndNKkUazydtE/eFwqmiMCL33CyhqHTRzI8uHSeg2jdkjHsi8YKD4ZLgSBgVg2I/84uRs80SU36SM0/YpW2JMZow1vKIOkYuPWsLt9e0MaFbANAVxJc1SBVCJHpKhkBuLaDgt4DuWeR9OgSPHlcG0/5GHu+7FOtqdNvwmAYdQgZSM7Rz+AHDOLmSHKMg7CW9YFQFUTzOuWy+L+OuE/zAv1sur8RidogsiztEuqYPrTiTOXTsXZOr6N+sE211vSJ0NOXgxwBzBAIEXZ672Dil09Ym+Tzuoc2q3g02cmB9ADt+wtB25YQseD4TQ0OJOmrNv0lJaXuYX/9dW8NyoJa84eQ9atWSPZWFCgvYgObi5nvLkcMhwuLH0NTCEq2txO+Kb61ROX0lVS+WloOD9WewUoZB5/Q7mWo8yv8ND5xKjLzDlxv78/yyHeG84IqXxHHrQShX6fGNzUavyms4FYA6dkcX09vDIbiLY1knPNuUuowCiFmfQgmh2/wgmO/uPvniRrDhrg=="
+    },
     "template": {
       "metadata": {
+        "creationTimestamp": null,
         "name": "postgres-sitio-staging-auth",
         "namespace": "sitio-staging"
       },
       "type": "Opaque"
-    },
-    "encryptedData": {
-      "password": "AgBLiTusrfjGuTHbXN62Yd7pz/MGW2uynuWnctJdawjsO6n9LUUkgL0I+l8prrSHSg/gZ5OcBVGWeC+bANDv0zFEOalaqXj0/lwqy/iA1Dku/4/UEav/nqXgxvgq/2+bnfOCrd4NQX3a0+04S2uAYKcLEE2ZJyxXWCHnJ3rAGsoI/EISkHM89Lro8VrcCsEs4fay1T4os+jWYUYoWsCwDD33lUEheWRxmhuSF+zzha0Uv2NzcsHmNG0bjdKM/QASAhE+GKR7BGg7oCU7DS14YudQwMYmvAyDsI4qTUuCUlvgsc4HB4opzx+Qa6Rz9Bqbxgn9Y5hWEtI20HhMjIXep9ylCu7pBrEAkFSDp/bQPoqpsMpcflRreN7BISiADLVJ+SO/Tf4yfgXRlDEafu/0n4dZHeoaMz4X4D/XCUYeWK+WzBLVYPyP/orP1A8a8j3vJdQdObw1vpIRGKWNhG8Zi/i8iuM/vZEZzde9FR7t7+fJnaNwWLivGZGZq/x2R05woMIQwjARQHWx2w1QzuD2uFArj+wjZaM4KDlzLBP2zKKnfWZ5dkp0RySAkrr9LtqEKGSedcKjzUftOzxC816rk9xq4uX2OSw2JyQoTYD1CTSJnzg73L7774Lpq3yGDmW0NjazTHXtjWnsZ6QOR1Rs2Z7+kZA6DoPUjm4hIxEL6Tvm7wqNBAJpxDG5vt0mjBFmW7AX9CQTHKkGAw=="
     }
   }
 }
