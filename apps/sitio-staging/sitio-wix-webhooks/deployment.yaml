@@ -17,9 +17,11 @@ spec:
         app: sitio-wix-webhooks
         environment: sitio-staging
     spec:
+      imagePullSecrets:
+        - name: docker-registry-pull
       containers:
         - name: sitio-wix-webhooks
-          image: docker.artr.com.br/sitio-wix-webhooks-microservice:sha-15335bd
+          image: docker-registry.platform.svc.cluster.local:5000/sitio-wix-webhooks-microservice:sha-15335bd
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000

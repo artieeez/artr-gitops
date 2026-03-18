@@ -1,0 +1,14 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: docker-registry-pull
+  namespace: sitio-staging
+spec:
+  encryptedData:
+    .dockerconfigjson: AgCaDAqI/MarwwssaHRsfHbtSA2Gnk0mzpeUOm3R8eIJhkwycbo4SLejbaudty/2Ndu/v2BatFxaXy/SSeFxzxqThSDM95CaHcJQJBY074JXwo1tNo51o95jiI/loAZ6kaAILX0dSkvJ07pXI2sA8VIJ5TwehYZXbOZGpqPXbqUMUdcK7KGfZr9U69AzfAyn+V5Fi8aOz2n+qa9tnuBbxpr/Aj5qqzYfZgZIA2EZObiuGMD7sjFn4RC3MwnWLo9tEfFu/uwst6AhZaLTH+9FZHYV8hQ/8YIvhHO5dUL5XKgAx8RajXHFSrHgrQCPuPfyfJ2qKdVVjae/uURM/+lfBxyDATFPdhwJrQhHJupG1jqUhgqIrwa8JIQwzfoNzMKW/Ef1TGr4WpUsolaPFGZReaHrgmgfJSmuuOFPLetlf3qOdEAxZJ0gkkxc7gT1BZvYKFsSGdekmlomH+AkuAF+vlubKBrVLuCVRjHu078zoLMrIHEFV7ucWE4/yOpvCQ/0iQt3d3x2I6NUu3OgM0gfVZdHsFVEQ1jAbcnNATcMa+XAxk5cyvpY70XeTMgohaMbtyK5NADImu1HdrBX2qeAgUSmr6NciVhvWS5z6YMrfBwvZAjNfJ4ubGalF+CQdRmYYV6VSTfITtfp+UEU9miyuaa7/zPtqiK7ItS+dGMmhYEr/6AVpDEg7cOk0faZRe1CNMmwPI2z8wqQkZc952kENpTCK/srBfkoYbbPncZ3HEvDbk0jUm8f3sb9PoxwMINDgCAmBCxdXqcGdO69+f4x4TUdWi3cm3uo8AaDblNhYLoCLDVXxk+PdWc2bMZ1r46hkrLLuOEW4BLBlKdkEkWoe7z2w/NrzwoOuI4w96IMBlUG0M12sjYgTi8akCNgM5fU5/oOH/mjn1mVY+paC3bT+fK9CSSFnIBOeO7SRvvNFOEBndJvwNyQ/JGsSLK7uB8yddY4wQVU7zPHsW5DxjskqsjQ7QNZvQUsRhdL0OM=
+  template:
+    metadata:
+      name: docker-registry-pull
+      namespace: sitio-staging
+    type: kubernetes.io/dockerconfigjson
