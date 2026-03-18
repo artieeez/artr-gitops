@@ -7,6 +7,9 @@ service:
   name: docker-registry
   type: ClusterIP
   port: 5000
+  # Stable IP so nodes can pull via kube-proxy without public DNS (see docs/registry-internal-image-pull.md).
+  # Must be unused in your Service CIDR; change if Helm apply fails.
+  clusterIP: 10.96.240.50
 
 ingress:
   enabled: false
