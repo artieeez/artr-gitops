@@ -34,6 +34,9 @@ extraVolumeMounts:
     mountPath: /auth
     readOnly: true
 extraEnvVars:
+  # Registry 3.x tries OTLP to localhost:4318 by default → log spam without a collector
+  - name: OTEL_TRACES_EXPORTER
+    value: "none"
   - name: REGISTRY_AUTH
     value: "htpasswd"
   - name: REGISTRY_AUTH_HTPASSWD_REALM
