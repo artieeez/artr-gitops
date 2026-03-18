@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sealed-secrets-web
+  namespace: platform
+  labels:
+    app: sealed-secrets-web
+spec:
+  selector:
+    app: sealed-secrets-web
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
