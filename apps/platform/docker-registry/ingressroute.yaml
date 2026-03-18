@@ -1,0 +1,16 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: docker-registry
+  namespace: platform
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`docker.artr.com.br`)
+      kind: Rule
+      services:
+        - name: docker-registry
+          port: 5000
+  tls:
+    secretName: wildcard-artr-com-br-tls

@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-docker-registry
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: platform
+  sources:
+    - repoURL: https://twuni.github.io/docker-registry.helm
+      chart: docker-registry
+      targetRevision: "3.0.0"
+      helm:
+        releaseName: docker-registry
+        valueFiles:
+          - $values/charts/docker-registry-values.yaml
+    - repoURL: https://github.com/artieeez/artr-gitops
+      targetRevision: HEAD
+      ref: values
+    - repoURL: https://github.com/artieeez/artr-gitops
+      targetRevision: HEAD
+      path: apps/platform/docker-registry
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

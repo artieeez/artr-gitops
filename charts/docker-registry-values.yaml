@@ -1,0 +1,49 @@
+# Docker Registry – TLS at Traefik (IngressRoute in apps/platform/docker-registry/).
+# Auth: Secret registry-htpasswd from SealedSecret (see apps/platform/docker-registry/README.md).
+
+replicaCount: 1
+
+service:
+  name: docker-registry
+  type: ClusterIP
+  port: 5000
+
+ingress:
+  enabled: false
+
+persistence:
+  enabled: true
+  size: 20Gi
+  storageClass: nfs-client
+  accessMode: ReadWriteOnce
+
+storage: filesystem
+
+# Auth via existing Secret (SealedSecret → registry-htpasswd)
+secrets:
+  htpasswd: ""   # not used; we mount registry-htpasswd below
+extraVolumes:
+  - name: auth
+    secret:
+      secretName: registry-htpasswd
+      items:
+        - key: htpasswd
+          path: htpasswd
+extraVolumeMounts:
+  - name: auth
+    mountPath: /auth
+    readOnly: true
+extraEnvVars:
+  - name: REGISTRY_AUTH
+    value: "htpasswd"
+  - name: REGISTRY_AUTH_HTPASSWD_REALM
+    value: "Registry Realm"
+  - name: REGISTRY_AUTH_HTPASSWD_PATH
+    value: "/auth/htpasswd"
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    memory: 512Mi
