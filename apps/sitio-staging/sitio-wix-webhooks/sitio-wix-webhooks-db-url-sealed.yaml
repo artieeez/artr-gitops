@@ -1,13 +1,19 @@
----
-apiVersion: bitnami.com/v1alpha1
-kind: SealedSecret
-metadata:
-  name: sitio-wix-webhooks-db-url
-  namespace: sitio-staging
-spec:
-  encryptedData:
-    DATABASE_URL: AgBe4rb1UJGTpx+8zu08Hi6mTSej4z4AGt1+w5cMLRTXtxSR3PjS5jvRkktfjTzhLbVrpQN8JTkRxBhOA5dX+kcgEijiTvEB8JxBLM8D7HgzalkwMNU/tMt0k38yfGWbqaKYZrpMzRFu0FxB9A+y0G8tcI7oxAwqqoianXeLzK7Qw3jGCTZJ3tWfpTIhEP6Bk2M+EEQCFxEmgDBoMw2rWnWx4fhgAHIAQTjQCygLL9ZwB84aTqEnmuXdE8IRIS+DkgPjFluJEbpFVKatXh4SE4wh8EncXHn//QyGtZDi5BmWafJuBUQ8uwvoo12Jm25hDL0VdjiybUNzu/+rFv+6fkdMbgORgM0e8vMurpPgzZtpMwayDexAkPAr1G02paczNePZNgYXqit5BBDgdrAi4tqecOfMC43q2LqYAVU/MyBwojVz5iDJQ7AMHWzv4BrKhGzg4QHTEhjqnTYW3CHf5t1+wmIjOQiAt9271cyx3jI3C5gEtQPXhPYb8v6BOS9O/7gvnUpPtanb4Oo7ycgWYg+MIrnigij/SY7uja1XsOc7HpUJ4iJ4gKPpKT1vaQdqCVr8orJ0HgWtBPxh0Tjq0ImOPZRiV0rt1T6jvDb92+ozfeNMvCQm8d6ETFD2IG+zqPo+sApnjq4lOVTjHtzQlVS9tPz13kEB+6tb+biPtVUqCiuU8MMK40fUrnBmZajMv7XCIPGljDT4wdUJP7/F0/wzsS6hpT00b2oyF5rG1NUbMeFsBbb89e86NBK0UDayzH5Sfjtwk1BpTMBbbOkKtDvywcQYg7i2DbDwmdy8fRVVyPGPbHO9VxJkWE2LFQM4
-  template:
-    metadata:
-      name: sitio-wix-webhooks-db-url
-      namespace: sitio-staging
+{
+  "kind": "SealedSecret",
+  "apiVersion": "bitnami.com/v1alpha1",
+  "metadata": {
+    "name": "sitio-wix-webhooks-db-url",
+    "namespace": "sitio-staging"
+  },
+  "spec": {
+    "template": {
+      "metadata": {
+        "name": "sitio-wix-webhooks-db-url",
+        "namespace": "sitio-staging"
+      }
+    },
+    "encryptedData": {
+      "DATABASE_URL": "AgC4tuK7UMUzkzfJfEOq87486OFWzpOAQiq6s32RKkkTSfpji7QFtWx/0+L/V8+DAoY3AZgbN2et0a9nLhJaK+jiNJWgfxmrxv7LC30cMI+ltEA6AtuHRzy/fXqL3NlV8qIp0Iun7qE5ENkzg8nj8bmrfj6bzk8aeIsipPiIK/2dKNb01Kc3XdYzwRxj2UJ0UGn3fuDd1AEX26bVuLVryGnR/uW1c9JVhHrhcfhZ6YGhSh7M9vLQRETiDmUqgnea7aDgMpJFb2a5qnCudxN3ZmlGWo6dLkznU6BudRQEB2VsjyiiJ58zVESOzIi9QBrRCCAJzhN8TuuKQIWaKkhg67hx3G6umO6AQ3fGlJqCKORtHGGmF9t7r0HB5CsKbOnimVUsfgERn2M7HnG/3ZdfcwK4RQ6OVWln377vnKu69IFt5aixmimmqjC62oKRNx9ElmM1d6U6Y77ZTrclmOIVhc4YrWEUAqG6x17zo9SRoV1G9Bk2M/9e0psL0WVCY+jFHNy3S/3wkpLsVUZvthbyu53H0bd8oYMFA+IsIKGPsEkAY5T0TL36rq1gd7gniN4pLlDr4+o09b3pMo9Ipt+t4UdscgAj8kJ0E1ZIVXaDTkWCMyTvJ+Oiu82VVaJD2JHQrwx6SRdeGr3W+G44BX35Zsqmnx+r6OGNrmq0EwwznJS3Xr1o6Tr+NaZCNOPQ0u1M7TV6sw/IChyG+loGwjVLmtkIZxNbvYn6PiU0n2qpiDqfKOEJWMqq/nyHNOBSa/ItcnXP8/7BLADYbn+EeuxQbuEX9lGxUtvQKFa9e7RqL8gdSN2zRwmTkXwZQLgdA6Qo"
+    }
+  }
+}

@@ -1,15 +1,20 @@
-apiVersion: bitnami.com/v1alpha1
-kind: SealedSecret
-metadata:
-  name: postgres-sitio-staging-auth
-  namespace: sitio-staging
-spec:
-  encryptedData:
-    password: AgAh9NjNexeClX2YhljpcSosECDrSNKroUurZU3uB7SScC5ZINkaYIjRftr7HT+JOydXxnQ10oKNGYUkINZ7ycXXwIYeYtTKj6I7Jn5erExnrN/b1purwnZJHlaIlSGNAl/f8BiToKThmO/mv0Mr2p/OMwbKtRdUyUyX7zhzdeM5OVrBNZA89Jp0DuZJ8kYL1vHZrA0eiSvt+l7wsK5mWCvAOLCj1TF+8XKqTS3IV8m2ow4+8SpyDwKLH7nOYVVMwbO9RcbuNKaOcVOGZ/FJa7EywjS/XBAtav0mcKj2RNVEP5BWPTdY8sjd4UkIh8boVzXrnzrusek67HbgFvilOF5fWWB9NjawhEdFlosX8T9/5Sb21PCpWfVgbZfnBzuWAwJNr/manodVpjy2XAvhEYS/uoEutNT7l7S9pFeQwbTZKPEtyMD0VAglFLUaWdL/jrtQMALCyLr93GwP5r8cu7YbAL8FEBHvC8B3vUkupZh0EHzbIkjnTCcNc3kWz0/w9dDoqZMgkrVKNInwvKyXQZifQ494Ad4YXCbuu2w+aCN3EdfZIvR+HPQxJ/Jf+l0o3QHUePXWg1NDMK9Qsb+Hi/Zeyu2eUbtJsykJviYy+UjJQgPWMxv8W2NZBjR8K7g8yNsoM89aAsPV7ABaLs1PV0WoxA7JiMl5yeiyD/n8mgEogwEbhpVXKHALDV1lJxL/5Q+GIZ2uLZDfnA==
-  template:
-    metadata:
-      name: postgres-sitio-staging-auth
-      namespace: sitio-staging
-    type: Opaque
-    data: {}
-
+{
+  "kind": "SealedSecret",
+  "apiVersion": "bitnami.com/v1alpha1",
+  "metadata": {
+    "name": "postgres-sitio-staging-auth",
+    "namespace": "sitio-staging"
+  },
+  "spec": {
+    "template": {
+      "metadata": {
+        "name": "postgres-sitio-staging-auth",
+        "namespace": "sitio-staging"
+      },
+      "type": "Opaque"
+    },
+    "encryptedData": {
+      "password": "AgBN1BrxauxVMYPcK6djYINj+m3zOwoUybwQVSgOjSvFzr8xhu7PiqmPQRz3vcjKWqC15qDV9UJbH+PzJ4r/hQgGxveoZCCXTXot/qSxwVE3S9iVKjTN6kI08u/ML34LVPkcq+NyZQ7vqdtzQzkhmyEP5jW6+D1+RshXWMD1GlpWHRzHjorT5aVzleeP0SEtj4imxe6ZscJDvZpE4ZfeQmN/zCDFlAN1U1mSBWzu1LJlU7O7FIyOHwshFtzNX9/6KF9uVErponux7xjv3wOCDQIADjhvBFi4YZ73I5EQDoXRB/YqEtFb4H4O0GT9i8FV5LlGviB7GpgwNmGybLaCW7DjyxzoreGbjOSxJZ1w6sR1x3mv3B7R9hr1KBv9jOAEXnb8A4DNMj6FMPZqZz9UzBqvfB8VyzEDl30etl2ICAL/IM4sPFkGYcd5H0iuW3LlwqzxopVbae9TTYIDur97jX8SE2espyeE0xpjTFi1HZx3m6KxbSRTK5JFdoEwoWlg2zPWBHL6gkZU3Nfbp3EBRhIIFVZ65yQkn43DT8HCu3+UCvB80OTrRV3dB4cSRt84+zRcqgbF90kFKummepEyJpwWYgxB9jN2FfH5dgpMaDnsEAC0nqLYZRMNVbxJoZIyefzoh+U+zux6M2zRukpX8/tWDLXgPZEK8X6rtJBjARZEerg2DqEd+BgaNQ7MXZBVDe9zH2oDJ8Du8Q=="
+    }
+  }
+}
