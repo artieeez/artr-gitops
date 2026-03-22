@@ -27,6 +27,14 @@ alertmanager:
 
 grafana:
   enabled: true
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      url: http://loki-gateway.monitoring.svc.cluster.local
+      access: proxy
+      isDefault: false
+      jsonData:
+        maxLines: 1000
   # OIDC client secret from Secret (create via SealedSecret; see apps/monitoring/grafana/README.md)
   envFromSecret: grafana-oidc-secret
   grafana.ini:

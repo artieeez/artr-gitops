@@ -1,0 +1,72 @@
+# Grafana Alloy — OTLP (logs) → Loki push. Depends on Loki gateway in monitoring.
+# Chart: grafana/alloy
+
+alloy:
+  clustering:
+    enabled: false
+
+  extraPorts:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+      protocol: TCP
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+      protocol: TCP
+
+  configMap:
+    create: true
+    content: |
+      logging {
+        level  = "info"
+        format = "logfmt"
+      }
+
+      otelcol.receiver.otlp "default" {
+        grpc {}
+
+        http {}
+
+        output {
+          logs = [otelcol.processor.batch.default.input]
+        }
+      }
+
+      otelcol.processor.batch "default" {
+        output {
+          logs = [otelcol.processor.attributes.hints.input]
+        }
+      }
+
+      otelcol.processor.attributes "hints" {
+        action {
+          key    = "loki.resource.labels"
+          action = "insert"
+          value  = "service.name, service.namespace"
+        }
+
+        output {
+          logs = [otelcol.exporter.loki.default.input]
+        }
+      }
+
+      otelcol.exporter.loki "default" {
+        forward_to = [loki.write.local.receiver]
+      }
+
+      loki.write "local" {
+        endpoint {
+          url = "http://loki-gateway.monitoring.svc.cluster.local/loki/api/v1/push"
+        }
+      }
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+crds:
+  create: false

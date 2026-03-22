@@ -21,7 +21,7 @@ spec:
         - name: docker-registry-pull
       containers:
         - name: sitio-wix-webhooks
-          image: docker.artr.com.br/sitio-wix-webhooks-microservice:sha-2299f7e
+          image: docker.artr.com.br/sitio-wix-webhooks-microservice:sha-30d8b02
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
@@ -29,6 +29,10 @@ spec:
           env:
             - name: PORT
               value: "3000"
+            - name: OTEL_SERVICE_NAME
+              value: sitio-wix-webhooks
+            - name: OTEL_EXPORTER_OTLP_LOGS_ENDPOINT
+              value: http://alloy.monitoring.svc.cluster.local:4318/v1/logs
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
