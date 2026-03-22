@@ -17,6 +17,15 @@ memcachedExporter:
 minio:
   enabled: false
 
+# Default chunks cache uses allocatedMemory 8192 → ~9830Mi requests (too large for small nodes).
+chunksCache:
+  allocatedMemory: 512
+  allocatedCPU: 100m
+
+resultsCache:
+  allocatedMemory: 256
+  allocatedCPU: 100m
+
 loki:
   auth_enabled: false
   commonConfig:
