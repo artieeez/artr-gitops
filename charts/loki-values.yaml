@@ -3,6 +3,17 @@
 
 deploymentMode: SingleBinary
 
+# containerd short-name mode (e.g. OCI) requires fully qualified image references.
+memcached:
+  image:
+    repository: docker.io/library/memcached
+    tag: 1.6.39-alpine
+
+memcachedExporter:
+  image:
+    repository: docker.io/prom/memcached-exporter
+    tag: v0.15.4
+
 minio:
   enabled: false
 
