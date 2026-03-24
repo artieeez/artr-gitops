@@ -4,7 +4,8 @@ service:
   annotations:
     oci.oraclecloud.com/load-balancer-type: "nlb"
     oci.oraclecloud.com/reserved-ips: "204.216.137.207"   # set by scripts/update-traefik-oci-from-terraform.sh from terraform output reserved_public_ip_address
-    oci-network-load-balancer.oraclecloud.com/security-list-management-mode: "All"
+    # Customer-managed ingress on the public subnet security list (dns_server_allowed_cidrs, 80/443/5435, etc. in oracle-cluster).
+    oci-network-load-balancer.oraclecloud.com/security-list-management-mode: "None"
     oci-network-load-balancer.oraclecloud.com/subnet: "ocid1.subnet.oc1.sa-vinhedo-1.aaaaaaaalq77jobfgruaz5bcbpc5owopwsw63jkfp6lvajgcokjj5omblb2q"   # set by scripts/update-traefik-oci-from-terraform.sh from terraform output public_subnet_id
 ports:
   postgres1:
