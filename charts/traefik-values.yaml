@@ -1,6 +1,9 @@
 service:
   enabled: true
   type: LoadBalancer
+  # One Service with TCP+UDP requires MixedProtocolLBService; OKE/CCM often drops UDP from spec → no NLB listener.
+  # Two Services (TCP + UDP) fixes DNS; both use the same annotations (incl. reserved IP); OCI usually attaches listeners correctly.
+  single: false
   annotations:
     oci.oraclecloud.com/load-balancer-type: "nlb"
     oci.oraclecloud.com/reserved-ips: "204.216.137.207"   # set by scripts/update-traefik-oci-from-terraform.sh from terraform output reserved_public_ip_address

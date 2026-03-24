@@ -10,11 +10,13 @@ Point your router’s DNS to the **Traefik NLB** IP (same as `*.artr.com.br`).
 
 1. **Terraform `dns_server_allowed_cidrs`** (oracle-cluster) must include the **public WAN IP** that OCI sees when your home network queries the NLB (usually `/32`). If it’s wrong or empty, **UDP/TCP 53 are dropped** while HTTPS on 443 still works.
 
-2. **Isolate router vs Pi-hole:** From a laptop on the LAN, run:
+2. **Traefik must expose UDP on its own `Service`** (`traefik-oci-udp` in `traefik` namespace). If `kubectl -n traefik get svc traefik-oci` shows **only** `/TCP` ports and no `/UDP`, OKE never opened UDP/53 — see `service.single: false` in `charts/traefik-values.yaml`. Check:
+   - `kubectl -n traefik get svc` → **`traefik-oci-udp`** with `PORT(S)` **53/UDP** and an `EXTERNAL-IP` (often the **same** reserved IP as `traefik-oci`).
+3. **Isolate router vs Pi-hole:** From a laptop, run:
    - `dig @<NLB_IP> cloudflare.com` (UDP)
    - `dig @<NLB_IP> cloudflare.com +tcp` (TCP)  
-   If TCP works but UDP does not, check OCI **UDP** rules and Traefik/NLB UDP listeners.
+   If TCP works but UDP does not, fix the **`traefik-oci-udp`** Service / NLB first (see above), then OCI security lists.
 
-3. **Some routers** ignore “custom DNS” for clients or use ISP caching; try setting DNS on **one device** to the NLB IP to confirm.
+4. **Some routers** ignore “custom DNS” for clients or use ISP caching; try setting DNS on **one device** to the NLB IP to confirm.
 
-4. If **UDP fails but `dig +tcp` works** (even from LTE), the usual fix is **`nativeLB: false`** on `IngressRouteUDP` / `IngressRouteTCP` so Traefik targets **pod IPs** instead of kube-proxy/ClusterIP (UDP often breaks on the ClusterIP path). If it still fails, verify the Traefik `Service` has a **UDP** port **53** and the OCI NLB shows a **UDP** listener; last resort is a **separate LoadBalancer** for `pihole-dns` (bypass Traefik on 53).
+5. If **UDP fails but `dig +tcp` works** (even from LTE), the usual fix is **`nativeLB: false`** on `IngressRouteUDP` / `IngressRouteTCP` so Traefik targets **pod IPs** instead of kube-proxy/ClusterIP (UDP often breaks on the ClusterIP path). If it still fails, verify the Traefik `Service` has a **UDP** port **53** and the OCI NLB shows a **UDP** listener; last resort is a **separate LoadBalancer** for `pihole-dns` (bypass Traefik on 53).
