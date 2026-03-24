@@ -1,0 +1,14 @@
+# UDP DNS → Traefik entryPoint dnsudp (charts/traefik-values.yaml) → Pi-hole
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteUDP
+metadata:
+  name: pihole-dns-udp
+  namespace: platform
+spec:
+  entryPoints:
+    - dnsudp
+  routes:
+    - services:
+        - name: pihole-dns
+          namespace: platform
+          port: dns-udp

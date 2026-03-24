@@ -1,0 +1,39 @@
+# Pi-hole – DNS via Traefik NLB (IngressRouteUDP/TCP in apps/platform/pihole/), HTTPS UI + TinyAuth.
+# Chart: https://mojo2600.github.io/pihole-kubernetes/  (pihole 2.35.0)
+
+replicaCount: 1
+
+serviceDns:
+  type: ClusterIP
+  mixedService: true
+
+serviceDhcp:
+  enabled: false
+
+serviceWeb:
+  type: ClusterIP
+
+ingress:
+  enabled: false
+
+virtualHost: pihole.artr.com.br
+
+admin:
+  enabled: false
+
+persistentVolumeClaim:
+  enabled: true
+  accessModes:
+    - ReadWriteOnce
+  size: 2Gi
+  storageClass: nfs-client
+
+DNS1: "1.1.1.3"
+DNS2: "1.0.0.3"
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    memory: 512Mi

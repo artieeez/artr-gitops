@@ -1,0 +1,18 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: pihole-web
+  namespace: platform
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`pihole.artr.com.br`)
+      kind: Rule
+      middlewares:
+        - name: tinyauth-forwardauth
+      services:
+        - name: pihole-web
+          port: 80
+  tls:
+    secretName: wildcard-artr-com-br-tls

@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-pihole
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: platform
+  sources:
+    - repoURL: https://mojo2600.github.io/pihole-kubernetes/
+      chart: pihole
+      targetRevision: "2.35.0"
+      helm:
+        releaseName: pihole
+        valueFiles:
+          - $values/charts/pihole-values.yaml
+    - repoURL: https://github.com/artieeez/artr-gitops
+      targetRevision: HEAD
+      ref: values
+    - repoURL: https://github.com/artieeez/artr-gitops
+      targetRevision: HEAD
+      path: apps/platform/pihole
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
