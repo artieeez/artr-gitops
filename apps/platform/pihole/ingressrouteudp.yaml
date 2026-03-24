@@ -12,3 +12,5 @@ spec:
         - name: pihole-dns
           namespace: platform
           port: dns-udp
+          # Pod IPs directly — kube-proxy/ClusterIP + UDP often fails; TCP may still work with nativeLB.
+          nativeLB: false

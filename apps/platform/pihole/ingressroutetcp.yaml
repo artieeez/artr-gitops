@@ -13,3 +13,4 @@ spec:
         - name: pihole-dns
           namespace: platform
           port: dns
+          nativeLB: false
