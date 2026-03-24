@@ -13,19 +13,26 @@ ports:
       default: true     # expose via LoadBalancer Service
     exposedPort: 5435   # NLB listener port
     protocol: TCP
-entryPoints:
-  web:
-    address: ":8000"
-  websecure:
-    address: ":8443"
-  traefik:
-    address: ":8080"
-  postgres1:
-    address: ":5435"
+  # Pi-hole DNS via same NLB as HTTPS (IngressRouteUDP / IngressRouteTCP → pihole-dns:53)
+  dnsudp:
+    port: 5353
+    expose:
+      default: true
+    exposedPort: 53
+    protocol: UDP
+  dnstcp:
+    port: 5353
+    expose:
+      default: true
+    exposedPort: 53
+    protocol: TCP
 providers:
   kubernetesCRD:
     enabled: true
     allowCrossNamespace: true
+additionalArguments:
+  # DNS responses can exceed default UDP timeout on slow upstreams
+  - "--entryPoints.dnsudp.udp.timeout=30s"
 api:
   dashboard: true
   insecure: true
