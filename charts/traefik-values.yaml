@@ -1,31 +1,36 @@
 service:
   enabled: true
-  type: LoadBalancer
-  annotations:
-    oci.oraclecloud.com/load-balancer-type: "nlb"
-    oci.oraclecloud.com/reserved-ips: "204.216.137.207"   # set by scripts/update-traefik-oci-from-terraform.sh from terraform output reserved_public_ip_address
-    # Customer-managed ingress on the public subnet security list (dns_server_allowed_cidrs, 80/443/5435, etc. in oracle-cluster).
-    oci-network-load-balancer.oraclecloud.com/security-list-management-mode: "None"
-    oci-network-load-balancer.oraclecloud.com/subnet: "ocid1.subnet.oc1.sa-vinhedo-1.aaaaaaaalq77jobfgruaz5bcbpc5owopwsw63jkfp6lvajgcokjj5omblb2q"   # set by scripts/update-traefik-oci-from-terraform.sh from terraform output public_subnet_id
+  type: NodePort
 ports:
-  postgres1:
-    port: 5435          # internal Traefik service port
+  web:
     expose:
-      default: true     # expose via LoadBalancer Service
-    exposedPort: 5435   # NLB listener port
+      default: true
+    nodePort: 32080
+  websecure:
+    expose:
+      default: true
+    nodePort: 32443
+  postgres1:
+    port: 5432
+    expose:
+      default: true
+    exposedPort: 5432
+    nodePort: 32432
     protocol: TCP
-  # Pi-hole DNS via same NLB as HTTPS (IngressRouteUDP / IngressRouteTCP → pihole-dns:53)
+  # Pi-hole DNS via Terraform-managed OCI NLB (IngressRouteUDP / IngressRouteTCP -> pihole-dns:53)
   dnsudp:
     port: 5353
     expose:
       default: true
     exposedPort: 53
+    nodePort: 32053
     protocol: UDP
   dnstcp:
     port: 5353
     expose:
       default: true
     exposedPort: 53
+    nodePort: 32053
     protocol: TCP
 providers:
   kubernetesCRD:
