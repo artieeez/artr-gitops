@@ -26,11 +26,11 @@ ports:
     nodePort: 32053
     protocol: UDP
   dnstcp:
-    port: 5353
+    port: 5354
     expose:
       default: true
-    exposedPort: 53
-    nodePort: 32053
+    exposedPort: 54
+    nodePort: 32054
     protocol: TCP
 providers:
   kubernetesCRD:
