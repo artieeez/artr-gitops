@@ -34,8 +34,8 @@ persistentVolumeClaim:
   size: 2Gi
   storageClass: nfs-client
 
-DNS1: "1.1.1.3"
-DNS2: "1.0.0.3"
+DNS1: "8.8.8.8"
+DNS2: "8.8.4.4"
 
 resources:
   requests:
