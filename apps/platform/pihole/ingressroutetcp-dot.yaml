@@ -9,7 +9,7 @@ spec:
   entryPoints:
     - dottcp
   routes:
-    - match: HostSNI(\*`)`
+    - match: HostSNI(`*`)
       services:
         - name: pihole-dns
           namespace: platform
