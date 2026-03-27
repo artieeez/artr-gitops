@@ -38,7 +38,7 @@ ports:
     expose:
       default: true
     exposedPort: 853
-    nodePort: 32853
+    nodePort: 31853
     protocol: TCP
 providers:
   kubernetesCRD:
