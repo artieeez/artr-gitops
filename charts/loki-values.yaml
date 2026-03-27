@@ -1,6 +1,11 @@
 # Grafana Loki — SingleBinary, filesystem on PVC (aligned with monitoring nfs-client).
 # Chart: grafana/loki
 
+# Loki Canary (loki-canary-*) pushes synthetic probe logs to Loki; Grafana may show them as
+# unknown_service / noisy streams. Disable unless you rely on canary-based health checks.
+lokiCanary:
+  enabled: false
+
 deploymentMode: SingleBinary
 
 # containerd short-name mode (e.g. OCI) requires fully qualified image references.
