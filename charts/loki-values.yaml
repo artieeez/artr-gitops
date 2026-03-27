@@ -6,6 +6,10 @@
 lokiCanary:
   enabled: false
 
+# Chart validate.yaml requires canary when test.enabled is true; disable Helm tests if canary is off.
+test:
+  enabled: false
+
 deploymentMode: SingleBinary
 
 # containerd short-name mode (e.g. OCI) requires fully qualified image references.
