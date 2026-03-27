@@ -29,8 +29,16 @@ ports:
     port: 5354
     expose:
       default: true
-    exposedPort: 54
+    exposedPort: 53
     nodePort: 32054
+    protocol: TCP
+  # DNS-over-TLS (DoT) on 853/TCP -> Traefik terminates TLS and forwards to Pi-hole DNS TCP.
+  dottcp:
+    port: 5853
+    expose:
+      default: true
+    exposedPort: 853
+    nodePort: 32853
     protocol: TCP
 providers:
   kubernetesCRD:

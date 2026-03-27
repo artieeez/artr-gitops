@@ -1,0 +1,19 @@
+# DNS-over-TLS (DoT) on 853/TCP.
+# Traefik terminates TLS with wildcard cert and forwards plain DNS/TCP to Pi-hole.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: pihole-dns-dot
+  namespace: platform
+spec:
+  entryPoints:
+    - dottcp
+  routes:
+    - match: HostSNI(`pihole.artr.com.br`)
+      services:
+        - name: pihole-dns
+          namespace: platform
+          port: dns
+          nativeLB: false
+  tls:
+    secretName: wildcard-artr-com-br-tls
