@@ -61,7 +61,7 @@ singleBinary:
   persistence:
     enabled: true
     storageClass: nfs-client
-    size: 20Gi
+    size: 5Gi
 
 backend:
   replicas: 0
