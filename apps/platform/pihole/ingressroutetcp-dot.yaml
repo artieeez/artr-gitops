@@ -15,5 +15,4 @@ spec:
           namespace: platform
           port: dns
           nativeLB: false
-  tls:
-    secretName: wildcard-artr-com-br-tls
+  tls: {}
