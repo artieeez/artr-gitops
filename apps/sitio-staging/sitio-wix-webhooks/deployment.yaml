@@ -21,7 +21,7 @@ spec:
         - name: docker-registry-pull
       containers:
         - name: sitio-wix-webhooks
-          image: docker.artr.com.br/sitio-wix-webhooks-microservice:sha-4ac0b49
+          image: docker.artr.com.br/sitio-wix-webhooks-microservice:sha-9be018a
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
