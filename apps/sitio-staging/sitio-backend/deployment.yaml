@@ -17,6 +17,8 @@ spec:
         app: sitio-backend
         environment: sitio-staging
     spec:
+      imagePullSecrets:
+        - name: ocir-pull
       containers:
         - name: sitio-backend
           image: vcp.ocir.io/axtvnrdemzo7/sitio-backend:sha-b57a47c
