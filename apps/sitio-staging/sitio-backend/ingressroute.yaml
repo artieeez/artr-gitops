@@ -1,0 +1,18 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sitio-backend
+  namespace: sitio-staging
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`sitio-backend-staging.artr.com.br`)
+      kind: Rule
+      middlewares:
+        - name: tinyauth-forwardauth
+      services:
+        - name: sitio-backend
+          port: 80
+  tls:
+    secretName: wildcard-artr-com-br-tls

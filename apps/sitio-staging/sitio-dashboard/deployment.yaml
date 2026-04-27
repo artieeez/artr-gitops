@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sitio-dashboard
+  namespace: sitio-staging
+  labels:
+    app: sitio-dashboard
+    environment: sitio-staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sitio-dashboard
+  template:
+    metadata:
+      labels:
+        app: sitio-dashboard
+        environment: sitio-staging
+    spec:
+      imagePullSecrets:
+        - name: ocir-pull
+      containers:
+        - name: sitio-dashboard
+          image: sa-vinhedo-1.ocir.io/axtvnrdemzo7/sitio-dashboard:staging-latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: http
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
