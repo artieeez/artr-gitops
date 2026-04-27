@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: sitio-backend-db-url
+  namespace: sitio-staging
+spec:
+  encryptedData:
+    DATABASE_URL: AgCHhPRiolmtzcaaABRWB5IaQALDwrjDTTnhdShihgDKLqegutBPFTUUU9njm6XidHwMOfus57aNycM2LHkcdk8L59B+Quyh8pC+ZRvpvP7l1UmhOFs4B0MJiEcTUsnVwUcycH3AgEULIwPf3uguojnIWLgr721gXz5/chWQvL2Haac9Q1a/xDoXWyBgV2kufxtXkj70TE1UYM78cN7ct34o8OqZwryqq/gqSNpRjfleHIulbxQS0KsUkB9FHb3kLxHvCLZ9ia+UlSUaKK0N8g76yI5eUzTPxZTqOQAbm+P+r9WiYX08AeURWVnll/hYA3kliHEs3bsuRKJoHNrl2dC67GEE9omSQow+1KJPy4GwjxhfHVdmsw3MD3VQ2m55y1SSp28YxFj/Z2hYUFjCeqJgWpuxGSNkpnODf8fPq8oA5GcRV9MzKAodbhZYQwLVgDgKrmawndw0L0K9Q39EldHz+U+uIsbCVwZWATOsuyTaNwcrSXakpfzQ0B/ho2rALNyznNCjjX7DLvhXJ9o396RsnyLY+1oXCbQF0HDIOCJ3gM3iTTZDGL/wLikXci5cg1Nvi4iELQxqbkZe21LW2omxKJwEjKsnq/uGogdnnf2Z+eDfi6ErdNsYY6b1eB1AXUlfQiaQbVom0CiFEWzgm8I0/FRrmJldIy2Qiy7TeoNA223j2D02H0Lnih6WyVBtm5MTB7grETpCK9eO4kMeixXSuJb8aPslk6eiZEJwKecZNYu3HDJvR7SsWT2F2d+ZOhkrd/XpTV2uhndmkEuyAR4+/4pMmVgW+RSipd+0C+3N2ib+intF0Vt8+NZ71n++eIlQ31/udaPA/mq695/zJj4ieg==
+  template:
+    metadata:
+      name: sitio-backend-db-url
+      namespace: sitio-staging
