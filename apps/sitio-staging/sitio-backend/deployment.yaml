@@ -30,7 +30,7 @@ spec:
             - name: PORT
               value: "3000"
             - name: CORS_ORIGINS
-              value: https://sitio-dashboard-staging.artr.com.br
+              value: https://sitio-staging.artr.com.br
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:

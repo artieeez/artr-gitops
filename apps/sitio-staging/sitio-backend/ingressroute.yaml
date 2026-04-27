@@ -7,7 +7,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`sitio-backend-staging.artr.com.br`)
+    - match: Host(`sitio-api-staging.artr.com.br`)
       kind: Rule
       middlewares:
         - name: tinyauth-forwardauth
