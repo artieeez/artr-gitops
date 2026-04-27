@@ -9,8 +9,6 @@ spec:
   routes:
     - match: Host(`sitio-api-staging.artr.com.br`)
       kind: Rule
-      middlewares:
-        - name: tinyauth-forwardauth
       services:
         - name: sitio-backend
           port: 80
