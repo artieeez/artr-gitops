@@ -17,8 +17,6 @@ spec:
         app: sitio-dashboard
         environment: sitio-staging
     spec:
-      imagePullSecrets:
-        - name: ocir-pull
       containers:
         - name: sitio-dashboard
           image: vcp.ocir.io/axtvnrdemzo7/sitio-dashboard:staging-latest
