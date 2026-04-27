@@ -26,6 +26,11 @@ spec:
           ports:
             - containerPort: 3000
               name: http
+          env:
+            - name: VITE_API_URL
+              value: https://sitio-staging.artr.com.br/api
+            - name: VITE_TINYAUTH_APP_URL
+              value: https://tinyauth.artr.com.br
           resources:
             requests:
               cpu: 100m
