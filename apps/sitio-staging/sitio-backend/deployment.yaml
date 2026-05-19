@@ -21,7 +21,7 @@ spec:
         - name: ocir-pull
       containers:
         - name: sitio-backend
-          image: vcp.ocir.io/axtvnrdemzo7/sitio-backend:sha-40c014e
+          image: vcp.ocir.io/axtvnrdemzo7/sitio-backend:sha-d0cf435
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
