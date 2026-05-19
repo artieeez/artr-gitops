@@ -36,6 +36,8 @@ spec:
                 secretKeyRef:
                   name: sitio-backend-db-url
                   key: DATABASE_URL
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://alloy.monitoring.svc.cluster.local:4317"
           resources:
             requests:
               cpu: 100m
