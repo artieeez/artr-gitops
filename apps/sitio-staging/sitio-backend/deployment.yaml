@@ -31,6 +31,8 @@ spec:
               value: "3000"
             - name: CORS_ORIGINS
               value: https://sitio-staging.artr.com.br
+            - name: APP_BASE_URL
+              value: https://sitio-staging.artr.com.br
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
