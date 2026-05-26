@@ -21,7 +21,7 @@ spec:
         - name: ocir-pull
       containers:
         - name: sitio-dashboard
-          image: vcp.ocir.io/axtvnrdemzo7/sitio-dashboard:sha-b372116
+          image: vcp.ocir.io/axtvnrdemzo7/sitio-dashboard:sha-6ebfa2b
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
