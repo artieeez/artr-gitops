@@ -1,0 +1,14 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: postgres-sitio-production-auth
+  namespace: sitio-production
+spec:
+  encryptedData:
+    password: AgC+PH+gS8mhU9Mr38tte7Tv0MJ3OIhMINMGgzSrOnUATBzncGbl4K/dImvTAomTm1WiIhk4mU7oLkP0YMwlXnd1lFyImRNR35FiYt2RsPQqRe74f3hUVie3cF4csWCWvQlDs6SEo/Tqx/HCvmN7hs1adiHigOZFd+mcWgcvE/AieWqipqkYDxabPiSYRugnWH6cgjgrDVxJKbVATt9vicFgVK3bJZRSrIWadQYsnECL5a/nvsZ4zThaRT2olulBQ03yp+umSOPcx8wBaMiF2YYTAl6A+eL0uvIOl3EsPDBYXqhIpbi2XhkeE7fQ7ORgAhrzAgeC8NNQDpfGhkG1JQj2wkbANfGhdDQs/hESpKkLvvqBu9t4Aqlbpgkzqayxc5DXHgBWKZ+CmvNLkGlXOt2NcWCRyXtTez1q8/ZKEwqrH3RKELQiK8IslBq7zhEbXplkn0dD0J1SDmUzGN15bKAFnRhTCMfes4zBfSCFGLBk9zAZPA2UavR87kIAbgUVOvuSIymsnpt2XqRgVAW7IoA3afqodywa04IaIX50S/uB7UGzm5ghJU3fo4lLiVbPnVfRd5BRxyUOfYynX1mebBc8yoWPs+cRz2MiT8b30oReEe8zPpCCHK3d2yzrM4Vpb3Q+gXQFP0W8jHzW5idIZxZCuhRInrsnyuM99eIkAgcdqqnXGp6sgIATsxS6gBxkW/g0M+gign6grA==
+  template:
+    metadata:
+      name: postgres-sitio-production-auth
+      namespace: sitio-production
+    type: Opaque
