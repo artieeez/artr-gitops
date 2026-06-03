@@ -42,6 +42,10 @@ spec:
               value: "http://alloy.monitoring.svc.cluster.local:4317"
             - name: SERVICE_NAMESPACE
               value: "sitio-staging"
+            - name: AUTH_REQUIRED_GROUP
+              value: "sitio_staging"
+            - name: AUTH_REQUIRED_ADMIN_GROUP
+              value: "sitio_admin_staging"
           resources:
             requests:
               cpu: 100m
