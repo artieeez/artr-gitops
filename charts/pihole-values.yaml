@@ -12,6 +12,10 @@ replicaCount: 1
 serviceDns:
   type: ClusterIP
   mixedService: true
+  # L3 tailnet ingress via Tailscale operator (public Traefik NLB path unchanged).
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: "pihole-dns"
 
 serviceDhcp:
   enabled: false
@@ -36,6 +40,9 @@ persistentVolumeClaim:
 
 DNS1: "1.1.1.3"
 DNS2: "1.0.0.3"
+
+extraEnvVars:
+  FTLCONF_dns_listeningMode: "all"
 
 resources:
   requests:

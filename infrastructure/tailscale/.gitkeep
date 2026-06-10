@@ -1,0 +1,4 @@
+# Place SealedSecret here after Step 4 in docs/tailscale-pihole-setup.md:
+#   infrastructure/tailscale/operator-oauth-sealed.yaml
+#
+# Do not commit plaintext OAuth credentials.

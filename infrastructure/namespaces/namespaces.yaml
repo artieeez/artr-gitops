@@ -43,3 +43,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: sitio-production
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tailscale
