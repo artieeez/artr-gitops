@@ -9,5 +9,12 @@ operatorConfig:
     - "tag:k8s-operator"
   logging: "info"
   hostname: "tailscale-operator"
+  image:
+    # OKE/CRI-O short-name mode requires a fully qualified image reference.
+    repository: docker.io/tailscale/k8s-operator
   nodeSelector:
     kubernetes.io/os: linux
+
+proxyConfig:
+  image:
+    repository: docker.io/tailscale/tailscale
