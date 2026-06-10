@@ -31,4 +31,13 @@ The development environment requires:
 - **CRDs** (ArgoCD `Application`, Traefik `IngressRoute`, Bitnami `SealedSecret`) are skipped by kubeconform due to missing schemas — this is expected.
 - **Helper scripts** in `scripts/` require an external Terraform directory (`../terraform-files/oracle-cluster`) that is not part of this repo. They cannot be executed standalone.
 - **SealedSecrets** require `kubeseal` + access to the live cluster's sealed-secrets controller. They cannot be created/rotated locally without cluster access.
+- **TLS certificates:** Single wildcard cert in `cert-manager` namespace; Reflector copies `wildcard-artr-com-br-tls` to workload namespaces. Never issue certs directly into workload namespaces — see `docs/certificate-runbook.md`.
 - See `docs/quick-start.md` for ArgoCD bootstrap instructions and `docs/pocketid-tinyauth-setup.md` for identity provider setup.
+
+### Git
+
+**Agents do not commit or push.** The human commits and pushes.
+
+When changes are ready, suggest a commit message (1–2 sentences, focus on why) and list the files to stage. Stop there — do not run `git add`, `git commit`, or `git push`.
+
+This repo is often a Cursor worktree (`~/.cursor/worktrees/artr-gitops/*`); the primary clone is at `~/Documents/sitio/artr-gitops`. ArgoCD deploys from `origin/main` after the human pushes and merges.

@@ -1,1 +1,9 @@
 installCRDs: true
+
+prometheus:
+  enabled: true
+  servicemonitor:
+    enabled: true
+    prometheusInstance: default
+    labels:
+      release: monitoring-kube-prometheus-stack

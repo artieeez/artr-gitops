@@ -1,6 +1,32 @@
 crds:
   enabled: false
 
+additionalPrometheusRulesMap:
+  cert-manager:
+    groups:
+      - name: cert-manager
+        rules:
+          - alert: CertManagerCertificateNotReady
+            expr: |
+              max by (name, namespace) (
+                certmanager_certificate_ready_status{condition="False"} == 1
+              )
+            for: 15m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Certificate {{ $labels.name }} in {{ $labels.namespace }} is not Ready"
+              description: "cert-manager has not issued or renewed this certificate for 15+ minutes. Check ACME challenges and Cloudflare token."
+          - alert: CertManagerCertificateExpirySoon
+            expr: |
+              (certmanager_certificate_expiration_timestamp_seconds - time()) / 86400 < 21
+            for: 1h
+            labels:
+              severity: warning
+            annotations:
+              summary: "Certificate {{ $labels.name }} in {{ $labels.namespace }} expires in {{ $value | humanize }} days"
+              description: "Renewal should happen automatically ~30 days before expiry. Investigate if this persists."
+
 prometheus:
   prometheusSpec:
     storageSpec:
