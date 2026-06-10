@@ -40,7 +40,71 @@ prometheus:
               storage: 20Gi
 
 alertmanager:
+  config:
+    global:
+      resolve_timeout: 5m
+      slack_api_url_file: /etc/alertmanager/secrets/alertmanager-slack-webhook/slack-api-url
+    inhibit_rules:
+      - equal:
+          - namespace
+          - alertname
+        source_matchers:
+          - severity = critical
+        target_matchers:
+          - severity =~ warning|info
+      - equal:
+          - namespace
+          - alertname
+        source_matchers:
+          - severity = warning
+        target_matchers:
+          - severity = info
+      - equal:
+          - namespace
+        source_matchers:
+          - alertname = InfoInhibitor
+        target_matchers:
+          - severity = info
+      - target_matchers:
+          - alertname = InfoInhibitor
+    route:
+      receiver: "null"
+      group_by:
+        - namespace
+        - alertname
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 12h
+      routes:
+        - receiver: slack-infra
+          matchers:
+            - alertname =~ "CertManager.*|Tls.*"
+          group_by:
+            - alertname
+            - namespace
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 4h
+          continue: false
+        - receiver: "null"
+          matchers:
+            - alertname = Watchdog
+    receivers:
+      - name: "null"
+      - name: slack-infra
+        slack_configs:
+          - send_resolved: true
+            title: '{{ if eq .Status "firing" }}:rotating_light:{{ else }}:white_check_mark:{{ end }} {{ .CommonLabels.alertname }}'
+            text: |-
+              {{ range .Alerts }}
+              *{{ .Annotations.summary }}*
+              {{ .Annotations.description }}
+              {{ if .Labels.namespace }}namespace: `{{ .Labels.namespace }}`{{ end }}{{ if .Labels.name }} · cert: `{{ .Labels.name }}`{{ end }}
+              {{ end }}
+            color: '{{ if eq .Status "firing" }}{{ if eq .CommonLabels.severity "critical" }}danger{{ else }}warning{{ end }}{{ else }}good{{ end }}'
   alertmanagerSpec:
+    secrets:
+      - alertmanager-slack-webhook
     storage:
       volumeClaimTemplate:
         spec:

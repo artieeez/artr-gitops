@@ -46,6 +46,8 @@ Alerts (via kube-prometheus-stack + blackbox exporter):
 
 **Weekly audit:** CronJob `cert-audit` in `monitoring` runs `./scripts/audit-tls-secrets.sh` every Monday 09:00 UTC. Manual run: `./scripts/audit-tls-secrets.sh`.
 
+**Slack:** Certificate/TLS alerts route to Slack when [alertmanager-slack-webhook](../alertmanager-slack-setup.md) is configured.
+
 View alerts: Alertmanager UI (via Grafana or port-forward to `alertmanager-operated` in `monitoring`).
 
 ---
