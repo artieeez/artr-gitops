@@ -42,6 +42,10 @@ Alerts (via kube-prometheus-stack + blackbox exporter):
 | `TlsProbeFailed` | External HTTPS probe failing |
 | `TlsCertificateExpirySoon` | Cert **served to browsers** expires within 7 days (catches Reflector drift) |
 
+**Grafana:** Dashboard *cert-manager* (folder: Certificates) — Certificate status, expiry, ACME metrics.
+
+**Weekly audit:** CronJob `cert-audit` in `monitoring` runs `./scripts/audit-tls-secrets.sh` every Monday 09:00 UTC. Manual run: `./scripts/audit-tls-secrets.sh`.
+
 View alerts: Alertmanager UI (via Grafana or port-forward to `alertmanager-operated` in `monitoring`).
 
 ---

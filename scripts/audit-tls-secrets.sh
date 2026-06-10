@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# Audit wildcard TLS secret propagation via Reflector.
-# Exits 0 when all expected namespaces have Reflector-managed copies with matching cert content.
-# Exits 1 when orphans, missing secrets, or certificate mismatch detected.
+# Audit wildcard TLS certificate health and Reflector propagation.
+# Checks Certificate CR readiness, expiry threshold, and Reflector-managed copies.
+# Exits 1 when the certificate is not Ready, expires within 21 days, or Reflector drift is detected.
 set -euo pipefail
 
 SECRET_NAME="wildcard-artr-com-br-tls"
+CERT_NAME="wildcard-artr-com-br"
 SOURCE_NS="cert-manager"
+MIN_DAYS_UNTIL_EXPIRY=21
 EXPECTED_NAMESPACES=(
   argocd
   staging
@@ -20,6 +22,14 @@ EXPECTED_REFLECTS="${SOURCE_NS}/${SECRET_NAME}"
 
 errors=0
 
+days_until_expiry() {
+  local expiry_date="$1"
+  local expiry_epoch now_epoch
+  expiry_epoch="$(date -d "${expiry_date}" +%s)"
+  now_epoch="$(date +%s)"
+  echo $(( (expiry_epoch - now_epoch) / 86400 ))
+}
+
 cert_not_after() {
   local ns="$1"
   kubectl get secret -n "${ns}" "${SECRET_NAME}" \
@@ -33,8 +43,22 @@ if ! kubectl get secret -n "${SOURCE_NS}" "${SECRET_NAME}" &>/dev/null; then
   exit 1
 fi
 
+cert_ready="$(kubectl get certificate -n "${SOURCE_NS}" "${CERT_NAME}" \
+  -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || true)"
+if [[ "${cert_ready}" != "True" ]]; then
+  echo "ERROR: Certificate ${SOURCE_NS}/${CERT_NAME} Ready=${cert_ready:-<missing>}"
+  errors=$((errors + 1))
+else
+  echo "OK:    Certificate ${SOURCE_NS}/${CERT_NAME} is Ready"
+fi
+
 source_expiry="$(cert_not_after "${SOURCE_NS}")"
-echo "Source secret ${SOURCE_NS}/${SECRET_NAME} expires: ${source_expiry}"
+source_days_left="$(days_until_expiry "${source_expiry}")"
+echo "Source secret ${SOURCE_NS}/${SECRET_NAME} expires: ${source_expiry} (${source_days_left} days)"
+if [[ "${source_days_left}" -lt "${MIN_DAYS_UNTIL_EXPIRY}" ]]; then
+  echo "ERROR: source cert expires in ${source_days_left} days (< ${MIN_DAYS_UNTIL_EXPIRY} day threshold)"
+  errors=$((errors + 1))
+fi
 echo
 
 for ns in "${EXPECTED_NAMESPACES[@]}"; do

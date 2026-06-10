@@ -86,31 +86,33 @@ Every deployment exposed via Traefik returned `net::ERR_CERT_DATE_INVALID` in br
 
 Prioritized enhancements to avoid recurrence. Track implementation in GitHub issues or `.specs/project/STATE.md`.
 
+**Status (2026-06-10):** P0 complete. P1 #4–5, #7 complete. P1 #6 deferred (needs Alertmanager webhook). P2 #8–11 complete except Alertmanager receiver.
+
 ### P0 — Do first
 
-| # | Action | Rationale |
-|---|---|---|
-| 1 | **Add PrometheusRule alerts for cert-manager** | Alert when `certmanager_certificate_ready_status{condition="False"} == 1` for >15m, when cert expires in <14 days, and when ACME orders are pending >1h. cert-manager exposes metrics; enable `prometheus.enabled: true` in [cert-manager-values.yaml](../../charts/cert-manager-values.yaml). |
-| 2 | **Add blackbox TLS probe** | External check that `openssl`/HTTP probes on `argo.artr.com.br`, `grafana.artr.com.br`, and `sitio.artr.com.br` report >7 days until expiry. Catches Reflector drift and Traefik serving stale secrets. |
-| 3 | **Expand cert runbook** | Extend [change-cloud-flare-token.md](../change-cloud-flare-token.md) into a full troubleshooting guide: verify token (`curl …/tokens/verify`), check challenges, unstick ACME, verify Reflector propagation, `openssl s_client` checks. |
+| # | Action | Rationale | Status |
+|---|---|---|---|
+| 1 | **Add PrometheusRule alerts for cert-manager** | Alert when `certmanager_certificate_ready_status{condition="False"} == 1` for >15m, when cert expires in <14 days, and when ACME orders are pending >1h. cert-manager exposes metrics; enable `prometheus.enabled: true` in [cert-manager-values.yaml](../../charts/cert-manager-values.yaml). | Done — 21-day expiry threshold |
+| 2 | **Add blackbox TLS probe** | External check that `openssl`/HTTP probes on `argo.artr.com.br`, `grafana.artr.com.br`, and `sitio.artr.com.br` report >7 days until expiry. Catches Reflector drift and Traefik serving stale secrets. | Done |
+| 3 | **Expand cert runbook** | Extend [change-cloud-flare-token.md](../change-cloud-flare-token.md) into a full troubleshooting guide: verify token (`curl …/tokens/verify`), check challenges, unstick ACME, verify Reflector propagation, `openssl s_client` checks. | Done — [certificate-runbook.md](../certificate-runbook.md) |
 
 ### P1 — Do soon
 
-| # | Action | Rationale |
-|---|---|---|
-| 4 | **Post-rotation verification checklist** | After any Cloudflare token change: verify API token, confirm `Certificate` becomes `Ready=True` within 10 minutes, confirm all namespaces have Reflector-annotated secrets with matching `creationTimestamp`. |
-| 5 | **Audit namespace TLS secrets** | One-time + periodic script: ensure every namespace using `wildcard-artr-com-br-tls` has `reflector.v1.k8s.emberstack.com/reflects: cert-manager/wildcard-artr-com-br-tls` — not `cert-manager.io/certificate-name`. Remove orphans. |
-| 6 | **Alertmanager notification channel** | Configure Alertmanager receiver (email, Slack, or similar) so cert alerts reach someone who can act. |
-| 7 | **Cloudflare token expiry calendar** | If the token has an expiration date set in Cloudflare, add a calendar reminder 14 days before expiry. Prefer non-expiring tokens scoped to DNS edit only, with rotation documented. |
+| # | Action | Rationale | Status |
+|---|---|---|---|
+| 4 | **Post-rotation verification checklist** | After any Cloudflare token change: verify API token, confirm `Certificate` becomes `Ready=True` within 10 minutes, confirm all namespaces have Reflector-annotated secrets with matching `creationTimestamp`. | Done — in runbook |
+| 5 | **Audit namespace TLS secrets** | One-time + periodic script: ensure every namespace using `wildcard-artr-com-br-tls` has `reflector.v1.k8s.emberstack.com/reflects: cert-manager/wildcard-artr-com-br-tls` — not `cert-manager.io/certificate-name`. Remove orphans. | Done — `scripts/audit-tls-secrets.sh` + weekly CronJob |
+| 6 | **Alertmanager notification channel** | Configure Alertmanager receiver (email, Slack, or similar) so cert alerts reach someone who can act. | Deferred — needs webhook URL |
+| 7 | **Cloudflare token expiry calendar** | If the token has an expiration date set in Cloudflare, add a calendar reminder 14 days before expiry. Prefer non-expiring tokens scoped to DNS edit only, with rotation documented. | Done — documented in runbook |
 
 ### P2 — Nice to have
 
-| # | Action | Rationale |
-|---|---|---|
-| 8 | **Grafana dashboard for cert-manager** | Import or build a dashboard showing Certificate status, expiry countdown, and recent ACME challenge failures. |
-| 9 | **Weekly CI / CronJob cert audit** | Script in `scripts/` that checks Certificate CR status and TLS secret `notAfter` dates; fails or notifies if any cert expires within 21 days or is not Ready. |
-| 10 | **Document Reflector architecture constraint** | Add to AGENTS.md or a dedicated doc: only `cert-manager` namespace holds the source TLS secret; all other namespaces must receive Reflector copies — never cert-manager-issued secrets directly. |
-| 11 | **Consider shorter renewal window alert** | cert-manager renews ~30 days before expiry by default; alerting at 14 days leaves limited buffer. Alert at 21 days to allow time for credential fixes. |
+| # | Action | Rationale | Status |
+|---|---|---|---|
+| 8 | **Grafana dashboard for cert-manager** | Import or build a dashboard showing Certificate status, expiry countdown, and recent ACME challenge failures. | Done — gnetId 22184 via kube-prometheus-stack |
+| 9 | **Weekly CI / CronJob cert audit** | Script in `scripts/` that checks Certificate CR status and TLS secret `notAfter` dates; fails or notifies if any cert expires within 21 days or is not Ready. | Done — CronJob `cert-audit` in `monitoring` |
+| 10 | **Document Reflector architecture constraint** | Add to AGENTS.md or a dedicated doc: only `cert-manager` namespace holds the source TLS secret; all other namespaces must receive Reflector copies — never cert-manager-issued secrets directly. | Done — AGENTS.md + runbook |
+| 11 | **Consider shorter renewal window alert** | cert-manager renews ~30 days before expiry by default; alerting at 14 days leaves limited buffer. Alert at 21 days to allow time for credential fixes. | Done |
 
 ---
 

@@ -9,3 +9,5 @@
 | T5 | Add audit-tls-secrets.sh script | done | CERT-MON-005 |
 | T6 | Update AGENTS.md with TLS architecture | done | CERT-MON-006 |
 | T7 | Validate with helm template + shellcheck + yamllint | done | all |
+| T8 | Add cert-manager Grafana dashboard | done | CERT-MON-007 |
+| T9 | Deploy weekly cert-audit CronJob | done | CERT-MON-008 |

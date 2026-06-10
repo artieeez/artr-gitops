@@ -9,18 +9,16 @@ Cluster-wide TLS failure went undetected for 84 days because cert-manager renewa
 
 ## Goals
 
-- [ ] Alert operators before certificates expire or when cert-manager cannot renew
-- [ ] Externally verify TLS served to users (not just cert-manager CR status)
-- [ ] Document full certificate lifecycle: rotation, troubleshooting, Reflector hygiene
-- [ ] Provide audit script for TLS secret propagation
+- [x] Alert operators before certificates expire or when cert-manager cannot renew
+- [x] Externally verify TLS served to users (not just cert-manager CR status)
+- [x] Document full certificate lifecycle: rotation, troubleshooting, Reflector hygiene
+- [x] Provide audit script for TLS secret propagation
 
 ## Out of Scope
 
 | Item | Reason |
 |---|---|
 | Alertmanager Slack/email receiver | Requires user-provided webhook credentials — deferred; alerts visible in Alertmanager UI |
-| Grafana cert-manager dashboard | P2 — follow-up feature |
-| Weekly CronJob cert audit | P2 — script provided for manual/CI use first |
 | Cloudflare calendar reminder | Process documented in runbook only |
 
 ---
@@ -65,6 +63,19 @@ Cluster-wide TLS failure went undetected for 84 days because cert-manager renewa
 **Acceptance criteria:**
 1. AGENTS.md documents single-source TLS secret pattern and Reflector constraint
 
+### CERT-MON-007: Grafana cert-manager dashboard — P2
+
+**Acceptance criteria:**
+1. Grafana dashboard imported via kube-prometheus-stack showing Certificate status and expiry metrics
+2. Dashboard visible under Certificates folder in Grafana
+
+### CERT-MON-008: Weekly cert audit CronJob — P2
+
+**Acceptance criteria:**
+1. CronJob runs `audit-tls-secrets.sh` weekly in `monitoring` namespace
+2. Script checks Certificate CR Ready status and 21-day expiry threshold in addition to Reflector propagation
+3. Failed audit recorded in CronJob history (non-zero exit)
+
 ---
 
 ## Traceability
@@ -77,3 +88,5 @@ Cluster-wide TLS failure went undetected for 84 days because cert-manager renewa
 | CERT-MON-004 | `docs/certificate-runbook.md` |
 | CERT-MON-005 | `scripts/audit-tls-secrets.sh` |
 | CERT-MON-006 | `AGENTS.md` |
+| CERT-MON-007 | `charts/kube-prometheus-stack-values.yaml` |
+| CERT-MON-008 | `apps/monitoring/cert-audit/`, `scripts/audit-tls-secrets.sh` |

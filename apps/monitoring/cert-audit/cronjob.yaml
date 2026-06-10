@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cert-audit
+  namespace: monitoring
+  labels:
+    app: cert-audit
+spec:
+  schedule: "0 9 * * 1"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: cert-audit
+        spec:
+          serviceAccountName: cert-audit
+          restartPolicy: Never
+          containers:
+            - name: audit
+              image: alpine/k8s:1.30.4
+              command:
+                - /bin/sh
+                - -ec
+                - |
+                  apk add --no-cache bash >/dev/null
+                  exec bash /scripts/audit-tls-secrets.sh
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 200m
+                  memory: 128Mi
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+          volumes:
+            - name: scripts
+              configMap:
+                name: cert-audit-script
+                defaultMode: 0755
