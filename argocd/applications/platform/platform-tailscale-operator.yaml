@@ -1,31 +1,28 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: platform-pihole
+  name: platform-tailscale-operator
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: platform
+    namespace: tailscale
   sources:
-    - repoURL: https://mojo2600.github.io/pihole-kubernetes/
-      chart: pihole
-      targetRevision: "2.35.0"
+    - repoURL: https://pkgs.tailscale.com/helmcharts
+      chart: tailscale-operator
+      targetRevision: "1.98.4"
       helm:
-        releaseName: pihole
+        releaseName: tailscale-operator
         valueFiles:
-          - $values/charts/pihole-values.yaml
+          - $values/charts/tailscale-operator-values.yaml
     - repoURL: https://github.com/artieeez/artr-gitops
       targetRevision: HEAD
       ref: values
-    - repoURL: https://github.com/artieeez/artr-gitops
-      targetRevision: HEAD
-      path: apps/platform/pihole
   syncPolicy:
     automated:
       prune: true

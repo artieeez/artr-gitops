@@ -1,0 +1,13 @@
+# Tailscale Kubernetes Operator – exposes cluster Services on the tailnet.
+# OAuth: create operator-oauth Secret in tailscale namespace (see docs/tailscale-pihole-setup.md).
+# Chart: https://pkgs.tailscale.com/helmcharts/tailscale-operator
+
+installCRDs: true
+
+operatorConfig:
+  defaultTags:
+    - "tag:k8s-operator"
+  logging: "info"
+  hostname: "tailscale-operator"
+  nodeSelector:
+    kubernetes.io/os: linux
