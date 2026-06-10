@@ -1,0 +1,67 @@
+# Explicit label for kube-prometheus-stack discovery (release name differs from prometheus stack).
+releaseLabel: false
+
+config:
+  modules:
+    http_2xx:
+      prober: http
+      timeout: 5s
+      http:
+        valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+        follow_redirects: true
+        preferred_ip_protocol: "ip4"
+    https_tls:
+      prober: http
+      timeout: 10s
+      http:
+        valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+        method: GET
+        follow_redirects: true
+        preferred_ip_protocol: "ip4"
+        fail_if_ssl: false
+        tls_config:
+          insecure_skip_verify: false
+
+serviceMonitor:
+  enabled: true
+  defaults:
+    interval: 60s
+    scrapeTimeout: 30s
+    module: https_tls
+    labels:
+      release: monitoring-kube-prometheus-stack
+  targets:
+    - name: argo-artr-com-br
+      url: https://argo.artr.com.br
+      hostname: argo.artr.com.br
+      module: https_tls
+    - name: grafana-artr-com-br
+      url: https://grafana.artr.com.br
+      hostname: grafana.artr.com.br
+      module: https_tls
+    - name: sitio-artr-com-br
+      url: https://sitio.artr.com.br
+      hostname: sitio.artr.com.br
+      module: https_tls
+
+prometheusRule:
+  enabled: true
+  additionalLabels:
+    release: monitoring-kube-prometheus-stack
+  rules:
+    - alert: TlsProbeFailed
+      expr: probe_success{job=~".*blackbox.*"} == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "TLS probe failed for {{ $labels.instance }}"
+        description: "Blackbox probe to {{ $labels.instance }} has been failing for 5+ minutes."
+    - alert: TlsCertificateExpirySoon
+      expr: (probe_ssl_earliest_cert_expiry{job=~".*blackbox.*"} - time()) / 86400 < 7
+      for: 1h
+      labels:
+        severity: critical
+      annotations:
+        summary: "TLS certificate for {{ $labels.instance }} expires in {{ $value | humanize }} days"
+        description: "The certificate served to clients expires within 7 days. Check cert-manager renewal and Reflector propagation."
