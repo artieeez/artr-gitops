@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: postgres-staging-auth
+  namespace: staging
+spec:
+  encryptedData:
+    password: AgCHNZGcWTQhXJuJvGPUY1PIIC1bm1IMj2+YffB0J9EKre7zEiqcIqA1WFQ2lJHX1tyh0gW16ApwDT6Pfq5ig71v2xmgc8pqV+CAuR+Eqb62DDRiMmHcqjySXYxQXnACC9xXJV8he052ajj2cTnhHCb92GmvhQ2j50+9VCEtfsEaTFH49EzIy8lyNuyuUlLI6DyHv12J7QSsllk95GjsU82ND2n8KmjTvrQls2tL5U4Uc8fTj1e7a32YXIx4C0FF20xhotH7CStBLWiFWnDyI3L1Tva1fh66QY1H1KR8tI/MHSYJhV7VzQkRtI1Xy1snfjq5CKl7Owt3k83qLFxgIwdLwrDnm7shaQrI+XrBfVFQE0ogzSG1STJXdoQ94M3Ddl9oG57MemtHxt6I0Hd7n12yPMvckUfS4YJ0Fx9maot65EkRg67Zzb2ba+fAFmeRZ+qxJu1sEBf4+2KaB3fQ5PLAmsLeGw1a+knDyb2mfV04C0pK5GWfuQzQxDM3WkonP9zlZaC7GFsonN80RIUJTGCejbiT3qUfpKo5mZFm8yzGCaOIpxzrnxs29NJNceotQxcqoqtGYzbSqCni5wXLJMkoWULKTZEmbCVKGc5oQGV5B5DnJ5tdAXxUcn/Pg5Bh+eGmxM/t68u90iH6/ZSdJbBU29JfEr6d+v7E7/AalfOXsDZaXXlUEPdNZLe0n/A8SYIXZpwoWxgSqQ==
+  template:
+    metadata:
+      name: postgres-staging-auth
+      namespace: staging
