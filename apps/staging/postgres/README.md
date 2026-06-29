@@ -65,6 +65,8 @@ psql -h 127.0.0.1 -p 15432 -U postgres -d app -c 'CREATE DATABASE mydb;'
 
 ## Rotate password
 
+`POSTGRES_PASSWORD` só vale na **primeira** inicialização do volume. Depois de alterar o SealedSecret, é preciso atualizar o role no banco:
+
 ```bash
 NEW_PASS="$(openssl rand -base64 24 | tr -d '+/' | cut -c1-24)"
 kubectl create secret generic postgres-staging-auth \
@@ -72,8 +74,29 @@ kubectl create secret generic postgres-staging-auth \
   --dry-run=client -o yaml | \
   kubeseal --controller-namespace=sealed-secrets --controller-name=sealed-secrets \
   -o yaml > apps/staging/postgres/postgres-staging-auth-sealed.yaml
-# commit, push, then restart the pod:
-kubectl rollout restart deployment/postgres -n staging
+# commit, push, aguardar sync do SealedSecret, depois:
+kubectl exec -n staging deploy/postgres -- psql -U postgres \
+  -c "ALTER USER postgres WITH PASSWORD '$NEW_PASS';"
+kubectl rollout restart deployment/fbd-ecommerce -n staging   # se houver apps usando o secret
+```
+
+## Troubleshooting: `password authentication failed` (apps in-cluster)
+
+Conexões **dentro do pod** Postgres usam `trust` (socket/127.0.0.1). Apps em outros pods usam TCP + SCRAM e exigem a senha real do role — que pode divergir do Secret se o volume foi criado antes do secret atual.
+
+Sincronizar senha do role com o Secret (sem reiniciar o Postgres):
+
+```bash
+PASS="$(kubectl get secret postgres-staging-auth -n staging -o jsonpath='{.data.password}' | base64 -d)"
+kubectl exec -n staging deploy/postgres -- psql -U postgres \
+  -c "ALTER USER postgres WITH PASSWORD '$PASS';"
+```
+
+Validar de outro pod:
+
+```bash
+kubectl exec -n staging deploy/postgres -- sh -c \
+  "PGPASSWORD=\"$PASS\" psql -h postgres.staging.svc.cluster.local -U postgres -d fbd2026 -c 'SELECT 1'"
 ```
 
 See [docs/sealed-secrets.md](../../../docs/sealed-secrets.md).
