@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fbd-ecommerce
+  namespace: staging
+  labels:
+    app: fbd-ecommerce
+spec:
+  type: ClusterIP
+  selector:
+    app: fbd-ecommerce
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fbd-ecommerce
+  namespace: staging
+  labels:
+    app: fbd-ecommerce
+    environment: staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fbd-ecommerce
+  template:
+    metadata:
+      labels:
+        app: fbd-ecommerce
+        environment: staging
+    spec:
+      imagePullSecrets:
+        - name: ocir-pull
+      containers:
+        - name: fbd-ecommerce
+          image: sa-vinhedo-1.ocir.io/axtvnrdemzo7/fbd-ecommerce:sha-f3c7c84-k8s3
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: RAILS_ENV
+              value: production
+            - name: RAILS_LOG_LEVEL
+              value: info
+            - name: PORT
+              value: "3000"
+            - name: DB_HOST
+              value: postgres.staging.svc.cluster.local
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: fbd2026
+            - name: DB_USER
+              value: postgres
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-staging-auth
+                  key: password
+            - name: RAILS_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fbd-ecommerce-secret
+                  key: RAILS_MASTER_KEY
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: fbd-ecommerce-secret
+                  key: SECRET_KEY_BASE
+          resources:
+            requests:
+              memory: 128Mi
+            limits:
+              memory: 384Mi
+          livenessProbe:
+            httpGet:
+              path: /up
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /up
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10

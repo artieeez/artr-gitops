@@ -26,11 +26,14 @@ psql -h 127.0.0.1 -p 15432 -U postgres -d fbd2026 \
   -f "disciplinas/banco de dados/Karing Becker/trabalhos/fbd-2026/entregaveis/Instancias.sql"
 ```
 
-Connection string for Part 3 (via port-forward):
+Connection string in-cluster (Rails deployment):
 
 ```
-postgresql://postgres:<password>@127.0.0.1:15432/fbd2026
+DB_HOST=postgres.staging.svc.cluster.local
+DB_NAME=fbd2026
 ```
+
+App URL (after DNS): https://fbd-staging.artr.com.br — ArgoCD app `staging-fbd-ecommerce`.
 
 ## Local access (port-forward)
 
