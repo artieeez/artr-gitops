@@ -1,10 +1,11 @@
 # Pi-hole – DNS via Traefik NLB (IngressRouteUDP/TCP in apps/platform/pihole/), HTTPS UI + TinyAuth.
 # Chart: https://mojo2600.github.io/pihole-kubernetes/  (pihole 2.35.0)
+# Image: https://github.com/pi-hole/docker-pi-hole/releases  (2026.06.0)
 # Fully qualified image required on OKE/CRI-O (short name mode enforcing).
 
 image:
   repository: docker.io/pihole/pihole
-  tag: ""
+  tag: "2026.06.0"
   pullPolicy: IfNotPresent
 
 replicaCount: 1
