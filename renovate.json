@@ -28,32 +28,156 @@
       "enabled": false
     },
     {
-      "description": "Platform workloads (Pocket ID, TinyAuth, Filebrowser, …)",
-      "matchDatasources": ["docker"],
-      "matchPaths": ["apps/platform/**"],
-      "groupName": "platform container images"
-    },
-    {
-      "description": "Pi-hole image in Helm values",
-      "matchDatasources": ["docker"],
-      "matchPackageNames": ["pihole/pihole", "docker.io/pihole/pihole"],
-      "matchPaths": ["charts/pihole-values.yaml"]
-    },
-    {
-      "description": "Helm charts referenced by Argo CD Applications",
-      "matchManagers": ["argocd"],
-      "groupName": "helm charts"
-    },
-    {
-      "description": "Loki stack sidecar images in values",
-      "matchDatasources": ["docker"],
-      "matchPaths": ["charts/loki-values.yaml"],
-      "groupName": "loki helm values images"
-    },
-    {
       "description": "Skip debug manifests",
       "matchFileNames": ["loki-debug-pod.yaml"],
       "enabled": false
+    },
+    {
+      "matchPaths": ["apps/platform/pocketid/"],
+      "groupName": "pocketid"
+    },
+    {
+      "matchPaths": ["apps/platform/tinyauth/"],
+      "groupName": "tinyauth"
+    },
+    {
+      "matchPaths": ["apps/platform/filebrowser/"],
+      "groupName": "filebrowser"
+    },
+    {
+      "matchPaths": ["apps/platform/sealed-secrets-web/"],
+      "groupName": "sealed-secrets-web"
+    },
+    {
+      "matchPaths": ["apps/platform/storage/"],
+      "groupName": "platform-storage"
+    },
+    {
+      "matchPaths": [
+        "apps/platform/pihole/",
+        "charts/pihole-values.yaml",
+        "argocd/applications/platform/platform-pihole.yaml"
+      ],
+      "groupName": "pihole"
+    },
+    {
+      "matchPaths": [
+        "apps/platform/rustfs/",
+        "charts/rustfs-values.yaml",
+        "argocd/applications/platform/platform-rustfs.yaml"
+      ],
+      "groupName": "rustfs"
+    },
+    {
+      "matchPaths": [
+        "charts/tailscale-operator-values.yaml",
+        "argocd/applications/platform/platform-tailscale-operator.yaml"
+      ],
+      "groupName": "tailscale-operator"
+    },
+    {
+      "matchPaths": [
+        "charts/nfs-subdir-external-provisioner-values.yaml",
+        "argocd/applications/platform/platform-nfs-provisioner.yaml"
+      ],
+      "groupName": "nfs-provisioner"
+    },
+    {
+      "matchPaths": [
+        "charts/traefik-values.yaml",
+        "argocd/applications/traefik.yaml"
+      ],
+      "groupName": "traefik"
+    },
+    {
+      "matchPaths": [
+        "charts/cert-manager-values.yaml",
+        "argocd/applications/cert-manager.yaml"
+      ],
+      "groupName": "cert-manager"
+    },
+    {
+      "matchPaths": ["argocd/applications/sealed-secrets.yaml"],
+      "groupName": "sealed-secrets"
+    },
+    {
+      "matchPaths": [
+        "charts/reflector-values.yaml",
+        "argocd/applications/reflector.yaml"
+      ],
+      "groupName": "reflector"
+    },
+    {
+      "matchPaths": [
+        "charts/loki-values.yaml",
+        "argocd/applications/monitoring/monitoring-loki.yaml"
+      ],
+      "groupName": "loki"
+    },
+    {
+      "matchPaths": [
+        "charts/kube-prometheus-stack-values.yaml",
+        "argocd/applications/monitoring/monitoring-kube-prometheus-stack.yaml"
+      ],
+      "groupName": "kube-prometheus-stack"
+    },
+    {
+      "matchPaths": [
+        "charts/alloy-values.yaml",
+        "argocd/applications/monitoring/monitoring-alloy.yaml"
+      ],
+      "groupName": "alloy"
+    },
+    {
+      "matchPaths": [
+        "charts/prometheus-blackbox-exporter-values.yaml",
+        "argocd/applications/monitoring/monitoring-blackbox-exporter.yaml"
+      ],
+      "groupName": "blackbox-exporter"
+    },
+    {
+      "matchPaths": ["apps/monitoring/cert-audit/"],
+      "groupName": "cert-audit"
+    },
+    {
+      "matchPaths": ["apps/staging/hello-world/"],
+      "groupName": "staging-hello-world"
+    },
+    {
+      "matchPaths": ["apps/production/hello-world/"],
+      "groupName": "production-hello-world"
+    },
+    {
+      "matchPaths": ["apps/staging/postgres/"],
+      "groupName": "staging-postgres"
+    },
+    {
+      "matchPaths": ["apps/sitio-staging/postgres/"],
+      "groupName": "sitio-staging-postgres"
+    },
+    {
+      "matchPaths": ["apps/sitio-production/postgres/"],
+      "groupName": "sitio-production-postgres"
+    },
+    {
+      "matchPaths": ["apps/sitio-staging/sitio-dashboard/"],
+      "groupName": "sitio-staging-dashboard"
+    },
+    {
+      "matchPaths": ["apps/sitio-production/sitio-dashboard/"],
+      "groupName": "sitio-production-dashboard"
+    },
+    {
+      "matchPaths": ["apps/sitio-staging/sitio-backend/"],
+      "groupName": "sitio-staging-backend"
+    },
+    {
+      "matchPaths": ["apps/sitio-production/sitio-backend/"],
+      "groupName": "sitio-production-backend"
+    },
+    {
+      "matchPaths": ["apps/staging/fbd-ecommerce/"],
+      "groupName": "staging-fbd-ecommerce"
     }
   ]
 }
