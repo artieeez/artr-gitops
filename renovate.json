@@ -1,0 +1,59 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits"
+  ],
+  "timezone": "America/Sao_Paulo",
+  "schedule": ["before 6am on Monday"],
+  "labels": ["dependencies"],
+  "argocd": {
+    "managerFilePatterns": ["/argocd/applications/**"]
+  },
+  "kubernetes": {
+    "managerFilePatterns": ["/apps/**"]
+  },
+  "helm-values": {
+    "managerFilePatterns": ["/charts/.+-values\\.yaml$/"]
+  },
+  "packageRules": [
+    {
+      "description": "Own OCI images — promoted via GitHub Actions workflows",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": [
+        "/^vcp\\.ocir\\.io\\//",
+        "/^sa-vinhedo-1\\.ocir\\.io\\//"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Platform workloads (Pocket ID, TinyAuth, Filebrowser, …)",
+      "matchDatasources": ["docker"],
+      "matchPaths": ["apps/platform/**"],
+      "groupName": "platform container images"
+    },
+    {
+      "description": "Pi-hole image in Helm values",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["pihole/pihole", "docker.io/pihole/pihole"],
+      "matchPaths": ["charts/pihole-values.yaml"]
+    },
+    {
+      "description": "Helm charts referenced by Argo CD Applications",
+      "matchManagers": ["argocd"],
+      "groupName": "helm charts"
+    },
+    {
+      "description": "Loki stack sidecar images in values",
+      "matchDatasources": ["docker"],
+      "matchPaths": ["charts/loki-values.yaml"],
+      "groupName": "loki helm values images"
+    },
+    {
+      "description": "Skip debug manifests",
+      "matchFileNames": ["loki-debug-pod.yaml"],
+      "enabled": false
+    }
+  ]
+}
