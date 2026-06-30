@@ -10,13 +10,6 @@ ports:
     expose:
       default: true
     nodePort: 32443
-  postgres1:
-    port: 5432
-    expose:
-      default: true
-    exposedPort: 5432
-    nodePort: 32432
-    protocol: TCP
   # Pi-hole DNS via Terraform-managed OCI NLB (IngressRouteUDP / IngressRouteTCP -> pihole-dns:53)
   dnsudp:
     port: 5353

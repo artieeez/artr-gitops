@@ -9,7 +9,7 @@ PostgreSQL 16 for generic staging workloads. Managed by ArgoCD (`staging-postgre
 | Default database | `app` |
 | User | `postgres` |
 | Auth secret | `postgres-staging-auth` (SealedSecret in Git) |
-| External access | Traefik NLB port **32432** (requires OCI firewall rule) |
+| External access | **None** — cluster-internal + `kubectl port-forward` only |
 
 ## FBD 2026 (e-commerce assignment)
 
@@ -49,11 +49,6 @@ Password:
 ```bash
 kubectl get secret postgres-staging-auth -n staging -o jsonpath='{.data.password}' | base64 -d
 ```
-
-## External access (Traefik NLB)
-
-Traefik exposes Postgres on NodePort **32432** (`IngressRouteTCP` → entrypoint `postgres1`).
-Connect to `<NLB_IP>:32432` once OCI allows TCP 32432 on the Traefik NLB security list.
 
 ## Create a new database
 
