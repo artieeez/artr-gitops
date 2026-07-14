@@ -39,8 +39,10 @@ persistentVolumeClaim:
   size: 2Gi
   storageClass: nfs-client
 
-DNS1: "1.1.1.3"
-DNS2: "1.0.0.3"
+# Empty = chart omits FTLCONF_dns_upstreams so upstreams are editable in the web UI
+# (Settings → DNS). Persists on the PVC below. Chart defaults are Google DNS if left unset.
+DNS1: ""
+DNS2: ""
 
 extraEnvVars:
   FTLCONF_dns_listeningMode: "all"

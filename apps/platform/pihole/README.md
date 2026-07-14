@@ -5,6 +5,7 @@
 - **DNS-over-TLS (DoT):** `pihole.artr.com.br:853` via Traefik `dottcp` entryPoint and `IngressRouteTCP` TLS termination.
 - **Web UI:** `https://pihole.artr.com.br` — TLS at Traefik; access is gated by **TinyAuth** (`middlewares: [tinyauth-forwardauth]`). The `Middleware` CR lives with [sealed-secrets-web](../sealed-secrets-web/ingressroute.yaml); Pi-hole only references it.
 - **Pi-hole admin password:** Disabled in Helm (`admin.enabled: false`); rely on TinyAuth for the dashboard.
+- **Upstream DNS:** Managed in the web UI (**Settings → DNS**). Helm leaves `DNS1`/`DNS2` empty so `FTLCONF_dns_upstreams` is not injected (that env would lock the UI). Config survives restarts on the PVC.
 
 Point your router’s DNS to the **Traefik NLB** IP (same as `*.artr.com.br`).
 
