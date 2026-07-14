@@ -11,29 +11,7 @@ PostgreSQL 16 for generic staging workloads. Managed by ArgoCD (`staging-postgre
 | Auth secret | `postgres-staging-auth` (SealedSecret in Git) |
 | External access | **None** — cluster-internal + `kubectl port-forward` only |
 
-## FBD 2026 (e-commerce assignment)
-
-Database **`fbd2026`** holds the FBD trabalho schema (11 tables). Reload from the vault:
-
-```bash
-kubectl port-forward -n staging svc/postgres 15432:5432 &
-export PGPASSWORD="$(kubectl get secret postgres-staging-auth -n staging -o jsonpath='{.data.password}' | base64 -d)"
-
-psql -h 127.0.0.1 -p 15432 -U postgres -d fbd2026 \
-  -f "disciplinas/banco de dados/Karing Becker/trabalhos/fbd-2026/entregaveis/tabelas.sql"
-
-psql -h 127.0.0.1 -p 15432 -U postgres -d fbd2026 \
-  -f "disciplinas/banco de dados/Karing Becker/trabalhos/fbd-2026/entregaveis/Instancias.sql"
-```
-
-Connection string in-cluster (Rails deployment):
-
-```
-DB_HOST=postgres.staging.svc.cluster.local
-DB_NAME=fbd2026
-```
-
-App URL (after DNS): https://fbd-staging.artr.com.br — ArgoCD app `staging-fbd-ecommerce`.
+Currently scaled to **0 replicas** (CPU headroom). PVC data is retained.
 
 ## Local access (port-forward)
 
@@ -41,7 +19,7 @@ Recommended for development — no firewall changes needed:
 
 ```bash
 kubectl port-forward -n staging svc/postgres 15432:5432
-psql -h 127.0.0.1 -p 15432 -U postgres -d fbd2026
+psql -h 127.0.0.1 -p 15432 -U postgres -d app
 ```
 
 Password:
@@ -69,10 +47,9 @@ kubectl create secret generic postgres-staging-auth \
   --dry-run=client -o yaml | \
   kubeseal --controller-namespace=sealed-secrets --controller-name=sealed-secrets \
   -o yaml > apps/staging/postgres/postgres-staging-auth-sealed.yaml
-# commit, push, aguardar sync do SealedSecret, depois:
+# commit, push, aguardar sync do SealedSecret, depois (with replicas > 0):
 kubectl exec -n staging deploy/postgres -- psql -U postgres \
   -c "ALTER USER postgres WITH PASSWORD '$NEW_PASS';"
-kubectl rollout restart deployment/fbd-ecommerce -n staging   # se houver apps usando o secret
 ```
 
 ## Troubleshooting: `password authentication failed` (apps in-cluster)
@@ -91,7 +68,7 @@ Validar de outro pod:
 
 ```bash
 kubectl exec -n staging deploy/postgres -- sh -c \
-  "PGPASSWORD=\"$PASS\" psql -h postgres.staging.svc.cluster.local -U postgres -d fbd2026 -c 'SELECT 1'"
+  "PGPASSWORD=\"$PASS\" psql -h postgres.staging.svc.cluster.local -U postgres -d app -c 'SELECT 1'"
 ```
 
 See [docs/sealed-secrets.md](../../../docs/sealed-secrets.md).

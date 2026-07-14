@@ -206,12 +206,6 @@
         "apps/sitio-production/sitio-backend/"
       ],
       "groupName": "sitio-production-backend"
-    },
-    {
-      "matchFileNames": [
-        "apps/staging/fbd-ecommerce/"
-      ],
-      "groupName": "staging-fbd-ecommerce"
     }
   ]
 }
