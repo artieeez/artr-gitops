@@ -1,0 +1,14 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: ocir-pull
+  namespace: staging
+spec:
+  encryptedData:
+    .dockerconfigjson: AgA80TP98COSfvCYEUTVC/rg+yBA3umkdko83+iCQveaKapPAr+341s/n6fJB2tt9dU93hYUWOPzr2C+Xfv+LnP6H73asBBb5N2KrUCDQjFC+pQHm6eF5X39kW5FjU0rVU6rUd7ywpB04tv4ezye2FcLIJ3BKJpkl9SO0SGlfryhQJAHM+9dkfOviaDU8OF2AMmF3LqZxPlbJ8W7TOM9vcic4xl0/ONEgehQluH+eu5xbX+QcBqHJUpVi1M60tHHLqbHPJVvrJgwmaQZghtrBKoBPKJZMHuzcI432cdQ8MHZCprJ4fmi+0V+4FjYEIi8/8K1bZQ79pkyvhRVMT3DK9rEi+ZgwQKVZXZBqHdiWWNp1ovyojw0PeiA/Deo5PCnrLzbGHCwEtt9j7Bh0Jb/dl0JXN3VHlbSiNm2IFyL26PEGklSItJ8s4Xpn3fh3w+AtevpHTSF/NvVTDnfDl+PCqhtwOZydRr2YxOqzChJIelq5LGS4cONBQtRyFn1hgNZmLH6ZoJ8Nigu9ioOXBl242otKHDdAQ6jRsIPf4aZJfLHVVLNhxU6hrH73UzanLYlTrLSypSC8QTsl8hwMZ39+CdA+eyJ6WjKMoLZZfNRz5wzh16NIuh4X6oMONrOgeQaBBT0DvYpDM1/bCLDI6OYXL0zObl4Hz4g4dfpY3U7bU5COMrub3s0vDUa0+kdLJAk+7iKzLVv5AJrvVTv1LGS9KN17cnTaWk3389BVV4NW0XcxIX9bKuINcZtJVYiawd6Rj4pVqHfFarysyo9LubHDAHjUQdy2OvIRq8YEcVB+rnYRhmbWQRYrcEff5yeXoPBvvw2UB0i8rdmRB0xgiuaKhrCzoJlteytK1ZLGDyDbR9jXX6Ltf7eCm+KTkKqLznv3aS9RYIje9vmp/m9aBd3LFBSdHBL6YdtgI2m7R7dlofd7TttvmCBs/LXPI4ih/V5K0VrYdh2m8GYD7RJXlihrqzqgN/Pkl/PircyMsF7dgGjQc7f9cIknXVMG1fOO198YXmcGmo=
+  template:
+    metadata:
+      name: ocir-pull
+      namespace: staging
+    type: kubernetes.io/dockerconfigjson

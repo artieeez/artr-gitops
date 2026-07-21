@@ -1,0 +1,47 @@
+name: Promote home to production
+
+on:
+  workflow_dispatch:
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Extract current image from staging
+        id: image
+        run: |
+          IMAGE=$(grep 'image: vcp.ocir.io/axtvnrdemzo7/home:' \
+            apps/staging/home/deployment.yaml | \
+            sed 's/.*image: //')
+          echo "value=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Show extracted image
+        run: |
+          echo "Promoting ${{ steps.image.outputs.value }} to production"
+
+      - name: Update production deployment
+        env:
+          IMAGE: ${{ steps.image.outputs.value }}
+        run: |
+          sed -i "s|image: vcp.ocir.io/axtvnrdemzo7/home:.*|image: ${IMAGE}|" \
+            apps/production/home/deployment.yaml
+
+      - name: Commit and push
+        env:
+          IMAGE: ${{ steps.image.outputs.value }}
+        run: |
+          git config user.name "home-promotion-bot"
+          git config user.email "bot@artr.com.br"
+          git add apps/production/home/deployment.yaml
+          if git diff --staged --quiet; then
+            echo "Production already on ${IMAGE}"
+            exit 0
+          fi
+          git commit -m "promote home to ${IMAGE}"
+          git push

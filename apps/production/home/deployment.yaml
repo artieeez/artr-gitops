@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: home
+  namespace: production
+  labels:
+    app: home
+    environment: production
+spec:
+  # SQLite single-writer — never scale above 1.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: home
+  template:
+    metadata:
+      labels:
+        app: home
+        environment: production
+    spec:
+      imagePullSecrets:
+        - name: ocir-pull
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: home
+          # Promoted from staging via artr-gitops workflow (Promote home to production).
+          image: vcp.ocir.io/axtvnrdemzo7/home:staging-latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http
+          env:
+            - name: RAILS_ENV
+              value: production
+            - name: APP_BASE_URL
+              value: https://artr.com.br
+            - name: SOLID_QUEUE_IN_PUMA
+              value: "true"
+            - name: SQLITE_DATABASE
+              value: /rails/storage/production.sqlite3
+            - name: SQLITE_CACHE_DATABASE
+              value: /rails/storage/production_cache.sqlite3
+            - name: SQLITE_QUEUE_DATABASE
+              value: /rails/storage/production_queue.sqlite3
+            - name: SQLITE_CABLE_DATABASE
+              value: /rails/storage/production_cable.sqlite3
+            - name: RAILS_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: home-secrets
+                  key: RAILS_MASTER_KEY
+          volumeMounts:
+            - name: sqlite-data
+              mountPath: /rails/storage
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /up
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /up
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+      volumes:
+        - name: sqlite-data
+          persistentVolumeClaim:
+            claimName: home-sqlite
