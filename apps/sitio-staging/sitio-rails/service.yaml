@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sitio-rails
+  namespace: sitio-staging
+  labels:
+    app: sitio-rails
+spec:
+  type: ClusterIP
+  selector:
+    app: sitio-rails
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

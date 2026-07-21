@@ -1,0 +1,14 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: ocir-pull
+  namespace: sitio-production
+spec:
+  encryptedData:
+    .dockerconfigjson: AgCpGKuNk1cUJ3f5Jp7CjFeIR5saBdoxYuSssmIGqJvK6g/B9vG9da1V8f7ZEs6pfnFlBKLAlU+HzJqIP7bVm5WOel3JvqjiqpFvG1FOluKk0nLxkehK7q9Pafcqjq1Q7g0KXRbj+CCROKiVA3QDPCvTDm3APP2K0uJx7AI7zn6NtnJ20nr2x3CRBOwmeVhpOafKu+8oHTEGFcbzQiPRAkQwZNKhV12ArDpr1VNZ27Tym3wZzOUlGDOgY8GuZ7p3R/EeRg4/FTDmKHYDQJZmw6xRzpx19hAEl18R/COT0vPYKJwpwfoDsP66PXDbFN/ox17UL+NTuc/MXNCVndqOqEFCVRrR0heN8kEpH9ZlT/jZyTRYt5sdOvWn5GC5qxb5/KezgzyU7dnZZGs4kQk8YIICaZlLbQA9Q7QaVk8jdYGKRaiVIkC6c7n/4uPckkIOjHP25QAhskFJdHlL8PflQvrMznjQ5yOkLKxAtSfTnHEdcFxOjyB316kSfYpY5TFujxJ1KVbl4z5EYu22S/0h89C3DXQNCXXqusYaMiqKDM8VAsefaTuJzPED+kh3zRWvSPlidACdRWde+fB5m5YIWOnyUV/M0wp3frPYgNh4SZBFYYZinHrivXy7iFLYvz29x4VEwdo0rMWO9/SSoYbb1/djl2Iq8O0SCNWxNwhyqMX7xkExlFbpqNC6nZ1iGOAlfEa0hi6ZU7bnWe4esO4ls+w/TIXYjp+A5SejxtvQnnqRm5r4YXo3BNLdHgx2uzOput4jMhq3o0tpHIe3EVhQxzrnXYaUwf6Il4vbhHRGWwrICEsD6mN8ms4d5WaUPjc+5c2YPO9n1dtfxgaM6c75o8/h8rJBKILZ3Ayj5kvslLks7EXG3ldJqatsfj4MhI/REm7DJS3TrLMbU2GLpaDFZ+bx6zviJGzlpa+zWoWimygPL0Y7yhP7mGyi5/Y9tSe0Q+z5K2gnNz4RsOIo7HXdHulIjarb7pS4i/Kq3cdr7Xu84APpdQ4SrvkOitD00ek+GG1pueE=
+  template:
+    metadata:
+      name: ocir-pull
+      namespace: sitio-production
+    type: kubernetes.io/dockerconfigjson

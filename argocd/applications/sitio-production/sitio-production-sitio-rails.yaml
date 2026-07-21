@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: sitio-staging-sitio-dashboard
+  name: sitio-production-sitio-rails
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -10,10 +10,10 @@ spec:
   source:
     repoURL: https://github.com/artieeez/artr-gitops
     targetRevision: HEAD
-    path: apps/sitio-staging/sitio-dashboard
+    path: apps/sitio-production/sitio-rails
   destination:
     server: https://kubernetes.default.svc
-    namespace: sitio-staging
+    namespace: sitio-production
   syncPolicy:
     automated:
       prune: true

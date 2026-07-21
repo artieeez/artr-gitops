@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: sitio-staging-postgres
+  name: sitio-staging-sitio-rails
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/artieeez/artr-gitops
     targetRevision: HEAD
-    path: apps/sitio-staging/postgres
+    path: apps/sitio-staging/sitio-rails
   destination:
     server: https://kubernetes.default.svc
     namespace: sitio-staging
@@ -29,4 +29,3 @@ spec:
         duration: 5s
         factor: 2
         maxDuration: 3m
-
