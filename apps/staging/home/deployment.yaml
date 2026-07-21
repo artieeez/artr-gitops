@@ -27,7 +27,7 @@ spec:
       containers:
         - name: home
           # Bumped by home GitHub Action (Build and push OCIR).
-          image: vcp.ocir.io/axtvnrdemzo7/home:sha-2448c49
+          image: vcp.ocir.io/axtvnrdemzo7/home:sha-1b5bee5
           imagePullPolicy: Always
           ports:
             - containerPort: 80
