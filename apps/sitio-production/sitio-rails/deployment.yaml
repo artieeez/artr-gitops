@@ -26,7 +26,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: sitio-rails
-          # Bumped by sitio-rails GitHub Action (Deploy Rails → production).
+          # Promoted from staging via artr-gitops workflow (Promote sitio-rails to production).
           image: vcp.ocir.io/axtvnrdemzo7/sitio-rails:production-latest
           imagePullPolicy: Always
           ports:
