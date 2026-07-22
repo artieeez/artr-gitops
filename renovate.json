@@ -170,42 +170,6 @@
         "apps/staging/postgres/"
       ],
       "groupName": "staging-postgres"
-    },
-    {
-      "matchFileNames": [
-        "apps/sitio-staging/postgres/"
-      ],
-      "groupName": "sitio-staging-postgres"
-    },
-    {
-      "matchFileNames": [
-        "apps/sitio-production/postgres/"
-      ],
-      "groupName": "sitio-production-postgres"
-    },
-    {
-      "matchFileNames": [
-        "apps/sitio-staging/sitio-dashboard/"
-      ],
-      "groupName": "sitio-staging-dashboard"
-    },
-    {
-      "matchFileNames": [
-        "apps/sitio-production/sitio-dashboard/"
-      ],
-      "groupName": "sitio-production-dashboard"
-    },
-    {
-      "matchFileNames": [
-        "apps/sitio-staging/sitio-backend/"
-      ],
-      "groupName": "sitio-staging-backend"
-    },
-    {
-      "matchFileNames": [
-        "apps/sitio-production/sitio-backend/"
-      ],
-      "groupName": "sitio-production-backend"
     }
   ]
 }
