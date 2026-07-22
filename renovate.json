@@ -9,10 +9,10 @@
   "schedule": ["before 6am on Monday"],
   "labels": ["dependencies"],
   "argocd": {
-    "managerFilePatterns": ["/argocd/applications/**"]
+    "managerFilePatterns": ["/argocd/applications/.+\\.ya?ml$/"]
   },
   "kubernetes": {
-    "managerFilePatterns": ["/apps/**"]
+    "managerFilePatterns": ["/apps/.+\\.ya?ml$/"]
   },
   "helm-values": {
     "managerFilePatterns": ["/charts/.+-values\\.yaml$/"]
