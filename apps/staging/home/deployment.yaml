@@ -30,11 +30,14 @@ spec:
           image: vcp.ocir.io/axtvnrdemzo7/home:sha-1b5bee5
           imagePullPolicy: Always
           ports:
-            - containerPort: 80
+            # Thruster defaults to :80; non-root (UID 1000) cannot bind privileged ports.
+            - containerPort: 8080
               name: http
           env:
             - name: RAILS_ENV
               value: production
+            - name: HTTP_PORT
+              value: "8080"
             - name: APP_BASE_URL
               value: https://home-staging.artr.com.br
             - name: SOLID_QUEUE_IN_PUMA
