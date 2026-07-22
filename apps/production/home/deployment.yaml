@@ -27,7 +27,7 @@ spec:
       containers:
         - name: home
           # Promoted from staging via artr-gitops workflow (Promote home to production).
-          image: vcp.ocir.io/axtvnrdemzo7/home:staging-latest
+          image: vcp.ocir.io/axtvnrdemzo7/home:sha-1b5bee5
           imagePullPolicy: Always
           ports:
             # Thruster defaults to :80; non-root (UID 1000) cannot bind privileged ports.
