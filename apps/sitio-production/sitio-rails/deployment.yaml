@@ -27,7 +27,7 @@ spec:
       containers:
         - name: sitio-rails
           # Promoted from staging via artr-gitops workflow (Promote sitio-rails to production).
-          image: vcp.ocir.io/axtvnrdemzo7/sitio-rails:production-latest
+          image: vcp.ocir.io/axtvnrdemzo7/sitio-rails:sha-0b293ab
           imagePullPolicy: Always
           ports:
             # Thruster defaults to :80; non-root (UID 1000) cannot bind privileged ports.
