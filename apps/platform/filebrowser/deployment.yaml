@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: filebrowser
-          image: docker.io/gtstef/filebrowser:1.2.2-stable
+          image: docker.io/gtstef/filebrowser:1.5.0-stable
           ports:
             - containerPort: 80
               name: http
