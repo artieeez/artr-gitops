@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: pocketid
-          image: docker.io/11notes/pocket-id:2.9.0
+          image: docker.io/11notes/pocket-id:2.11.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 1411
