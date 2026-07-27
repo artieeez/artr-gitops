@@ -22,7 +22,7 @@ spec:
           restartPolicy: Never
           containers:
             - name: audit
-              image: alpine/k8s:1.30.4
+              image: alpine/k8s:1.36.2
               command:
                 - /bin/sh
                 - -ec
