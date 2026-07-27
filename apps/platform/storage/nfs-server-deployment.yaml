@@ -23,6 +23,8 @@ spec:
               mkdir -p \
                 /exports/staging/postgre \
                 /exports/platform/filebrowser
+              # FileBrowser Quantum ≥1.3 runs as UID 1000
+              chown -R 1000:1000 /exports/platform/filebrowser
           volumeMounts:
             - name: exports
               mountPath: /exports

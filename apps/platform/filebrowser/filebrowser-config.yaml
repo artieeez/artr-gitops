@@ -6,6 +6,7 @@ metadata:
 data:
   config.yaml: |
     server:
+      port: 8080
       database: "/home/filebrowser/data/platform/filebrowser/database.db"
       sources:
         - path: "/srv"

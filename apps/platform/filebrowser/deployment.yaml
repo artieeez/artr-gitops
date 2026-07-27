@@ -15,12 +15,22 @@ spec:
       labels:
         app: filebrowser
     spec:
+      # Quantum ≥1.3 runs as UID 1000 (not root).
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
         - name: filebrowser
           image: docker.io/gtstef/filebrowser:1.5.0-stable
           ports:
-            - containerPort: 80
+            - containerPort: 8080
               name: http
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
           envFrom:
             - secretRef:
                 name: filebrowser-oidc-secret
