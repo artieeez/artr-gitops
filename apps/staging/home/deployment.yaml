@@ -55,9 +55,15 @@ spec:
                 secretKeyRef:
                   name: home-secrets
                   key: RAILS_MASTER_KEY
+            # git-sync publishes the KB under this symlink (see sidecar --link).
+            - name: KNOWLEDGE_BASE_PATH
+              value: /rails/knowledge/current
           volumeMounts:
             - name: sqlite-data
               mountPath: /rails/storage
+            - name: knowledge-base
+              mountPath: /rails/knowledge
+              readOnly: true
           resources:
             requests:
               cpu: 100m
@@ -76,7 +82,36 @@ spec:
               port: http
             initialDelaySeconds: 15
             periodSeconds: 10
+        - name: git-sync
+          image: registry.k8s.io/git-sync/git-sync:v4.7.1
+          args:
+            - --repo=git@github.com:artieeez/home-knowledge.git
+            - --ref=main
+            - --root=/git
+            - --link=current
+            - --period=60s
+            - --depth=1
+            - --ssh-known-hosts=true
+            - --group-write=true
+          volumeMounts:
+            - name: knowledge-base
+              mountPath: /git
+            - name: kb-git-credentials
+              mountPath: /etc/git-secret
+              readOnly: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
       volumes:
         - name: sqlite-data
           persistentVolumeClaim:
             claimName: home-sqlite
+        - name: knowledge-base
+          emptyDir: {}
+        - name: kb-git-credentials
+          secret:
+            secretName: home-kb-git
+            defaultMode: 0400
