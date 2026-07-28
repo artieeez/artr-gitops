@@ -58,6 +58,9 @@ spec:
             # git-sync publishes the KB under this symlink (see sidecar --link).
             - name: KNOWLEDGE_BASE_PATH
               value: /rails/knowledge/current
+            # Sibling of `current`; written by git-sync exechook (sha + subject).
+            - name: KNOWLEDGE_BASE_SYNC_STATUS_PATH
+              value: /rails/knowledge/synced.json
           volumeMounts:
             - name: sqlite-data
               mountPath: /rails/storage
@@ -93,11 +96,15 @@ spec:
             - --depth=1
             - --ssh-known-hosts=true
             - --group-write=true
+            - --exechook-command=/hooks/write-synced-status.sh
           volumeMounts:
             - name: knowledge-base
               mountPath: /git
             - name: kb-git-credentials
               mountPath: /etc/git-secret
+              readOnly: true
+            - name: git-sync-hooks
+              mountPath: /hooks
               readOnly: true
           resources:
             requests:
@@ -115,3 +122,7 @@ spec:
           secret:
             secretName: home-kb-git
             defaultMode: 0400
+        - name: git-sync-hooks
+          configMap:
+            name: home-git-sync-hooks
+            defaultMode: 0755

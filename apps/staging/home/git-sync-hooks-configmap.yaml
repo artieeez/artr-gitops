@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: home-git-sync-hooks
+  namespace: staging
+  labels:
+    app: home
+    environment: staging
+data:
+  write-synced-status.sh: |
+    #!/bin/bash
+    # Runs as git-sync --exechook-command after each successful sync.
+    # Writes sibling metadata next to the `current` symlink (not inside the worktree).
+    set -euo pipefail
+
+    ROOT="/git"
+    OUT="${ROOT}/synced.json"
+    SHA="${GITSYNC_HASH:?GITSYNC_HASH unset}"
+    SHORT="${SHA:0:7}"
+    SUBJECT="$(git log -1 --format=%s)"
+    SYNCED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+    json_escape() {
+      printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/	/\\t/g'
+    }
+
+    SUBJECT_ESC="$(json_escape "${SUBJECT}")"
+
+    umask 022
+    printf '{"sha":"%s","short_sha":"%s","subject":"%s","synced_at":"%s"}\n' \
+      "${SHA}" "${SHORT}" "${SUBJECT_ESC}" "${SYNCED_AT}" > "${OUT}.tmp"
+    mv -f "${OUT}.tmp" "${OUT}"

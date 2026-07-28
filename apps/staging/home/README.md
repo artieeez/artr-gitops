@@ -18,3 +18,5 @@ SealedSecrets (`ocir-pull`, `home-secrets`, `home-kb-git`) are sealed for both n
 Private repo: [`artieeez/home-knowledge`](https://github.com/artieeez/home-knowledge) (read-only deploy key in `home-kb-git`).
 
 The `home` pod runs a **git-sync** sidecar that clones/pulls that repo into an `emptyDir` and exposes it at `/rails/knowledge/current` (`KNOWLEDGE_BASE_PATH`). Push to `main` on the KB repo; the sidecar polls about every 60s. Rails never holds git credentials.
+
+After each sync, an exechook writes `/rails/knowledge/synced.json` (`KNOWLEDGE_BASE_SYNC_STATUS_PATH`) with `sha`, `short_sha`, `subject`, and `synced_at` for the future Admin status page.
