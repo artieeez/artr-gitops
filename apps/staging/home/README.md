@@ -13,6 +13,17 @@ Image: `vcp.ocir.io/axtvnrdemzo7/home:<tag>`
 
 SealedSecrets (`ocir-pull`, `home-secrets`, `home-kb-git`) are sealed for both namespaces.
 
+`home-secrets` keys:
+
+| Key | Purpose |
+|-----|---------|
+| `RAILS_MASTER_KEY` | Rails credentials / production secrets |
+| `ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY` | Active Record Encryption (Admin DeepSeek key, etc.) |
+| `ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY` | Active Record Encryption |
+| `ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT` | Active Record Encryption |
+
+Staging and production use **different** encryption key sets. Rotating them invalidates ciphertext already stored in SQLite (re-set Admin DeepSeek key after rotate).
+
 ## Knowledge Base (git-sync)
 
 Private repo: [`artieeez/home-knowledge`](https://github.com/artieeez/home-knowledge) (read-only deploy key in `home-kb-git`).
