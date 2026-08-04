@@ -6,6 +6,10 @@ set -euo pipefail
 : "${BUCKET:?BUCKET required}"
 : "${SQLITE_PATH:?SQLITE_PATH required}"
 
+# OCI Object Storage rejects AWS CLI v2 default flexible checksums (aws-chunked PutObject).
+export AWS_REQUEST_CHECKSUM_CALCULATION="${AWS_REQUEST_CHECKSUM_CALCULATION:-when_required}"
+export AWS_RESPONSE_CHECKSUM_VALIDATION="${AWS_RESPONSE_CHECKSUM_VALIDATION:-when_required}"
+
 WORK_DIR="${TMPDIR:-/tmp}"
 TMP_DB="${WORK_DIR}/sitio-backup-$$.sqlite3"
 TMP_GZ="${WORK_DIR}/sitio-backup-$$.sqlite3.gz"

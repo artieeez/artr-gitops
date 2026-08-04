@@ -15,6 +15,7 @@ Operational guide for Sitio Rails nightly SQLite backups to OCI Object Storage a
 | Mechanism | `VACUUM INTO` → gzip → `aws s3 cp` to OCI S3-compatible endpoint |
 | Bucket | `sitio-production-backups` (Archive tier) |
 | Object key pattern | `{staging\|production}/sitio-rails/production-{YYYYMMDDTHHMMSSZ}.sqlite3.gz` |
+| AWS CLI / OCI | Scripts set `AWS_REQUEST_CHECKSUM_CALCULATION=when_required` (and response validation) so PutObject does not use aws-chunked encoding, which OCI rejects |
 | Example key | `staging/sitio-rails/production-20260803T060000Z.sqlite3.gz` |
 | Retention | 90-day lifecycle rule on the bucket (objects auto-deleted after 90 days) |
 | Credentials | SealedSecret `s3-credentials` per namespace (Customer Secret Key) |
@@ -114,14 +115,14 @@ kubectl -n sitio-staging wait --for=delete pod -l app=sitio-rails --timeout=120s
 # Option A: helper pod (recommended)
 kubectl -n sitio-staging run sqlite-restore-helper \
   --restart=Never \
-  --image=docker.io/amazon/aws-cli:2.27.25 \
+  --image=public.ecr.aws/amazonlinux/amazonlinux:2023 \
   --overrides='{
     "spec": {
       "securityContext": {"fsGroup": 1000},
       "containers": [{
         "name": "sqlite-restore-helper",
-        "image": "docker.io/amazon/aws-cli:2.27.25",
-        "command": ["sleep", "3600"],
+        "image": "public.ecr.aws/amazonlinux/amazonlinux:2023",
+        "command": ["sh", "-ec", "dnf install -y -q sqlite awscli gzip && sleep 3600"],
         "volumeMounts": [{"name": "data", "mountPath": "/rails/storage"}],
         "env": [
           {"name": "AWS_DEFAULT_REGION", "value": "sa-vinhedo-1"},
@@ -138,6 +139,8 @@ kubectl -n sitio-staging run sqlite-restore-helper \
 
 ```bash
 kubectl -n sitio-staging exec -it sqlite-restore-helper -- sh -c '
+  export AWS_REQUEST_CHECKSUM_CALCULATION=when_required
+  export AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
   aws s3 cp s3://sitio-production-backups/staging/sitio-rails/production-REPLACE.sqlite3.gz /tmp/backup.gz &&
   gunzip -c /tmp/backup.gz > /rails/storage/production.sqlite3 &&
   sqlite3 /rails/storage/production.sqlite3 "PRAGMA integrity_check;"

@@ -25,18 +25,13 @@ spec:
       restartPolicy: Never
       containers:
         - name: verify
-          image: docker.io/amazon/aws-cli:2.27.25
+          # AL2023: SQLite >= 3.27. AL2 aws-cli image ships 3.7.17 (too old).
+          image: public.ecr.aws/amazonlinux/amazonlinux:2023
           command:
             - /bin/sh
             - -ec
             - |
-              if ! command -v sqlite3 >/dev/null 2>&1; then
-                if command -v microdnf >/dev/null 2>&1; then
-                  microdnf install -y sqlite
-                else
-                  yum install -y sqlite
-                fi
-              fi
+              dnf install -y -q sqlite awscli gzip
               exec /scripts/verify.sh
           env:
             - name: OBJECT_KEY

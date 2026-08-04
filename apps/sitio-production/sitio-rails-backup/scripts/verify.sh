@@ -5,6 +5,10 @@ set -euo pipefail
 : "${OBJECT_KEY:?OBJECT_KEY required (e.g. staging/sitio-rails/production-20260101T060000Z.sqlite3.gz)}"
 : "${BUCKET:?BUCKET required}"
 
+# Match backup.sh — keep aws s3 downloads compatible with OCI Object Storage.
+export AWS_REQUEST_CHECKSUM_CALCULATION="${AWS_REQUEST_CHECKSUM_CALCULATION:-when_required}"
+export AWS_RESPONSE_CHECKSUM_VALIDATION="${AWS_RESPONSE_CHECKSUM_VALIDATION:-when_required}"
+
 WORK_DIR="${TMPDIR:-/tmp}"
 TMP_GZ="${WORK_DIR}/sitio-verify-$$.sqlite3.gz"
 TMP_DB="${WORK_DIR}/sitio-verify-$$.sqlite3"

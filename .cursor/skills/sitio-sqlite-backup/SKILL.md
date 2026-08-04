@@ -30,7 +30,7 @@ When about to run concrete commands, read `references/runbook-map.md` for bucket
 | Namespace production | `sitio-production` |
 | CronJob | `sitio-rails-sqlite-backup` |
 | Key prefix | `{env}/sitio-rails/` |
-| Image | `docker.io/amazon/aws-cli:2.27.25` (always FQDN) |
+| Image | `public.ecr.aws/amazonlinux/amazonlinux:2023` (install `sqlite` + `awscli` + `gzip` via `dnf`; needs SQLite ≥ 3.27 for `VACUUM INTO`) |
 | Runbook | `docs/sqlite-backup-runbook.md` |
 | Argo apps | `sitio-staging-sitio-rails-backup`, `sitio-production-sitio-rails-backup` |
 
@@ -72,7 +72,9 @@ Only if the user asks to run one now:
 1. Confirm env namespace.
 2. `kubectl -n <ns> create job --from=cronjob/sitio-rails-sqlite-backup manual-backup-<unix-ts>`
 3. Follow logs until success or failure.
-4. On `ImageInspectError` / short-name errors: remind image must be `docker.io/amazon/aws-cli:...` (already in manifests on main).
+4. On `ImageInspectError` / short-name errors: remind image must be a full registry path (e.g. `public.ecr.aws/amazonlinux/...`).
+5. On `near "INTO": syntax error`: image/SQLite is too old (AL2 aws-cli ships 3.7.17). Use AL2023 + `dnf install sqlite awscli gzip`.
+6. On `gzip: command not found`: AL2023 base has no gzip — include `gzip` in the `dnf install` line.
 
 ### Verify
 
@@ -142,10 +144,25 @@ User: "help me prepare to apply a backup in staging"
 
 ## Troubleshooting
 
-### Error: short name / ImageInspectError on aws-cli
+### Error: short name / ImageInspectError
 
-Cause: cri-o short_name_mode rejects `amazon/aws-cli` without registry.
-Solution: Image must be `docker.io/amazon/aws-cli:2.27.25`. Check CronJob/verify manifests on `main`.
+Cause: cri-o short_name_mode rejects images without a registry.
+Solution: Image must be fully qualified (e.g. `public.ecr.aws/amazonlinux/amazonlinux:2023`).
+
+### Error: near "INTO": syntax error
+
+Cause: SQLite < 3.27 (Amazon Linux 2 / old `amazon/aws-cli` image).
+Solution: Use `public.ecr.aws/amazonlinux/amazonlinux:2023` and `dnf install -y -q sqlite awscli gzip` before `backup.sh` / `verify.sh`.
+
+### Error: gzip: command not found
+
+Cause: AL2023 base image does not include `gzip`.
+Solution: Add `gzip` to the Job `dnf install` packages (`sqlite awscli gzip`).
+
+### Error: AWS chunked encoding not supported / PutObject NotImplemented
+
+Cause: AWS CLI v2 default flexible checksums use aws-chunked PutObject; OCI Object Storage rejects that.
+Solution: Scripts set `AWS_REQUEST_CHECKSUM_CALCULATION=when_required` and `AWS_RESPONSE_CHECKSUM_VALIDATION=when_required`.
 
 ### Error: download fails / NotRestored
 
