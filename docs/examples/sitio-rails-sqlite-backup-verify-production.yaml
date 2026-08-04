@@ -1,3 +1,7 @@
+# NOT managed by Argo CD — manual one-shot template only.
+# Edit OBJECT_KEY (and optionally metadata.name), then apply:
+#   kubectl apply -f docs/examples/sitio-rails-sqlite-backup-verify-production.yaml
+
 # One-shot verify Job: download OBJECT_KEY from OCI and run PRAGMA integrity_check.
 # Does not mount the app PVC. Archive object must be restored before download (see runbook).
 # Set OBJECT_KEY to the backup object (e.g. production/sitio-rails/production-20260101T060000Z.sqlite3.gz).

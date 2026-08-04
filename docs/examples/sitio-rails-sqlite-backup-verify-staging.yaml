@@ -1,6 +1,10 @@
+# NOT managed by Argo CD — manual one-shot template only.
+# Edit OBJECT_KEY (and optionally metadata.name), then apply:
+#   kubectl apply -f docs/examples/sitio-rails-sqlite-backup-verify-staging.yaml
+
 # One-shot verify Job: download OBJECT_KEY from OCI and run PRAGMA integrity_check.
 # Does not mount the app PVC. Archive object must be restored before download (see runbook).
-# Set OBJECT_KEY to the backup object (e.g. staging/sitio-rails/production-20260101T060000Z.sqlite3.gz).
+# Set OBJECT_KEY to the backup object (e.g. staging/sitio-rails/staging-20260101T060000Z.sqlite3.gz).
 # Rename metadata.name before apply if a prior verify Job already exists.
 apiVersion: batch/v1
 kind: Job
@@ -36,7 +40,7 @@ spec:
               exec /scripts/verify.sh
           env:
             - name: OBJECT_KEY
-              value: staging/sitio-rails/production-REPLACE_WITH_UTC_TIMESTAMP.sqlite3.gz
+              value: staging/sitio-rails/staging-REPLACE_WITH_UTC_TIMESTAMP.sqlite3.gz
             - name: BUCKET
               value: sitio-production-backups
             - name: AWS_DEFAULT_REGION

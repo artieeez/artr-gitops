@@ -70,14 +70,17 @@ Look for `"archival-state": "Restored"` in the output.
 The verify Job downloads a restored object and runs `PRAGMA integrity_check`. It **does not** mount the app PVC and cannot overwrite the live database.
 
 1. Ensure the object is restored (previous section).
-2. Edit `apps/sitio-{staging,production}/sitio-rails-backup/verify-job.yaml`:
-   - Set `OBJECT_KEY` to the full key (e.g. `staging/sitio-rails/production-20260803T060000Z.sqlite3.gz`).
+2. Edit the example manifest for your environment (not synced by Argo CD):
+   - Staging: `docs/examples/sitio-rails-sqlite-backup-verify-staging.yaml`
+   - Production: `docs/examples/sitio-rails-sqlite-backup-verify-production.yaml`
+   - Set `OBJECT_KEY` to the full key (e.g. `staging/sitio-rails/staging-20260803T060000Z.sqlite3.gz`).
    - Optionally rename `metadata.name` if a prior verify Job exists.
 3. Apply:
 
 ```bash
-kubectl apply -f apps/sitio-staging/sitio-rails-backup/verify-job.yaml
+kubectl apply -f docs/examples/sitio-rails-sqlite-backup-verify-staging.yaml
 kubectl -n sitio-staging logs -f job/sitio-rails-sqlite-backup-verify
+# Production: kubectl apply -f docs/examples/sitio-rails-sqlite-backup-verify-production.yaml
 ```
 
 Expected success: `OK: integrity_check passed for s3://sitio-production-backups/...`
