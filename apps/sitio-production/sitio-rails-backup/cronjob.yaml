@@ -1,0 +1,89 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sitio-rails-sqlite-backup
+  namespace: sitio-production
+  labels:
+    app: sitio-rails-backup
+    environment: sitio-production
+spec:
+  schedule: "0 6 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: sitio-rails-backup
+            environment: sitio-production
+        spec:
+          restartPolicy: Never
+          securityContext:
+            fsGroup: 1000
+          containers:
+            - name: backup
+              image: amazon/aws-cli:2.27.25
+              command:
+                - /bin/sh
+                - -ec
+                - |
+                  if ! command -v sqlite3 >/dev/null 2>&1; then
+                    if command -v microdnf >/dev/null 2>&1; then
+                      microdnf install -y sqlite
+                    else
+                      yum install -y sqlite
+                    fi
+                  fi
+                  exec /scripts/backup.sh
+              env:
+                - name: BACKUP_ENV
+                  value: production
+                - name: SQLITE_PATH
+                  value: /rails/storage/production.sqlite3
+                - name: BUCKET
+                  value: sitio-production-backups
+                - name: AWS_DEFAULT_REGION
+                  value: sa-vinhedo-1
+                - name: AWS_ENDPOINT_URL
+                  value: https://axtvnrdemzo7.compat.objectstorage.sa-vinhedo-1.oci.customer-oci.com
+                - name: TMPDIR
+                  value: /tmp
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: s3-credentials
+                      key: access-key-id
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: s3-credentials
+                      key: secret-access-key
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+              volumeMounts:
+                - name: sqlite-data
+                  mountPath: /rails/storage
+                  readOnly: true
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: sqlite-data
+              persistentVolumeClaim:
+                claimName: sitio-rails-sqlite
+            - name: scripts
+              configMap:
+                name: sitio-rails-backup-scripts
+                defaultMode: 0755
+            - name: tmp
+              emptyDir: {}
