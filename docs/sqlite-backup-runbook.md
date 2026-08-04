@@ -111,13 +111,13 @@ kubectl -n sitio-staging wait --for=delete pod -l app=sitio-rails --timeout=120s
 # Option A: helper pod (recommended)
 kubectl -n sitio-staging run sqlite-restore-helper \
   --restart=Never \
-  --image=amazon/aws-cli:2.27.25 \
+  --image=docker.io/amazon/aws-cli:2.27.25 \
   --overrides='{
     "spec": {
       "securityContext": {"fsGroup": 1000},
       "containers": [{
         "name": "sqlite-restore-helper",
-        "image": "amazon/aws-cli:2.27.25",
+        "image": "docker.io/amazon/aws-cli:2.27.25",
         "command": ["sleep", "3600"],
         "volumeMounts": [{"name": "data", "mountPath": "/rails/storage"}],
         "env": [
