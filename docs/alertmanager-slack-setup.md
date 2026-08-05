@@ -1,6 +1,6 @@
 # Alertmanager → Slack setup
 
-Send **Prometheus / cert-manager / TLS probe alerts** to Slack.
+Send **Prometheus / cert-manager / TLS / Sitio SQLite backup alerts** to Slack.
 
 ## OCI Notifications vs Alertmanager
 
@@ -52,7 +52,7 @@ Alertmanager mounts the secret at
 
 ## Which alerts go to Slack?
 
-Only **certificate / TLS** alerts (postmortem scope):
+**Certificate / TLS** (postmortem scope) and **Sitio SQLite backup** alerts:
 
 | Alert | Severity |
 |---|---|
@@ -60,8 +60,12 @@ Only **certificate / TLS** alerts (postmortem scope):
 | `CertManagerCertificateExpirySoon` | warning |
 | `TlsProbeFailed` | critical |
 | `TlsCertificateExpirySoon` | critical |
+| `SitioRailsSqliteBackupJobFailed` | critical |
+| `SitioRailsSqliteBackupMissedSchedule` | warning |
 
 Other kube-prometheus alerts stay in the Alertmanager UI only (`receiver: null`).
+
+Route matcher: `alertname =~ "CertManager.*|Tls.*|SitioRailsSqliteBackup.*"`.
 
 To send **all** cluster alerts to Slack later, change the default `route.receiver` from `null` to `slack-infra` in the values file.
 
@@ -116,11 +120,12 @@ You should see a message in Slack within ~30s (Alertmanager `group_wait`).
 | No Slack message | Secret missing or wrong key (`slack-api-url`); Alertmanager logs for `notify` errors |
 | `unsupported protocol scheme` | Webhook file empty or malformed URL |
 | `invalid_auth` from Slack | Webhook revoked — create a new one and re-seal |
-| Alerts in UI but not Slack | Alert name must match `CertManager.*` or `Tls.*` regex |
+| Alerts in UI but not Slack | Alert name must match `CertManager.*`, `Tls.*`, or `SitioRailsSqliteBackup.*` regex |
 
 ---
 
 ## Related
 
 - [certificate-runbook.md](certificate-runbook.md)
+- [sqlite-backup-runbook.md](sqlite-backup-runbook.md)
 - [Postmortem 2026-06](postmortems/2026-06-certificate-expiry.md) action item #6

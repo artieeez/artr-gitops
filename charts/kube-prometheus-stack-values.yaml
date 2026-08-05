@@ -26,6 +26,43 @@ additionalPrometheusRulesMap:
             annotations:
               summary: "Certificate {{ $labels.name }} in {{ $labels.namespace }} expires in {{ $value | humanize }} days"
               description: "Renewal should happen automatically ~30 days before expiry. Investigate if this persists."
+  sitio-rails-sqlite-backup:
+    groups:
+      - name: sitio-rails-sqlite-backup
+        rules:
+          - alert: SitioRailsSqliteBackupJobFailed
+            expr: |
+              (
+                kube_job_status_failed{namespace=~"sitio-staging|sitio-production"} > 0
+              )
+              * on(namespace, job_name) group_left(owner_name)
+              (
+                kube_job_owner{
+                  namespace=~"sitio-staging|sitio-production",
+                  owner_kind="CronJob",
+                  owner_name="sitio-rails-sqlite-backup"
+                }
+              )
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Sitio SQLite backup Job failed in {{ $labels.namespace }}"
+              description: "Job {{ $labels.job_name }} from CronJob sitio-rails-sqlite-backup failed. Check logs and docs/sqlite-backup-runbook.md (Failed Job / disk / credentials)."
+          - alert: SitioRailsSqliteBackupMissedSchedule
+            expr: |
+              (
+                time() - kube_cronjob_status_last_successful_time{
+                  namespace=~"sitio-staging|sitio-production",
+                  cronjob="sitio-rails-sqlite-backup"
+                }
+              ) > 30 * 3600
+            for: 15m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Sitio SQLite backup missed schedule in {{ $labels.namespace }}"
+              description: "CronJob sitio-rails-sqlite-backup has no successful run in ~30h. Check suspended CronJob, node disk pressure, or Failed Jobs — docs/sqlite-backup-runbook.md."
 
 prometheus:
   prometheusSpec:
@@ -78,7 +115,7 @@ alertmanager:
       routes:
         - receiver: slack-infra
           matchers:
-            - alertname =~ "CertManager.*|Tls.*"
+            - alertname =~ "CertManager.*|Tls.*|SitioRailsSqliteBackup.*"
           group_by:
             - alertname
             - namespace
@@ -129,12 +166,115 @@ grafana:
           editable: true
           options:
             path: /var/lib/grafana/dashboards/default
+        - name: backups
+          orgId: 1
+          folder: Backups
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/backups
   dashboards:
     default:
       cert-manager:
         gnetId: 22184
         revision: 1
         datasource: Prometheus
+    backups:
+      sitio-sqlite-backup:
+        json: |
+          {
+            "annotations": { "list": [] },
+            "editable": true,
+            "fiscalYearStartMonth": 0,
+            "graphTooltip": 0,
+            "id": null,
+            "links": [],
+            "panels": [
+              {
+                "datasource": { "type": "prometheus", "uid": "prometheus" },
+                "fieldConfig": {
+                  "defaults": {
+                    "mappings": [],
+                    "thresholds": {
+                      "mode": "absolute",
+                      "steps": [
+                        { "color": "green", "value": null },
+                        { "color": "yellow", "value": 26 },
+                        { "color": "red", "value": 30 }
+                      ]
+                    },
+                    "unit": "h"
+                  },
+                  "overrides": []
+                },
+                "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+                "id": 1,
+                "options": {
+                  "colorMode": "value",
+                  "graphMode": "none",
+                  "justifyMode": "auto",
+                  "orientation": "auto",
+                  "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+                  "textMode": "auto"
+                },
+                "title": "Hours since last successful backup",
+                "type": "stat",
+                "targets": [
+                  {
+                    "expr": "(time() - kube_cronjob_status_last_successful_time{namespace=~\"sitio-staging|sitio-production\", cronjob=\"sitio-rails-sqlite-backup\"}) / 3600",
+                    "legendFormat": "{{ namespace }}",
+                    "refId": "A"
+                  }
+                ]
+              },
+              {
+                "datasource": { "type": "prometheus", "uid": "prometheus" },
+                "fieldConfig": {
+                  "defaults": {
+                    "mappings": [],
+                    "thresholds": {
+                      "mode": "absolute",
+                      "steps": [
+                        { "color": "green", "value": null },
+                        { "color": "red", "value": 1 }
+                      ]
+                    },
+                    "unit": "none"
+                  },
+                  "overrides": []
+                },
+                "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+                "id": 2,
+                "options": {
+                  "colorMode": "value",
+                  "graphMode": "none",
+                  "justifyMode": "auto",
+                  "orientation": "auto",
+                  "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+                  "textMode": "auto"
+                },
+                "title": "Failed backup Jobs (CronJob-owned)",
+                "type": "stat",
+                "targets": [
+                  {
+                    "expr": "sum by (namespace) (\n  (\n    kube_job_status_failed{namespace=~\"sitio-staging|sitio-production\"} > 0\n  )\n  * on(namespace, job_name) group_left(owner_name)\n  (\n    kube_job_owner{\n      namespace=~\"sitio-staging|sitio-production\",\n      owner_kind=\"CronJob\",\n      owner_name=\"sitio-rails-sqlite-backup\"\n    }\n  )\n)",
+                    "legendFormat": "{{ namespace }}",
+                    "refId": "A"
+                  }
+                ]
+              }
+            ],
+            "schemaVersion": 39,
+            "tags": ["sitio", "sqlite", "backup"],
+            "templating": { "list": [] },
+            "time": { "from": "now-24h", "to": "now" },
+            "timepicker": {},
+            "timezone": "browser",
+            "title": "Sitio SQLite backups",
+            "uid": "sitio-sqlite-backup",
+            "version": 1
+          }
   additionalDataSources:
     - name: Loki
       type: loki
@@ -166,4 +306,3 @@ grafana:
     accessModes:
       - ReadWriteOnce
     size: 10Gi
-
