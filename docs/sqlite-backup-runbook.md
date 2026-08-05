@@ -34,6 +34,26 @@ Successful backup logs end with `Uploaded s3://sitio-production-backups/...`.
 
 ---
 
+## Alerts (Prometheus → Slack)
+
+Backup CronJob health is watched by PrometheusRules in [kube-prometheus-stack-values.yaml](../charts/kube-prometheus-stack-values.yaml). Failures and missed schedules go to Slack via Alertmanager (`slack-infra`) — see [alertmanager-slack-setup.md](alertmanager-slack-setup.md).
+
+| Alert | Severity | Meaning |
+| --- | --- | --- |
+| `SitioRailsSqliteBackupJobFailed` | critical | A Job owned by `sitio-rails-sqlite-backup` is Failed (non-zero exit / Failed condition) for ≥5m |
+| `SitioRailsSqliteBackupMissedSchedule` | warning | No successful CronJob completion in ~30h (schedule `0 6 * * *` UTC + margin) |
+
+Grafana folder **Backups** → dashboard **Sitio SQLite backups** shows hours since last success and Failed Job counts for staging + production.
+
+**When an alert fires:**
+
+1. Confirm CronJob / Jobs: `kubectl -n sitio-staging get cronjob,jobs -l app=sitio-rails-backup` (and `sitio-production`).
+2. Read the Failed Job logs (`kubectl -n <ns> logs job/<name>`).
+3. Common causes: S3 credentials, OCI checksum settings, node disk pressure / image pulls, CronJob `suspend: true`.
+4. After a successful run (or cleanup of Failed Jobs), alerts should resolve; Slack receives resolve notifications.
+
+---
+
 ## Archive restore (~1 hour)
 
 Objects in the Archive tier are not immediately downloadable. Rehydrate before verify or full restore.
