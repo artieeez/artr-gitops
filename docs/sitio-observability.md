@@ -80,7 +80,7 @@ Open: https://grafana.artr.com.br → folder **Sitio**.
 
 ## Alerts (Grafana LogQL → Slack)
 
-Provisioned under `grafana.alerting` in [kube-prometheus-stack-values.yaml](../charts/kube-prometheus-stack-values.yaml). These are **Grafana Unified Alerting** rules (not Alertmanager PrometheusRules).
+Provisioned under `grafana.alerting` in [kube-prometheus-stack-values.yaml](../charts/kube-prometheus-stack-values.yaml) as **nested YAML maps** (not `|` strings — the Grafana Helm chart requires maps for `alerting.*`). These are **Grafana Unified Alerting** rules (not Alertmanager PrometheusRules).
 
 | Alert | Condition | Severity |
 | --- | --- | --- |

@@ -618,8 +618,10 @@ grafana:
       jsonData:
         maxLines: 1000
   # Grafana Unified Alerting — Sitio LogQL rules. Slack contact point: see docs/sitio-observability.md
+  # IMPORTANT: grafana chart `alerting` values must be maps (not `|` strings) — hasKey/tpl in _config.tpl.
+  # Go templates for Slack titles use Helm raw strings so tpl leaves them for Grafana.
   alerting:
-    sitio-rules.yaml: |
+    sitio-rules.yaml:
       apiVersion: 1
       groups:
         - orgId: 1
@@ -641,7 +643,7 @@ grafana:
                       type: loki
                       uid: loki
                     editorMode: code
-                    expr: sum(count_over_time({service_name="sitio-rails"} | json | event="wix.event_failed" [15m]))
+                    expr: 'sum(count_over_time({service_name="sitio-rails"} | json | event="wix.event_failed" [15m]))'
                     queryType: instant
                     refId: A
                 - refId: B
@@ -719,7 +721,7 @@ grafana:
                       type: loki
                       uid: loki
                     editorMode: code
-                    expr: sum(count_over_time({service_name="sitio-rails"} | json | event="share_link.denied" [10m]))
+                    expr: 'sum(count_over_time({service_name="sitio-rails"} | json | event="share_link.denied" [10m]))'
                     queryType: instant
                     refId: A
                 - refId: B
@@ -783,7 +785,7 @@ grafana:
               labels:
                 severity: warning
                 team: sitio
-    sitio-contactpoints.yaml: |
+    sitio-contactpoints.yaml:
       apiVersion: 1
       contactPoints:
         - orgId: 1
@@ -793,10 +795,10 @@ grafana:
               type: slack
               settings:
                 url: ${SITIO_GRAFANA_SLACK_WEBHOOK_URL}
-                title: '{{ .CommonLabels.alertname }}'
-                text: '{{ .CommonAnnotations.summary }}\n{{ .CommonAnnotations.description }}'
+                title: '{{`{{ .CommonLabels.alertname }}`}}'
+                text: '{{`{{ .CommonAnnotations.summary }}\n{{ .CommonAnnotations.description }}`}}'
               disableResolveMessage: false
-    sitio-policies.yaml: |
+    sitio-policies.yaml:
       apiVersion: 1
       policies:
         - orgId: 1
@@ -808,8 +810,7 @@ grafana:
             - team = sitio
           group_wait: 30s
           group_interval: 5m
-          repeat_interval: 4h
-  # Reuse Alertmanager Slack webhook for Grafana Sitio contact point (env expansion in contactpoints).
+          repeat_interval: 4h  # Reuse Alertmanager Slack webhook for Grafana Sitio contact point (env expansion in contactpoints).
   envValueFrom:
     SITIO_GRAFANA_SLACK_WEBHOOK_URL:
       secretKeyRef:
