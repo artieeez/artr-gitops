@@ -55,6 +55,12 @@ spec:
                 secretKeyRef:
                   name: sitio-rails-secrets
                   key: RAILS_MASTER_KEY
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://alloy.monitoring.svc.cluster.local:4318
+            - name: OTEL_SERVICE_NAME
+              value: sitio-rails
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: service.namespace=sitio-staging
           volumeMounts:
             - name: sqlite-data
               mountPath: /rails/storage
