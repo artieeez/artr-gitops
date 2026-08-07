@@ -49,14 +49,16 @@ Never log CPF, payment amounts, passwords, JWT, or raw webhook bodies.
 
 ## LogQL cheat sheet
 
+OTLP → Loki JSON nests payload under `attributes.*`. After `| json`, use `attributes_event` (not top-level `event`).
+
 ```logql
-{service_name="sitio-rails"} | json | event="admin.mutated"
-{service_name="sitio-rails"} | json | event=~"wix\\..*"
-{service_name="sitio-rails"} | json | event="wix.event_failed"
-{service_name="sitio-rails"} | json | event=~"share_link\\..*"
-{service_name="sitio-rails"} | json | event="auth.login_failed"
-{service_name="sitio-rails"} | json | event="http.request_finished"
-{service_name="sitio-rails"} | json | event="job.finished" | job_class="Wix::ProcessEventJob"
+{service_name="sitio-rails"} | json | attributes_event="admin.mutated"
+{service_name="sitio-rails"} | json | attributes_event=~"wix\\..*"
+{service_name="sitio-rails"} | json | attributes_event="wix.event_failed"
+{service_name="sitio-rails"} | json | attributes_event=~"share_link\\..*"
+{service_name="sitio-rails"} | json | attributes_event="auth.login_failed"
+{service_name="sitio-rails"} | json | attributes_event="http.request_finished"
+{service_name="sitio-rails"} | json | attributes_event="job.finished" | attributes_job_class="Wix::ProcessEventJob"
 {service_name="sitio-rails", service_namespace="sitio-staging"} | json
 {service_name="sitio-rails", service_namespace="sitio-production"} | json
 ```
