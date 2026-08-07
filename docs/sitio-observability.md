@@ -1,6 +1,6 @@
 # Sitio App Observability
 
-Rails domain/ops events → OTLP → Alloy → Loki → Grafana folder **Sitio**. Complements in-app AuditLog / Wix inbox / share-link access rows; does not replace them.
+Rails domain/ops events → OTLP → Alloy → Loki → Grafana folders **Sitio Staging** / **Sitio Production**. Complements in-app AuditLog / Wix inbox / share-link access rows; does not replace them.
 
 **Related:** AD-021 (sitio-rails `.specs/STATE.md`) · Deployments: `apps/sitio-{staging,production}/sitio-rails/deployment.yaml` · Dashboards/alerts: [kube-prometheus-stack-values.yaml](../charts/kube-prometheus-stack-values.yaml) · Slack webhook: [alertmanager-slack-setup.md](alertmanager-slack-setup.md)
 
@@ -14,7 +14,7 @@ Rails domain/ops events → OTLP → Alloy → Loki → Grafana folder **Sitio**
 | Export | `Observability::OtlpLogSubscriber` when `OTEL_EXPORTER_OTLP_ENDPOINT` is set |
 | Alloy | Service `alloy.monitoring.svc.cluster.local:4318` (OTLP HTTP) |
 | Loki labels | Alloy promotes `service.name` → `service_name`, `service.namespace` → `service_namespace` |
-| Grafana | Folder **Sitio** (provider `sitio`) |
+| Grafana | Folders **Sitio Staging** / **Sitio Production** (providers `sitio-staging`, `sitio-production`) |
 
 ### Expected Deployment env
 
@@ -65,16 +65,17 @@ Grafana Explore → Loki datasource (`uid: loki`).
 
 ---
 
-## Grafana folder Sitio
+## Grafana folders Sitio Staging / Sitio Production
 
-Four dashboards (default range last 6h):
+Each env folder has five dashboards (app boards default range last 6h; backup last 24h). LogQL filters on `service_namespace=sitio-staging` or `sitio-production`; backup panels filter Prometheus `namespace` the same way.
 
-1. **Admin actions** — `admin.mutated` rate + logs
-2. **Wix / webhooks** — ingest ok/rejected; processed/failed; Wix logs
-3. **Share-link visitors** — opens vs denials
-4. **Request & jobs** — `http.request_finished`, `auth.login_failed`, `job.finished` (incl. Wix job)
+1. **SQLite backups** — hours since last success + Failed Job count
+2. **Admin actions** — `admin.mutated` rate + logs
+3. **Wix / webhooks** — ingest ok/rejected; processed/failed; Wix logs
+4. **Share-link visitors** — opens vs denials
+5. **Request & jobs** — `http.request_finished`, `auth.login_failed`, `job.finished` (incl. Wix job)
 
-Open: https://grafana.artr.com.br → folder **Sitio**.
+Open: https://grafana.artr.com.br → **Sitio Staging** or **Sitio Production**.
 
 ---
 
@@ -110,5 +111,5 @@ Contact point `slack-sitio` + notification policy (`team=sitio`) are provisioned
 1. Staging pod has OTEL env; Alloy reachable on `:4318`
 2. Trigger one admin mutation, one share-link open, one failed login
 3. Explore Loki: `{service_name="sitio-rails", service_namespace="sitio-staging"} | json`
-4. Open each Sitio dashboard panel
+4. Open each dashboard panel under **Sitio Staging** (and spot-check **Sitio Production**)
 5. Optionally force a safe denial spike / Wix failure in staging and confirm Slack

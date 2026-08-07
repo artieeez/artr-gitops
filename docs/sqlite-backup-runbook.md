@@ -43,7 +43,7 @@ Backup CronJob health is watched by PrometheusRules in [kube-prometheus-stack-va
 | `SitioRailsSqliteBackupJobFailed` | critical | A Job owned by `sitio-rails-sqlite-backup` is Failed (non-zero exit / Failed condition) for ≥5m |
 | `SitioRailsSqliteBackupMissedSchedule` | warning | No successful CronJob completion in ~30h (schedule `0 6 * * *` UTC + margin) |
 
-Grafana folder **Backups** → dashboard **Sitio SQLite backups** shows hours since last success and Failed Job counts for staging + production.
+Grafana folders **Sitio Staging** / **Sitio Production** → dashboard **SQLite backups** shows hours since last success and Failed Job count for that env.
 
 **When an alert fires:**
 
