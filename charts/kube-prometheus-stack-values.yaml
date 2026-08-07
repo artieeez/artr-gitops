@@ -798,6 +798,7 @@ grafana:
                 title: '{{`{{ .CommonLabels.alertname }}`}}'
                 text: '{{`{{ .CommonAnnotations.summary }}\n{{ .CommonAnnotations.description }}`}}'
               disableResolveMessage: false
+    # Root route must have no matchers (Grafana 13). Nest team=sitio under routes.
     sitio-policies.yaml:
       apiVersion: 1
       policies:
@@ -806,11 +807,19 @@ grafana:
           group_by:
             - grafana_folder
             - alertname
-          matchers:
-            - team = sitio
           group_wait: 30s
           group_interval: 5m
-          repeat_interval: 4h  # Reuse Alertmanager Slack webhook for Grafana Sitio contact point (env expansion in contactpoints).
+          repeat_interval: 4h
+          routes:
+            - receiver: slack-sitio
+              matchers:
+                - team = sitio
+              group_by:
+                - grafana_folder
+                - alertname
+              group_wait: 30s
+              group_interval: 5m
+              repeat_interval: 4h
   envValueFrom:
     SITIO_GRAFANA_SLACK_WEBHOOK_URL:
       secretKeyRef:
