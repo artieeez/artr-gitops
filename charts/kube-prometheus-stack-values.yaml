@@ -166,33 +166,35 @@ grafana:
           editable: true
           options:
             path: /var/lib/grafana/dashboards/default
-        - name: backups
+        - name: sitio-staging
           orgId: 1
-          folder: Backups
+          folder: Sitio Staging
           type: file
           disableDeletion: false
           editable: true
           options:
-            path: /var/lib/grafana/dashboards/backups
-        - name: sitio
+            path: /var/lib/grafana/dashboards/sitio-staging
+        - name: sitio-production
           orgId: 1
-          folder: Sitio
+          folder: Sitio Production
           type: file
           disableDeletion: false
           editable: true
           options:
-            path: /var/lib/grafana/dashboards/sitio
+            path: /var/lib/grafana/dashboards/sitio-production
   dashboards:
     default:
       cert-manager:
         gnetId: 22184
         revision: 1
         datasource: Prometheus
-    backups:
-      sitio-sqlite-backup:
+    sitio-staging:
+      sqlite-backup:
         json: |
           {
-            "annotations": { "list": [] },
+            "annotations": {
+              "list": []
+            },
             "editable": true,
             "fiscalYearStartMonth": 0,
             "graphTooltip": 0,
@@ -200,94 +202,148 @@ grafana:
             "links": [],
             "panels": [
               {
-                "datasource": { "type": "prometheus", "uid": "prometheus" },
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
                 "fieldConfig": {
                   "defaults": {
                     "mappings": [],
                     "thresholds": {
                       "mode": "absolute",
                       "steps": [
-                        { "color": "green", "value": null },
-                        { "color": "yellow", "value": 26 },
-                        { "color": "red", "value": 30 }
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "yellow",
+                          "value": 26
+                        },
+                        {
+                          "color": "red",
+                          "value": 30
+                        }
                       ]
                     },
                     "unit": "h"
                   },
                   "overrides": []
                 },
-                "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+                "gridPos": {
+                  "h": 8,
+                  "w": 12,
+                  "x": 0,
+                  "y": 0
+                },
                 "id": 1,
                 "options": {
                   "colorMode": "value",
                   "graphMode": "none",
                   "justifyMode": "auto",
                   "orientation": "auto",
-                  "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+                  "reduceOptions": {
+                    "calcs": [
+                      "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                  },
                   "textMode": "auto"
                 },
                 "title": "Hours since last successful backup",
                 "type": "stat",
                 "targets": [
                   {
-                    "expr": "(time() - kube_cronjob_status_last_successful_time{namespace=~\"sitio-staging|sitio-production\", cronjob=\"sitio-rails-sqlite-backup\"}) / 3600",
-                    "legendFormat": "{{ namespace }}",
+                    "expr": "(time() - kube_cronjob_status_last_successful_time{namespace=\"sitio-staging\", cronjob=\"sitio-rails-sqlite-backup\"}) / 3600",
+                    "legendFormat": "sitio-staging",
                     "refId": "A"
                   }
                 ]
               },
               {
-                "datasource": { "type": "prometheus", "uid": "prometheus" },
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
                 "fieldConfig": {
                   "defaults": {
                     "mappings": [],
                     "thresholds": {
                       "mode": "absolute",
                       "steps": [
-                        { "color": "green", "value": null },
-                        { "color": "red", "value": 1 }
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "red",
+                          "value": 1
+                        }
                       ]
                     },
                     "unit": "none"
                   },
                   "overrides": []
                 },
-                "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+                "gridPos": {
+                  "h": 8,
+                  "w": 12,
+                  "x": 12,
+                  "y": 0
+                },
                 "id": 2,
                 "options": {
                   "colorMode": "value",
                   "graphMode": "none",
                   "justifyMode": "auto",
                   "orientation": "auto",
-                  "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+                  "reduceOptions": {
+                    "calcs": [
+                      "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                  },
                   "textMode": "auto"
                 },
                 "title": "Failed backup Jobs (CronJob-owned)",
                 "type": "stat",
                 "targets": [
                   {
-                    "expr": "sum by (namespace) (\n  (\n    kube_job_status_failed{namespace=~\"sitio-staging|sitio-production\"} > 0\n  )\n  * on(namespace, job_name) group_left(owner_name)\n  (\n    kube_job_owner{\n      namespace=~\"sitio-staging|sitio-production\",\n      owner_kind=\"CronJob\",\n      owner_name=\"sitio-rails-sqlite-backup\"\n    }\n  )\n)",
-                    "legendFormat": "{{ namespace }}",
+                    "expr": "sum((kube_job_status_failed{namespace=\"sitio-staging\"} > 0) * on(namespace, job_name) group_left(owner_name) (kube_job_owner{namespace=\"sitio-staging\", owner_kind=\"CronJob\", owner_name=\"sitio-rails-sqlite-backup\"}))",
+                    "legendFormat": "sitio-staging",
                     "refId": "A"
                   }
                 ]
               }
             ],
             "schemaVersion": 39,
-            "tags": ["sitio", "sqlite", "backup"],
-            "templating": { "list": [] },
-            "time": { "from": "now-24h", "to": "now" },
+            "tags": [
+              "sitio",
+              "staging",
+              "sqlite",
+              "backup"
+            ],
+            "templating": {
+              "list": []
+            },
+            "time": {
+              "from": "now-24h",
+              "to": "now"
+            },
             "timepicker": {},
             "timezone": "browser",
-            "title": "Sitio SQLite backups",
-            "uid": "sitio-sqlite-backup",
+            "title": "SQLite backups",
+            "uid": "sitio-staging-sqlite-backup",
             "version": 1
           }
-    sitio:
-      sitio-admin-actions:
+      admin-actions:
         json: |
           {
-            "annotations": { "list": [] },
+            "annotations": {
+              "list": []
+            },
             "editable": true,
             "fiscalYearStartMonth": 0,
             "graphTooltip": 0,
@@ -295,17 +351,35 @@ grafana:
             "links": [],
             "panels": [
               {
-                "datasource": { "type": "loki", "uid": "loki" },
-                "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 8,
+                  "w": 24,
+                  "x": 0,
+                  "y": 0
+                },
                 "id": 1,
                 "options": {
-                  "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
-                  "tooltip": { "mode": "single", "sort": "none" }
+                  "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                  },
+                  "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                  }
                 },
                 "targets": [
                   {
-                    "datasource": { "type": "loki", "uid": "loki" },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\"} | json | event=\"admin.mutated\" [5m]))",
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"admin.mutated\" [5m]))",
                     "legendFormat": "admin.mutated",
                     "refId": "A"
                   }
@@ -314,8 +388,16 @@ grafana:
                 "type": "timeseries"
               },
               {
-                "datasource": { "type": "loki", "uid": "loki" },
-                "gridPos": { "h": 10, "w": 24, "x": 0, "y": 8 },
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 10,
+                  "w": 24,
+                  "x": 0,
+                  "y": 8
+                },
                 "id": 2,
                 "options": {
                   "dedupStrategy": "none",
@@ -329,8 +411,11 @@ grafana:
                 },
                 "targets": [
                   {
-                    "datasource": { "type": "loki", "uid": "loki" },
-                    "expr": "{service_name=\"sitio-rails\"} | json | event=\"admin.mutated\"",
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"admin.mutated\"",
                     "refId": "A"
                   }
                 ],
@@ -339,19 +424,30 @@ grafana:
               }
             ],
             "schemaVersion": 39,
-            "tags": ["sitio", "admin"],
-            "templating": { "list": [] },
-            "time": { "from": "now-6h", "to": "now" },
+            "tags": [
+              "sitio",
+              "staging",
+              "admin"
+            ],
+            "templating": {
+              "list": []
+            },
+            "time": {
+              "from": "now-6h",
+              "to": "now"
+            },
             "timepicker": {},
             "timezone": "browser",
             "title": "Admin actions",
-            "uid": "sitio-admin-actions",
+            "uid": "sitio-staging-admin-actions",
             "version": 1
           }
-      sitio-wix-webhooks:
+      wix-webhooks:
         json: |
           {
-            "annotations": { "list": [] },
+            "annotations": {
+              "list": []
+            },
             "editable": true,
             "fiscalYearStartMonth": 0,
             "graphTooltip": 0,
@@ -359,23 +455,44 @@ grafana:
             "links": [],
             "panels": [
               {
-                "datasource": { "type": "loki", "uid": "loki" },
-                "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 8,
+                  "w": 12,
+                  "x": 0,
+                  "y": 0
+                },
                 "id": 1,
                 "options": {
-                  "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
-                  "tooltip": { "mode": "single", "sort": "none" }
+                  "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                  },
+                  "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                  }
                 },
                 "targets": [
                   {
-                    "datasource": { "type": "loki", "uid": "loki" },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\"} | json | event=\"wix.webhook_ingested\" [5m]))",
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"wix.webhook_ingested\" [5m]))",
                     "legendFormat": "ingested",
                     "refId": "A"
                   },
                   {
-                    "datasource": { "type": "loki", "uid": "loki" },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\"} | json | event=\"wix.webhook_rejected\" [5m]))",
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"wix.webhook_rejected\" [5m]))",
                     "legendFormat": "rejected",
                     "refId": "B"
                   }
@@ -384,23 +501,44 @@ grafana:
                 "type": "timeseries"
               },
               {
-                "datasource": { "type": "loki", "uid": "loki" },
-                "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 8,
+                  "w": 12,
+                  "x": 12,
+                  "y": 0
+                },
                 "id": 2,
                 "options": {
-                  "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
-                  "tooltip": { "mode": "single", "sort": "none" }
+                  "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                  },
+                  "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                  }
                 },
                 "targets": [
                   {
-                    "datasource": { "type": "loki", "uid": "loki" },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\"} | json | event=\"wix.event_processed\" [5m]))",
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"wix.event_processed\" [5m]))",
                     "legendFormat": "processed",
                     "refId": "A"
                   },
                   {
-                    "datasource": { "type": "loki", "uid": "loki" },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\"} | json | event=\"wix.event_failed\" [5m]))",
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"wix.event_failed\" [5m]))",
                     "legendFormat": "failed",
                     "refId": "B"
                   }
@@ -409,8 +547,16 @@ grafana:
                 "type": "timeseries"
               },
               {
-                "datasource": { "type": "loki", "uid": "loki" },
-                "gridPos": { "h": 10, "w": 24, "x": 0, "y": 8 },
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 10,
+                  "w": 24,
+                  "x": 0,
+                  "y": 8
+                },
                 "id": 3,
                 "options": {
                   "dedupStrategy": "none",
@@ -424,8 +570,11 @@ grafana:
                 },
                 "targets": [
                   {
-                    "datasource": { "type": "loki", "uid": "loki" },
-                    "expr": "{service_name=\"sitio-rails\"} | json | event=~\"wix\\\\..*\"",
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=~\"wix\\\\..*\"",
                     "refId": "A"
                   }
                 ],
@@ -434,19 +583,31 @@ grafana:
               }
             ],
             "schemaVersion": 39,
-            "tags": ["sitio", "wix", "webhooks"],
-            "templating": { "list": [] },
-            "time": { "from": "now-6h", "to": "now" },
+            "tags": [
+              "sitio",
+              "staging",
+              "wix",
+              "webhooks"
+            ],
+            "templating": {
+              "list": []
+            },
+            "time": {
+              "from": "now-6h",
+              "to": "now"
+            },
             "timepicker": {},
             "timezone": "browser",
             "title": "Wix / webhooks",
-            "uid": "sitio-wix-webhooks",
+            "uid": "sitio-staging-wix-webhooks",
             "version": 1
           }
-      sitio-share-link-visitors:
+      share-link-visitors:
         json: |
           {
-            "annotations": { "list": [] },
+            "annotations": {
+              "list": []
+            },
             "editable": true,
             "fiscalYearStartMonth": 0,
             "graphTooltip": 0,
@@ -454,23 +615,44 @@ grafana:
             "links": [],
             "panels": [
               {
-                "datasource": { "type": "loki", "uid": "loki" },
-                "gridPos": { "h": 8, "w": 24, "x": 0, "y": 0 },
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 8,
+                  "w": 24,
+                  "x": 0,
+                  "y": 0
+                },
                 "id": 1,
                 "options": {
-                  "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
-                  "tooltip": { "mode": "single", "sort": "none" }
+                  "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                  },
+                  "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                  }
                 },
                 "targets": [
                   {
-                    "datasource": { "type": "loki", "uid": "loki" },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\"} | json | event=\"share_link.opened\" [5m]))",
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"share_link.opened\" [5m]))",
                     "legendFormat": "opened",
                     "refId": "A"
                   },
                   {
-                    "datasource": { "type": "loki", "uid": "loki" },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\"} | json | event=\"share_link.denied\" [5m]))",
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"share_link.denied\" [5m]))",
                     "legendFormat": "denied",
                     "refId": "B"
                   }
@@ -479,8 +661,16 @@ grafana:
                 "type": "timeseries"
               },
               {
-                "datasource": { "type": "loki", "uid": "loki" },
-                "gridPos": { "h": 10, "w": 24, "x": 0, "y": 8 },
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 10,
+                  "w": 24,
+                  "x": 0,
+                  "y": 8
+                },
                 "id": 2,
                 "options": {
                   "dedupStrategy": "none",
@@ -494,8 +684,11 @@ grafana:
                 },
                 "targets": [
                   {
-                    "datasource": { "type": "loki", "uid": "loki" },
-                    "expr": "{service_name=\"sitio-rails\"} | json | event=~\"share_link\\\\..*\"",
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=~\"share_link\\\\..*\"",
                     "refId": "A"
                   }
                 ],
@@ -504,19 +697,30 @@ grafana:
               }
             ],
             "schemaVersion": 39,
-            "tags": ["sitio", "share-link"],
-            "templating": { "list": [] },
-            "time": { "from": "now-6h", "to": "now" },
+            "tags": [
+              "sitio",
+              "staging",
+              "share-link"
+            ],
+            "templating": {
+              "list": []
+            },
+            "time": {
+              "from": "now-6h",
+              "to": "now"
+            },
             "timepicker": {},
             "timezone": "browser",
             "title": "Share-link visitors",
-            "uid": "sitio-share-link-visitors",
+            "uid": "sitio-staging-share-link-visitors",
             "version": 1
           }
-      sitio-request-jobs:
+      request-jobs:
         json: |
           {
-            "annotations": { "list": [] },
+            "annotations": {
+              "list": []
+            },
             "editable": true,
             "fiscalYearStartMonth": 0,
             "graphTooltip": 0,
@@ -524,23 +728,44 @@ grafana:
             "links": [],
             "panels": [
               {
-                "datasource": { "type": "loki", "uid": "loki" },
-                "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 8,
+                  "w": 12,
+                  "x": 0,
+                  "y": 0
+                },
                 "id": 1,
                 "options": {
-                  "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
-                  "tooltip": { "mode": "single", "sort": "none" }
+                  "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                  },
+                  "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                  }
                 },
                 "targets": [
                   {
-                    "datasource": { "type": "loki", "uid": "loki" },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\"} | json | event=\"http.request_finished\" [5m]))",
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"http.request_finished\" [5m]))",
                     "legendFormat": "http.request_finished",
                     "refId": "A"
                   },
                   {
-                    "datasource": { "type": "loki", "uid": "loki" },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\"} | json | event=\"auth.login_failed\" [5m]))",
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"auth.login_failed\" [5m]))",
                     "legendFormat": "auth.login_failed",
                     "refId": "B"
                   }
@@ -549,23 +774,44 @@ grafana:
                 "type": "timeseries"
               },
               {
-                "datasource": { "type": "loki", "uid": "loki" },
-                "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 8,
+                  "w": 12,
+                  "x": 12,
+                  "y": 0
+                },
                 "id": 2,
                 "options": {
-                  "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
-                  "tooltip": { "mode": "single", "sort": "none" }
+                  "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                  },
+                  "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                  }
                 },
                 "targets": [
                   {
-                    "datasource": { "type": "loki", "uid": "loki" },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\"} | json | event=\"job.finished\" [5m]))",
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"job.finished\" [5m]))",
                     "legendFormat": "job.finished",
                     "refId": "A"
                   },
                   {
-                    "datasource": { "type": "loki", "uid": "loki" },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\"} | json | event=\"job.finished\" | job_class=\"Wix::ProcessEventJob\" [5m]))",
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"job.finished\" | job_class=\"Wix::ProcessEventJob\" [5m]))",
                     "legendFormat": "Wix::ProcessEventJob",
                     "refId": "B"
                   }
@@ -574,8 +820,16 @@ grafana:
                 "type": "timeseries"
               },
               {
-                "datasource": { "type": "loki", "uid": "loki" },
-                "gridPos": { "h": 10, "w": 24, "x": 0, "y": 8 },
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 10,
+                  "w": 24,
+                  "x": 0,
+                  "y": 8
+                },
                 "id": 3,
                 "options": {
                   "dedupStrategy": "none",
@@ -589,8 +843,11 @@ grafana:
                 },
                 "targets": [
                   {
-                    "datasource": { "type": "loki", "uid": "loki" },
-                    "expr": "{service_name=\"sitio-rails\"} | json | event=~\"auth.login_failed|http.request_finished|job.finished\"",
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=~\"auth.login_failed|http.request_finished|job.finished\"",
                     "refId": "A"
                   }
                 ],
@@ -599,13 +856,710 @@ grafana:
               }
             ],
             "schemaVersion": 39,
-            "tags": ["sitio", "request", "jobs"],
-            "templating": { "list": [] },
-            "time": { "from": "now-6h", "to": "now" },
+            "tags": [
+              "sitio",
+              "staging",
+              "request",
+              "jobs"
+            ],
+            "templating": {
+              "list": []
+            },
+            "time": {
+              "from": "now-6h",
+              "to": "now"
+            },
             "timepicker": {},
             "timezone": "browser",
             "title": "Request & jobs",
-            "uid": "sitio-request-jobs",
+            "uid": "sitio-staging-request-jobs",
+            "version": 1
+          }
+    sitio-production:
+      sqlite-backup:
+        json: |
+          {
+            "annotations": {
+              "list": []
+            },
+            "editable": true,
+            "fiscalYearStartMonth": 0,
+            "graphTooltip": 0,
+            "id": null,
+            "links": [],
+            "panels": [
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "fieldConfig": {
+                  "defaults": {
+                    "mappings": [],
+                    "thresholds": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "yellow",
+                          "value": 26
+                        },
+                        {
+                          "color": "red",
+                          "value": 30
+                        }
+                      ]
+                    },
+                    "unit": "h"
+                  },
+                  "overrides": []
+                },
+                "gridPos": {
+                  "h": 8,
+                  "w": 12,
+                  "x": 0,
+                  "y": 0
+                },
+                "id": 1,
+                "options": {
+                  "colorMode": "value",
+                  "graphMode": "none",
+                  "justifyMode": "auto",
+                  "orientation": "auto",
+                  "reduceOptions": {
+                    "calcs": [
+                      "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                  },
+                  "textMode": "auto"
+                },
+                "title": "Hours since last successful backup",
+                "type": "stat",
+                "targets": [
+                  {
+                    "expr": "(time() - kube_cronjob_status_last_successful_time{namespace=\"sitio-production\", cronjob=\"sitio-rails-sqlite-backup\"}) / 3600",
+                    "legendFormat": "sitio-production",
+                    "refId": "A"
+                  }
+                ]
+              },
+              {
+                "datasource": {
+                  "type": "prometheus",
+                  "uid": "prometheus"
+                },
+                "fieldConfig": {
+                  "defaults": {
+                    "mappings": [],
+                    "thresholds": {
+                      "mode": "absolute",
+                      "steps": [
+                        {
+                          "color": "green",
+                          "value": null
+                        },
+                        {
+                          "color": "red",
+                          "value": 1
+                        }
+                      ]
+                    },
+                    "unit": "none"
+                  },
+                  "overrides": []
+                },
+                "gridPos": {
+                  "h": 8,
+                  "w": 12,
+                  "x": 12,
+                  "y": 0
+                },
+                "id": 2,
+                "options": {
+                  "colorMode": "value",
+                  "graphMode": "none",
+                  "justifyMode": "auto",
+                  "orientation": "auto",
+                  "reduceOptions": {
+                    "calcs": [
+                      "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                  },
+                  "textMode": "auto"
+                },
+                "title": "Failed backup Jobs (CronJob-owned)",
+                "type": "stat",
+                "targets": [
+                  {
+                    "expr": "sum((kube_job_status_failed{namespace=\"sitio-production\"} > 0) * on(namespace, job_name) group_left(owner_name) (kube_job_owner{namespace=\"sitio-production\", owner_kind=\"CronJob\", owner_name=\"sitio-rails-sqlite-backup\"}))",
+                    "legendFormat": "sitio-production",
+                    "refId": "A"
+                  }
+                ]
+              }
+            ],
+            "schemaVersion": 39,
+            "tags": [
+              "sitio",
+              "production",
+              "sqlite",
+              "backup"
+            ],
+            "templating": {
+              "list": []
+            },
+            "time": {
+              "from": "now-24h",
+              "to": "now"
+            },
+            "timepicker": {},
+            "timezone": "browser",
+            "title": "SQLite backups",
+            "uid": "sitio-production-sqlite-backup",
+            "version": 1
+          }
+      admin-actions:
+        json: |
+          {
+            "annotations": {
+              "list": []
+            },
+            "editable": true,
+            "fiscalYearStartMonth": 0,
+            "graphTooltip": 0,
+            "id": null,
+            "links": [],
+            "panels": [
+              {
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 8,
+                  "w": 24,
+                  "x": 0,
+                  "y": 0
+                },
+                "id": 1,
+                "options": {
+                  "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                  },
+                  "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                  }
+                },
+                "targets": [
+                  {
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"admin.mutated\" [5m]))",
+                    "legendFormat": "admin.mutated",
+                    "refId": "A"
+                  }
+                ],
+                "title": "admin.mutated rate (5m)",
+                "type": "timeseries"
+              },
+              {
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 10,
+                  "w": 24,
+                  "x": 0,
+                  "y": 8
+                },
+                "id": 2,
+                "options": {
+                  "dedupStrategy": "none",
+                  "enableLogDetails": true,
+                  "prettifyLogMessage": false,
+                  "showCommonLabels": false,
+                  "showLabels": false,
+                  "showTime": true,
+                  "sortOrder": "Descending",
+                  "wrapLogMessage": false
+                },
+                "targets": [
+                  {
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"admin.mutated\"",
+                    "refId": "A"
+                  }
+                ],
+                "title": "admin.mutated logs",
+                "type": "logs"
+              }
+            ],
+            "schemaVersion": 39,
+            "tags": [
+              "sitio",
+              "production",
+              "admin"
+            ],
+            "templating": {
+              "list": []
+            },
+            "time": {
+              "from": "now-6h",
+              "to": "now"
+            },
+            "timepicker": {},
+            "timezone": "browser",
+            "title": "Admin actions",
+            "uid": "sitio-production-admin-actions",
+            "version": 1
+          }
+      wix-webhooks:
+        json: |
+          {
+            "annotations": {
+              "list": []
+            },
+            "editable": true,
+            "fiscalYearStartMonth": 0,
+            "graphTooltip": 0,
+            "id": null,
+            "links": [],
+            "panels": [
+              {
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 8,
+                  "w": 12,
+                  "x": 0,
+                  "y": 0
+                },
+                "id": 1,
+                "options": {
+                  "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                  },
+                  "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                  }
+                },
+                "targets": [
+                  {
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"wix.webhook_ingested\" [5m]))",
+                    "legendFormat": "ingested",
+                    "refId": "A"
+                  },
+                  {
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"wix.webhook_rejected\" [5m]))",
+                    "legendFormat": "rejected",
+                    "refId": "B"
+                  }
+                ],
+                "title": "Webhook ingest ok vs rejected",
+                "type": "timeseries"
+              },
+              {
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 8,
+                  "w": 12,
+                  "x": 12,
+                  "y": 0
+                },
+                "id": 2,
+                "options": {
+                  "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                  },
+                  "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                  }
+                },
+                "targets": [
+                  {
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"wix.event_processed\" [5m]))",
+                    "legendFormat": "processed",
+                    "refId": "A"
+                  },
+                  {
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"wix.event_failed\" [5m]))",
+                    "legendFormat": "failed",
+                    "refId": "B"
+                  }
+                ],
+                "title": "Event processed vs failed",
+                "type": "timeseries"
+              },
+              {
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 10,
+                  "w": 24,
+                  "x": 0,
+                  "y": 8
+                },
+                "id": 3,
+                "options": {
+                  "dedupStrategy": "none",
+                  "enableLogDetails": true,
+                  "prettifyLogMessage": false,
+                  "showCommonLabels": false,
+                  "showLabels": false,
+                  "showTime": true,
+                  "sortOrder": "Descending",
+                  "wrapLogMessage": false
+                },
+                "targets": [
+                  {
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=~\"wix\\\\..*\"",
+                    "refId": "A"
+                  }
+                ],
+                "title": "Wix / webhook event logs",
+                "type": "logs"
+              }
+            ],
+            "schemaVersion": 39,
+            "tags": [
+              "sitio",
+              "production",
+              "wix",
+              "webhooks"
+            ],
+            "templating": {
+              "list": []
+            },
+            "time": {
+              "from": "now-6h",
+              "to": "now"
+            },
+            "timepicker": {},
+            "timezone": "browser",
+            "title": "Wix / webhooks",
+            "uid": "sitio-production-wix-webhooks",
+            "version": 1
+          }
+      share-link-visitors:
+        json: |
+          {
+            "annotations": {
+              "list": []
+            },
+            "editable": true,
+            "fiscalYearStartMonth": 0,
+            "graphTooltip": 0,
+            "id": null,
+            "links": [],
+            "panels": [
+              {
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 8,
+                  "w": 24,
+                  "x": 0,
+                  "y": 0
+                },
+                "id": 1,
+                "options": {
+                  "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                  },
+                  "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                  }
+                },
+                "targets": [
+                  {
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"share_link.opened\" [5m]))",
+                    "legendFormat": "opened",
+                    "refId": "A"
+                  },
+                  {
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"share_link.denied\" [5m]))",
+                    "legendFormat": "denied",
+                    "refId": "B"
+                  }
+                ],
+                "title": "Share-link opens vs denials",
+                "type": "timeseries"
+              },
+              {
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 10,
+                  "w": 24,
+                  "x": 0,
+                  "y": 8
+                },
+                "id": 2,
+                "options": {
+                  "dedupStrategy": "none",
+                  "enableLogDetails": true,
+                  "prettifyLogMessage": false,
+                  "showCommonLabels": false,
+                  "showLabels": false,
+                  "showTime": true,
+                  "sortOrder": "Descending",
+                  "wrapLogMessage": false
+                },
+                "targets": [
+                  {
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=~\"share_link\\\\..*\"",
+                    "refId": "A"
+                  }
+                ],
+                "title": "Share-link event logs",
+                "type": "logs"
+              }
+            ],
+            "schemaVersion": 39,
+            "tags": [
+              "sitio",
+              "production",
+              "share-link"
+            ],
+            "templating": {
+              "list": []
+            },
+            "time": {
+              "from": "now-6h",
+              "to": "now"
+            },
+            "timepicker": {},
+            "timezone": "browser",
+            "title": "Share-link visitors",
+            "uid": "sitio-production-share-link-visitors",
+            "version": 1
+          }
+      request-jobs:
+        json: |
+          {
+            "annotations": {
+              "list": []
+            },
+            "editable": true,
+            "fiscalYearStartMonth": 0,
+            "graphTooltip": 0,
+            "id": null,
+            "links": [],
+            "panels": [
+              {
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 8,
+                  "w": 12,
+                  "x": 0,
+                  "y": 0
+                },
+                "id": 1,
+                "options": {
+                  "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                  },
+                  "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                  }
+                },
+                "targets": [
+                  {
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"http.request_finished\" [5m]))",
+                    "legendFormat": "http.request_finished",
+                    "refId": "A"
+                  },
+                  {
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"auth.login_failed\" [5m]))",
+                    "legendFormat": "auth.login_failed",
+                    "refId": "B"
+                  }
+                ],
+                "title": "Request health + login failures",
+                "type": "timeseries"
+              },
+              {
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 8,
+                  "w": 12,
+                  "x": 12,
+                  "y": 0
+                },
+                "id": 2,
+                "options": {
+                  "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                  },
+                  "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                  }
+                },
+                "targets": [
+                  {
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"job.finished\" [5m]))",
+                    "legendFormat": "job.finished",
+                    "refId": "A"
+                  },
+                  {
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"job.finished\" | job_class=\"Wix::ProcessEventJob\" [5m]))",
+                    "legendFormat": "Wix::ProcessEventJob",
+                    "refId": "B"
+                  }
+                ],
+                "title": "Job failures / discards",
+                "type": "timeseries"
+              },
+              {
+                "datasource": {
+                  "type": "loki",
+                  "uid": "loki"
+                },
+                "gridPos": {
+                  "h": 10,
+                  "w": 24,
+                  "x": 0,
+                  "y": 8
+                },
+                "id": 3,
+                "options": {
+                  "dedupStrategy": "none",
+                  "enableLogDetails": true,
+                  "prettifyLogMessage": false,
+                  "showCommonLabels": false,
+                  "showLabels": false,
+                  "showTime": true,
+                  "sortOrder": "Descending",
+                  "wrapLogMessage": false
+                },
+                "targets": [
+                  {
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=~\"auth.login_failed|http.request_finished|job.finished\"",
+                    "refId": "A"
+                  }
+                ],
+                "title": "Request & job event logs",
+                "type": "logs"
+              }
+            ],
+            "schemaVersion": 39,
+            "tags": [
+              "sitio",
+              "production",
+              "request",
+              "jobs"
+            ],
+            "templating": {
+              "list": []
+            },
+            "time": {
+              "from": "now-6h",
+              "to": "now"
+            },
+            "timepicker": {},
+            "timezone": "browser",
+            "title": "Request & jobs",
+            "uid": "sitio-production-request-jobs",
             "version": 1
           }
   additionalDataSources:
