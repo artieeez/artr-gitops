@@ -379,7 +379,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"admin.mutated\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | attributes_event=\"admin.mutated\" [5m]))",
                     "legendFormat": "admin.mutated",
                     "refId": "A"
                   }
@@ -415,7 +415,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"admin.mutated\"",
+                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | attributes_event=\"admin.mutated\"",
                     "refId": "A"
                   }
                 ],
@@ -483,7 +483,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"wix.webhook_ingested\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | attributes_event=\"wix.webhook_ingested\" [5m]))",
                     "legendFormat": "ingested",
                     "refId": "A"
                   },
@@ -492,7 +492,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"wix.webhook_rejected\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | attributes_event=\"wix.webhook_rejected\" [5m]))",
                     "legendFormat": "rejected",
                     "refId": "B"
                   }
@@ -529,7 +529,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"wix.event_processed\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | attributes_event=\"wix.event_processed\" [5m]))",
                     "legendFormat": "processed",
                     "refId": "A"
                   },
@@ -538,7 +538,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"wix.event_failed\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | attributes_event=\"wix.event_failed\" [5m]))",
                     "legendFormat": "failed",
                     "refId": "B"
                   }
@@ -574,7 +574,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=~\"wix\\\\..*\"",
+                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | attributes_event=~\"wix\\\\..*\"",
                     "refId": "A"
                   }
                 ],
@@ -643,7 +643,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"share_link.opened\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | attributes_event=\"share_link.opened\" [5m]))",
                     "legendFormat": "opened",
                     "refId": "A"
                   },
@@ -652,7 +652,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"share_link.denied\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | attributes_event=\"share_link.denied\" [5m]))",
                     "legendFormat": "denied",
                     "refId": "B"
                   }
@@ -688,7 +688,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=~\"share_link\\\\..*\"",
+                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | attributes_event=~\"share_link\\\\..*\"",
                     "refId": "A"
                   }
                 ],
@@ -756,7 +756,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"http.request_finished\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | attributes_event=\"http.request_finished\" [5m]))",
                     "legendFormat": "http.request_finished",
                     "refId": "A"
                   },
@@ -765,7 +765,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"auth.login_failed\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | attributes_event=\"auth.login_failed\" [5m]))",
                     "legendFormat": "auth.login_failed",
                     "refId": "B"
                   }
@@ -802,7 +802,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"job.finished\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | attributes_event=\"job.finished\" [5m]))",
                     "legendFormat": "job.finished",
                     "refId": "A"
                   },
@@ -811,7 +811,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=\"job.finished\" | job_class=\"Wix::ProcessEventJob\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | attributes_event=\"job.finished\" | attributes_job_class=\"Wix::ProcessEventJob\" [5m]))",
                     "legendFormat": "Wix::ProcessEventJob",
                     "refId": "B"
                   }
@@ -847,7 +847,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | event=~\"auth.login_failed|http.request_finished|job.finished\"",
+                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | attributes_event=~\"auth.login_failed|http.request_finished|job.finished\"",
                     "refId": "A"
                   }
                 ],
@@ -1066,7 +1066,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"admin.mutated\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | attributes_event=\"admin.mutated\" [5m]))",
                     "legendFormat": "admin.mutated",
                     "refId": "A"
                   }
@@ -1102,7 +1102,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"admin.mutated\"",
+                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | attributes_event=\"admin.mutated\"",
                     "refId": "A"
                   }
                 ],
@@ -1170,7 +1170,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"wix.webhook_ingested\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | attributes_event=\"wix.webhook_ingested\" [5m]))",
                     "legendFormat": "ingested",
                     "refId": "A"
                   },
@@ -1179,7 +1179,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"wix.webhook_rejected\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | attributes_event=\"wix.webhook_rejected\" [5m]))",
                     "legendFormat": "rejected",
                     "refId": "B"
                   }
@@ -1216,7 +1216,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"wix.event_processed\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | attributes_event=\"wix.event_processed\" [5m]))",
                     "legendFormat": "processed",
                     "refId": "A"
                   },
@@ -1225,7 +1225,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"wix.event_failed\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | attributes_event=\"wix.event_failed\" [5m]))",
                     "legendFormat": "failed",
                     "refId": "B"
                   }
@@ -1261,7 +1261,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=~\"wix\\\\..*\"",
+                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | attributes_event=~\"wix\\\\..*\"",
                     "refId": "A"
                   }
                 ],
@@ -1330,7 +1330,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"share_link.opened\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | attributes_event=\"share_link.opened\" [5m]))",
                     "legendFormat": "opened",
                     "refId": "A"
                   },
@@ -1339,7 +1339,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"share_link.denied\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | attributes_event=\"share_link.denied\" [5m]))",
                     "legendFormat": "denied",
                     "refId": "B"
                   }
@@ -1375,7 +1375,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=~\"share_link\\\\..*\"",
+                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | attributes_event=~\"share_link\\\\..*\"",
                     "refId": "A"
                   }
                 ],
@@ -1443,7 +1443,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"http.request_finished\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | attributes_event=\"http.request_finished\" [5m]))",
                     "legendFormat": "http.request_finished",
                     "refId": "A"
                   },
@@ -1452,7 +1452,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"auth.login_failed\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | attributes_event=\"auth.login_failed\" [5m]))",
                     "legendFormat": "auth.login_failed",
                     "refId": "B"
                   }
@@ -1489,7 +1489,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"job.finished\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | attributes_event=\"job.finished\" [5m]))",
                     "legendFormat": "job.finished",
                     "refId": "A"
                   },
@@ -1498,7 +1498,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=\"job.finished\" | job_class=\"Wix::ProcessEventJob\" [5m]))",
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | attributes_event=\"job.finished\" | attributes_job_class=\"Wix::ProcessEventJob\" [5m]))",
                     "legendFormat": "Wix::ProcessEventJob",
                     "refId": "B"
                   }
@@ -1534,7 +1534,7 @@ grafana:
                       "type": "loki",
                       "uid": "loki"
                     },
-                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | event=~\"auth.login_failed|http.request_finished|job.finished\"",
+                    "expr": "{service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | attributes_event=~\"auth.login_failed|http.request_finished|job.finished\"",
                     "refId": "A"
                   }
                 ],
@@ -1597,7 +1597,7 @@ grafana:
                       type: loki
                       uid: loki
                     editorMode: code
-                    expr: 'sum(count_over_time({service_name="sitio-rails"} | json | event="wix.event_failed" [15m]))'
+                    expr: 'sum(count_over_time({service_name="sitio-rails"} | json | attributes_event="wix.event_failed" [15m]))'
                     queryType: instant
                     refId: A
                 - refId: B
@@ -1675,7 +1675,7 @@ grafana:
                       type: loki
                       uid: loki
                     editorMode: code
-                    expr: 'sum(count_over_time({service_name="sitio-rails"} | json | event="share_link.denied" [10m]))'
+                    expr: 'sum(count_over_time({service_name="sitio-rails"} | json | attributes_event="share_link.denied" [10m]))'
                     queryType: instant
                     refId: A
                 - refId: B
