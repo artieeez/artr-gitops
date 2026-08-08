@@ -85,10 +85,15 @@ Open: https://grafana.artr.com.br → **Sitio Staging** or **Sitio Production**.
 
 Provisioned under `grafana.alerting` in [kube-prometheus-stack-values.yaml](../charts/kube-prometheus-stack-values.yaml) as **nested YAML maps** (not `|` strings — the Grafana Helm chart requires maps for `alerting.*`). These are **Grafana Unified Alerting** rules (not Alertmanager PrometheusRules).
 
-| Alert | Condition | Severity |
-| --- | --- | --- |
-| `SitioRailsWixEventFailedSustained` | `sum(count_over_time(... event="wix.event_failed" [15m])) > 3` for **15m** | warning |
-| `SitioRailsShareLinkDenialSpike` | `sum(count_over_time(... event="share_link.denied" [10m])) > 20` for **10m** | warning |
+Sensitive “any occurrence” rules (spike/sustained rules removed). Each signal has a **Staging** and **Production** instance (`service_namespace` filter + `env` label).
+
+| Alert | Condition | `for` | Severity |
+| --- | --- | --- | --- |
+| `SitioRailsWixIntegrationError{Staging\|Production}` | ≥1 `wix.event_failed` or `wix.webhook_rejected` in 5m | 1m | warning |
+| `SitioRailsShareLinkDenied{Staging\|Production}` | ≥1 `share_link.denied` in 5m (typo token or revoked/stale) | 1m | warning |
+| `SitioRailsAppError{Staging\|Production}` | ≥1 HTTP 5xx or `job.finished` `failed\|discarded` in 5m | 5m (anti-flap) | warning |
+
+Not alerted: `auth.login_failed`, slow-only requests (`outcome=slow`).
 
 ### Slack contact point
 
@@ -114,4 +119,4 @@ Contact point `slack-sitio` + notification policy (`team=sitio`) are provisioned
 2. Trigger one admin mutation, one share-link open, one failed login
 3. Explore Loki: `{service_name="sitio-rails", service_namespace="sitio-staging"} | json`
 4. Open each dashboard panel under **Sitio Staging** (and spot-check **Sitio Production**)
-5. Optionally force a safe denial spike / Wix failure in staging and confirm Slack
+5. Optionally force one staging share-link denial, Wix reject, or 5xx and confirm Slack (+ resolve when clear)
