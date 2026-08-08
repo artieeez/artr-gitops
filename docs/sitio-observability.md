@@ -69,7 +69,7 @@ Grafana Explore → Loki datasource (`uid: loki`).
 
 ## Grafana folders Sitio Staging / Sitio Production
 
-Each env folder has five dashboards (app boards default range last 6h; backup last 24h). LogQL filters on `service_namespace=sitio-staging` or `sitio-production`; backup panels filter Prometheus `namespace` the same way.
+Each env folder has five dashboards (app boards default range last 6h; backup last 24h). LogQL filters on `service_namespace=sitio-staging` or `sitio-production`; backup panels filter Prometheus `namespace` the same way. Each dashboard opens with an **About this dashboard** text panel (tracked signals, Slack alerts, Explore filters).
 
 1. **SQLite backups** — hours since last success + Failed Job count
 2. **Admin actions** — `admin.mutated` rate + logs

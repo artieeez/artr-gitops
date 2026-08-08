@@ -62,7 +62,7 @@ additionalPrometheusRulesMap:
               severity: warning
             annotations:
               summary: "Sitio SQLite backup missed schedule in {{ $labels.namespace }}"
-              description: "CronJob sitio-rails-sqlite-backup has no successful run in ~30h. Check suspended CronJob, node disk pressure, or Failed Jobs — docs/sqlite-backup-runbook.md."
+              description: "CronJob sitio-rails-sqlite-backup has no successful run in ~30h. Check suspended CronJob, node disk pressure, or Failed Jobs  - docs/sqlite-backup-runbook.md."
 
 prometheus:
   prometheusSpec:
@@ -202,6 +202,22 @@ grafana:
             "links": [],
             "panels": [
               {
+                "type": "text",
+                "title": "About this dashboard",
+                "id": 100,
+                "gridPos": {
+                  "h": 7,
+                  "w": 24,
+                  "x": 0,
+                  "y": 0
+                },
+                "options": {
+                  "mode": "markdown",
+                  "content": "### SQLite backups\n**Tracked:** hours since the last successful `sitio-rails-sqlite-backup` CronJob, and failed Jobs owned by that CronJob (Prometheus / kube-state-metrics).\n\n**Alerted (Alertmanager to Slack):** `SitioRailsSqliteBackupJobFailed`, `SitioRailsSqliteBackupMissedSchedule`. See runbook `docs/sqlite-backup-runbook.md`.\n\n**Go deeper:** filter Prometheus by `namespace` (`sitio-staging` / `sitio-production`) and `cronjob=\"sitio-rails-sqlite-backup\"`. Job objects: `kube_job_status_failed` joined with `kube_job_owner`. Full notes: `docs/sitio-observability.md`.\n"
+                },
+                "transparent": true
+              },
+              {
                 "datasource": {
                   "type": "prometheus",
                   "uid": "prometheus"
@@ -234,7 +250,7 @@ grafana:
                   "h": 8,
                   "w": 12,
                   "x": 0,
-                  "y": 0
+                  "y": 7
                 },
                 "id": 1,
                 "options": {
@@ -290,7 +306,7 @@ grafana:
                   "h": 8,
                   "w": 12,
                   "x": 12,
-                  "y": 0
+                  "y": 7
                 },
                 "id": 2,
                 "options": {
@@ -336,7 +352,7 @@ grafana:
             "timezone": "browser",
             "title": "SQLite backups",
             "uid": "sitio-staging-sqlite-backup",
-            "version": 1
+            "version": 2
           }
       admin-actions:
         json: |
@@ -351,6 +367,22 @@ grafana:
             "links": [],
             "panels": [
               {
+                "type": "text",
+                "title": "About this dashboard",
+                "id": 100,
+                "gridPos": {
+                  "h": 7,
+                  "w": 24,
+                  "x": 0,
+                  "y": 0
+                },
+                "options": {
+                  "mode": "markdown",
+                  "content": "### Admin actions\n**Tracked:** `admin.mutated` after a successful AuditLog write (actor, action, resource, IP, status). Complements the in-app AuditLog UI; DB remains source of truth.\n\n**Alerted:** none on this board alone (admin mutations are informational).\n\n**Go deeper (Explore, Loki):** after `| json`, filter `attributes_event=\"admin.mutated\"`, then e.g. `attributes_actor_email=...`, `attributes_resource=...`, `attributes_action=~\"POST|PATCH|DELETE\"`. Always scope with `service_namespace` for this env. Cheat sheet: `docs/sitio-observability.md`.\n"
+                },
+                "transparent": true
+              },
+              {
                 "datasource": {
                   "type": "loki",
                   "uid": "loki"
@@ -359,7 +391,7 @@ grafana:
                   "h": 8,
                   "w": 24,
                   "x": 0,
-                  "y": 0
+                  "y": 7
                 },
                 "id": 1,
                 "options": {
@@ -396,7 +428,7 @@ grafana:
                   "h": 10,
                   "w": 24,
                   "x": 0,
-                  "y": 8
+                  "y": 15
                 },
                 "id": 2,
                 "options": {
@@ -440,7 +472,7 @@ grafana:
             "timezone": "browser",
             "title": "Admin actions",
             "uid": "sitio-staging-admin-actions",
-            "version": 1
+            "version": 2
           }
       wix-webhooks:
         json: |
@@ -455,6 +487,22 @@ grafana:
             "links": [],
             "panels": [
               {
+                "type": "text",
+                "title": "About this dashboard",
+                "id": 100,
+                "gridPos": {
+                  "h": 8,
+                  "w": 24,
+                  "x": 0,
+                  "y": 0
+                },
+                "options": {
+                  "mode": "markdown",
+                  "content": "### Wix / webhooks\n**Tracked:** ingest accept (`wix.webhook_ingested`) vs reject (`wix.webhook_rejected`); process success (`wix.event_processed`) vs final failure (`wix.event_failed`). Complements the in-app Wix event inbox.\n\n**Alerted (Grafana to Slack `slack-sitio`):** `SitioRailsWixIntegrationError*` fires on any `wix.event_failed` or `wix.webhook_rejected` in 5m (`for: 1m`), per env.\n\n**Go deeper:** `| json | attributes_event=~\"wix\\..*\"` then `attributes_outcome`, `attributes_event_type`, `attributes_error_class`, `attributes_wix_event_id`. Rejects often mean bad JWT / parse (`unauthorized` / `bad_request`). Runbook: `docs/sitio-observability.md`.\n"
+                },
+                "transparent": true
+              },
+              {
                 "datasource": {
                   "type": "loki",
                   "uid": "loki"
@@ -463,7 +511,7 @@ grafana:
                   "h": 8,
                   "w": 12,
                   "x": 0,
-                  "y": 0
+                  "y": 8
                 },
                 "id": 1,
                 "options": {
@@ -509,7 +557,7 @@ grafana:
                   "h": 8,
                   "w": 12,
                   "x": 12,
-                  "y": 0
+                  "y": 8
                 },
                 "id": 2,
                 "options": {
@@ -555,7 +603,7 @@ grafana:
                   "h": 10,
                   "w": 24,
                   "x": 0,
-                  "y": 8
+                  "y": 16
                 },
                 "id": 3,
                 "options": {
@@ -600,7 +648,7 @@ grafana:
             "timezone": "browser",
             "title": "Wix / webhooks",
             "uid": "sitio-staging-wix-webhooks",
-            "version": 1
+            "version": 2
           }
       share-link-visitors:
         json: |
@@ -615,6 +663,22 @@ grafana:
             "links": [],
             "panels": [
               {
+                "type": "text",
+                "title": "About this dashboard",
+                "id": 100,
+                "gridPos": {
+                  "h": 8,
+                  "w": 24,
+                  "x": 0,
+                  "y": 0
+                },
+                "options": {
+                  "mode": "markdown",
+                  "content": "### Share-link visitors\n**Tracked:** successful opens (`share_link.opened`) vs denials (`share_link.denied`). Denials cover **unknown/typo tokens** and **revoked/stale** links (`outcome`: `unknown_token` / `revoked`). No CPF or amounts in Loki.\n\n**Alerted (Grafana to Slack `slack-sitio`):** `SitioRailsShareLinkDenied*` fires on any `share_link.denied` in 5m (`for: 1m`), per env.\n\n**Go deeper:** `| json | attributes_event=~\"share_link\\..*\"` then `attributes_outcome`, `attributes_trip_id`, `attributes_share_link_id` (nullable on unknown token). In-app: trip share section + home Problemas for revoked-link hints.\n"
+                },
+                "transparent": true
+              },
+              {
                 "datasource": {
                   "type": "loki",
                   "uid": "loki"
@@ -623,7 +687,7 @@ grafana:
                   "h": 8,
                   "w": 24,
                   "x": 0,
-                  "y": 0
+                  "y": 8
                 },
                 "id": 1,
                 "options": {
@@ -669,7 +733,7 @@ grafana:
                   "h": 10,
                   "w": 24,
                   "x": 0,
-                  "y": 8
+                  "y": 16
                 },
                 "id": 2,
                 "options": {
@@ -713,7 +777,7 @@ grafana:
             "timezone": "browser",
             "title": "Share-link visitors",
             "uid": "sitio-staging-share-link-visitors",
-            "version": 1
+            "version": 2
           }
       request-jobs:
         json: |
@@ -728,6 +792,22 @@ grafana:
             "links": [],
             "panels": [
               {
+                "type": "text",
+                "title": "About this dashboard",
+                "id": 100,
+                "gridPos": {
+                  "h": 8,
+                  "w": 24,
+                  "x": 0,
+                  "y": 0
+                },
+                "options": {
+                  "mode": "markdown",
+                  "content": "### Request & jobs\n**Tracked:** `http.request_finished` (status >=500 or duration >=2s only), `auth.login_failed`, and `job.finished` (failed / discarded), including `Wix::ProcessEventJob`.\n\n**Alerted (Grafana to Slack `slack-sitio`):** `SitioRailsAppError*` fires on any HTTP 5xx (`outcome=server_error`) or `job.finished` `failed|discarded` in 5m, sustained 5m (anti-flap). Not alerted: login failures or slow-only requests.\n\n**Go deeper:** `| json | attributes_event=~\"http\\.request_finished|job\\.finished|auth\\.login_failed\"` then `attributes_outcome`, `attributes_controller` / `attributes_action`, `attributes_job_class`, `attributes_error_class`. Runbook: `docs/sitio-observability.md`.\n"
+                },
+                "transparent": true
+              },
+              {
                 "datasource": {
                   "type": "loki",
                   "uid": "loki"
@@ -736,7 +816,7 @@ grafana:
                   "h": 8,
                   "w": 12,
                   "x": 0,
-                  "y": 0
+                  "y": 8
                 },
                 "id": 1,
                 "options": {
@@ -782,7 +862,7 @@ grafana:
                   "h": 8,
                   "w": 12,
                   "x": 12,
-                  "y": 0
+                  "y": 8
                 },
                 "id": 2,
                 "options": {
@@ -828,7 +908,7 @@ grafana:
                   "h": 10,
                   "w": 24,
                   "x": 0,
-                  "y": 8
+                  "y": 16
                 },
                 "id": 3,
                 "options": {
@@ -873,7 +953,7 @@ grafana:
             "timezone": "browser",
             "title": "Request & jobs",
             "uid": "sitio-staging-request-jobs",
-            "version": 1
+            "version": 2
           }
     sitio-production:
       sqlite-backup:
@@ -888,6 +968,22 @@ grafana:
             "id": null,
             "links": [],
             "panels": [
+              {
+                "type": "text",
+                "title": "About this dashboard",
+                "id": 100,
+                "gridPos": {
+                  "h": 7,
+                  "w": 24,
+                  "x": 0,
+                  "y": 0
+                },
+                "options": {
+                  "mode": "markdown",
+                  "content": "### SQLite backups\n**Tracked:** hours since the last successful `sitio-rails-sqlite-backup` CronJob, and failed Jobs owned by that CronJob (Prometheus / kube-state-metrics).\n\n**Alerted (Alertmanager to Slack):** `SitioRailsSqliteBackupJobFailed`, `SitioRailsSqliteBackupMissedSchedule`. See runbook `docs/sqlite-backup-runbook.md`.\n\n**Go deeper:** filter Prometheus by `namespace` (`sitio-staging` / `sitio-production`) and `cronjob=\"sitio-rails-sqlite-backup\"`. Job objects: `kube_job_status_failed` joined with `kube_job_owner`. Full notes: `docs/sitio-observability.md`.\n"
+                },
+                "transparent": true
+              },
               {
                 "datasource": {
                   "type": "prometheus",
@@ -921,7 +1017,7 @@ grafana:
                   "h": 8,
                   "w": 12,
                   "x": 0,
-                  "y": 0
+                  "y": 7
                 },
                 "id": 1,
                 "options": {
@@ -977,7 +1073,7 @@ grafana:
                   "h": 8,
                   "w": 12,
                   "x": 12,
-                  "y": 0
+                  "y": 7
                 },
                 "id": 2,
                 "options": {
@@ -1023,7 +1119,7 @@ grafana:
             "timezone": "browser",
             "title": "SQLite backups",
             "uid": "sitio-production-sqlite-backup",
-            "version": 1
+            "version": 2
           }
       admin-actions:
         json: |
@@ -1038,6 +1134,22 @@ grafana:
             "links": [],
             "panels": [
               {
+                "type": "text",
+                "title": "About this dashboard",
+                "id": 100,
+                "gridPos": {
+                  "h": 7,
+                  "w": 24,
+                  "x": 0,
+                  "y": 0
+                },
+                "options": {
+                  "mode": "markdown",
+                  "content": "### Admin actions\n**Tracked:** `admin.mutated` after a successful AuditLog write (actor, action, resource, IP, status). Complements the in-app AuditLog UI; DB remains source of truth.\n\n**Alerted:** none on this board alone (admin mutations are informational).\n\n**Go deeper (Explore, Loki):** after `| json`, filter `attributes_event=\"admin.mutated\"`, then e.g. `attributes_actor_email=...`, `attributes_resource=...`, `attributes_action=~\"POST|PATCH|DELETE\"`. Always scope with `service_namespace` for this env. Cheat sheet: `docs/sitio-observability.md`.\n"
+                },
+                "transparent": true
+              },
+              {
                 "datasource": {
                   "type": "loki",
                   "uid": "loki"
@@ -1046,7 +1158,7 @@ grafana:
                   "h": 8,
                   "w": 24,
                   "x": 0,
-                  "y": 0
+                  "y": 7
                 },
                 "id": 1,
                 "options": {
@@ -1083,7 +1195,7 @@ grafana:
                   "h": 10,
                   "w": 24,
                   "x": 0,
-                  "y": 8
+                  "y": 15
                 },
                 "id": 2,
                 "options": {
@@ -1127,7 +1239,7 @@ grafana:
             "timezone": "browser",
             "title": "Admin actions",
             "uid": "sitio-production-admin-actions",
-            "version": 1
+            "version": 2
           }
       wix-webhooks:
         json: |
@@ -1142,6 +1254,22 @@ grafana:
             "links": [],
             "panels": [
               {
+                "type": "text",
+                "title": "About this dashboard",
+                "id": 100,
+                "gridPos": {
+                  "h": 8,
+                  "w": 24,
+                  "x": 0,
+                  "y": 0
+                },
+                "options": {
+                  "mode": "markdown",
+                  "content": "### Wix / webhooks\n**Tracked:** ingest accept (`wix.webhook_ingested`) vs reject (`wix.webhook_rejected`); process success (`wix.event_processed`) vs final failure (`wix.event_failed`). Complements the in-app Wix event inbox.\n\n**Alerted (Grafana to Slack `slack-sitio`):** `SitioRailsWixIntegrationError*` fires on any `wix.event_failed` or `wix.webhook_rejected` in 5m (`for: 1m`), per env.\n\n**Go deeper:** `| json | attributes_event=~\"wix\\..*\"` then `attributes_outcome`, `attributes_event_type`, `attributes_error_class`, `attributes_wix_event_id`. Rejects often mean bad JWT / parse (`unauthorized` / `bad_request`). Runbook: `docs/sitio-observability.md`.\n"
+                },
+                "transparent": true
+              },
+              {
                 "datasource": {
                   "type": "loki",
                   "uid": "loki"
@@ -1150,7 +1278,7 @@ grafana:
                   "h": 8,
                   "w": 12,
                   "x": 0,
-                  "y": 0
+                  "y": 8
                 },
                 "id": 1,
                 "options": {
@@ -1196,7 +1324,7 @@ grafana:
                   "h": 8,
                   "w": 12,
                   "x": 12,
-                  "y": 0
+                  "y": 8
                 },
                 "id": 2,
                 "options": {
@@ -1242,7 +1370,7 @@ grafana:
                   "h": 10,
                   "w": 24,
                   "x": 0,
-                  "y": 8
+                  "y": 16
                 },
                 "id": 3,
                 "options": {
@@ -1287,7 +1415,7 @@ grafana:
             "timezone": "browser",
             "title": "Wix / webhooks",
             "uid": "sitio-production-wix-webhooks",
-            "version": 1
+            "version": 2
           }
       share-link-visitors:
         json: |
@@ -1302,6 +1430,22 @@ grafana:
             "links": [],
             "panels": [
               {
+                "type": "text",
+                "title": "About this dashboard",
+                "id": 100,
+                "gridPos": {
+                  "h": 8,
+                  "w": 24,
+                  "x": 0,
+                  "y": 0
+                },
+                "options": {
+                  "mode": "markdown",
+                  "content": "### Share-link visitors\n**Tracked:** successful opens (`share_link.opened`) vs denials (`share_link.denied`). Denials cover **unknown/typo tokens** and **revoked/stale** links (`outcome`: `unknown_token` / `revoked`). No CPF or amounts in Loki.\n\n**Alerted (Grafana to Slack `slack-sitio`):** `SitioRailsShareLinkDenied*` fires on any `share_link.denied` in 5m (`for: 1m`), per env.\n\n**Go deeper:** `| json | attributes_event=~\"share_link\\..*\"` then `attributes_outcome`, `attributes_trip_id`, `attributes_share_link_id` (nullable on unknown token). In-app: trip share section + home Problemas for revoked-link hints.\n"
+                },
+                "transparent": true
+              },
+              {
                 "datasource": {
                   "type": "loki",
                   "uid": "loki"
@@ -1310,7 +1454,7 @@ grafana:
                   "h": 8,
                   "w": 24,
                   "x": 0,
-                  "y": 0
+                  "y": 8
                 },
                 "id": 1,
                 "options": {
@@ -1356,7 +1500,7 @@ grafana:
                   "h": 10,
                   "w": 24,
                   "x": 0,
-                  "y": 8
+                  "y": 16
                 },
                 "id": 2,
                 "options": {
@@ -1400,7 +1544,7 @@ grafana:
             "timezone": "browser",
             "title": "Share-link visitors",
             "uid": "sitio-production-share-link-visitors",
-            "version": 1
+            "version": 2
           }
       request-jobs:
         json: |
@@ -1415,6 +1559,22 @@ grafana:
             "links": [],
             "panels": [
               {
+                "type": "text",
+                "title": "About this dashboard",
+                "id": 100,
+                "gridPos": {
+                  "h": 8,
+                  "w": 24,
+                  "x": 0,
+                  "y": 0
+                },
+                "options": {
+                  "mode": "markdown",
+                  "content": "### Request & jobs\n**Tracked:** `http.request_finished` (status >=500 or duration >=2s only), `auth.login_failed`, and `job.finished` (failed / discarded), including `Wix::ProcessEventJob`.\n\n**Alerted (Grafana to Slack `slack-sitio`):** `SitioRailsAppError*` fires on any HTTP 5xx (`outcome=server_error`) or `job.finished` `failed|discarded` in 5m, sustained 5m (anti-flap). Not alerted: login failures or slow-only requests.\n\n**Go deeper:** `| json | attributes_event=~\"http\\.request_finished|job\\.finished|auth\\.login_failed\"` then `attributes_outcome`, `attributes_controller` / `attributes_action`, `attributes_job_class`, `attributes_error_class`. Runbook: `docs/sitio-observability.md`.\n"
+                },
+                "transparent": true
+              },
+              {
                 "datasource": {
                   "type": "loki",
                   "uid": "loki"
@@ -1423,7 +1583,7 @@ grafana:
                   "h": 8,
                   "w": 12,
                   "x": 0,
-                  "y": 0
+                  "y": 8
                 },
                 "id": 1,
                 "options": {
@@ -1469,7 +1629,7 @@ grafana:
                   "h": 8,
                   "w": 12,
                   "x": 12,
-                  "y": 0
+                  "y": 8
                 },
                 "id": 2,
                 "options": {
@@ -1515,7 +1675,7 @@ grafana:
                   "h": 10,
                   "w": 24,
                   "x": 0,
-                  "y": 8
+                  "y": 16
                 },
                 "id": 3,
                 "options": {
@@ -1560,7 +1720,7 @@ grafana:
             "timezone": "browser",
             "title": "Request & jobs",
             "uid": "sitio-production-request-jobs",
-            "version": 1
+            "version": 2
           }
   additionalDataSources:
     - name: Loki
@@ -1571,8 +1731,8 @@ grafana:
       isDefault: false
       jsonData:
         maxLines: 1000
-  # Grafana Unified Alerting — Sitio LogQL rules. Slack contact point: see docs/sitio-observability.md
-  # IMPORTANT: grafana chart `alerting` values must be maps (not `|` strings) — hasKey/tpl in _config.tpl.
+  # Grafana Unified Alerting  - Sitio LogQL rules. Slack contact point: see docs/sitio-observability.md
+  # IMPORTANT: grafana chart `alerting` values must be maps (not `|` strings)  - hasKey/tpl in _config.tpl.
   # Go templates for Slack titles use Helm raw strings so tpl leaves them for Grafana.
   alerting:
     sitio-rules.yaml:
