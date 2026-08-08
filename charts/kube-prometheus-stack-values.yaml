@@ -1583,13 +1583,13 @@ grafana:
           folder: Sitio
           interval: 1m
           rules:
-            - uid: sitio-wix-event-failed-sustained
-              title: SitioRailsWixEventFailedSustained
+            - uid: sitio-staging-wix-integration-error
+              title: SitioRailsWixIntegrationErrorStaging
               condition: C
               data:
                 - refId: A
                   relativeTimeRange:
-                    from: 900
+                    from: 300
                     to: 0
                   datasourceUid: loki
                   model:
@@ -1597,12 +1597,12 @@ grafana:
                       type: loki
                       uid: loki
                     editorMode: code
-                    expr: 'sum(count_over_time({service_name="sitio-rails"} | json | attributes_event="wix.event_failed" [15m]))'
+                    expr: 'sum(count_over_time({service_name="sitio-rails", service_namespace="sitio-staging"} | json | attributes_event=~"wix\\.(event_failed|webhook_rejected)" [5m]))'
                     queryType: instant
                     refId: A
                 - refId: B
                   relativeTimeRange:
-                    from: 900
+                    from: 300
                     to: 0
                   datasourceUid: __expr__
                   model:
@@ -1628,14 +1628,14 @@ grafana:
                     type: reduce
                 - refId: C
                   relativeTimeRange:
-                    from: 900
+                    from: 300
                     to: 0
                   datasourceUid: __expr__
                   model:
                     conditions:
                       - evaluator:
                           params:
-                            - 3
+                            - 0
                           type: gt
                         operator:
                           type: and
@@ -1654,20 +1654,22 @@ grafana:
                     type: threshold
               noDataState: OK
               execErrState: Error
-              for: 15m
+              for: 1m
               annotations:
-                summary: Sustained Wix event processing failures in sitio-rails
-                description: More than 3 wix.event_failed events in 15m for 15m.
+                summary: Wix integration error in sitio-staging
+                description: At least one wix.event_failed or wix.webhook_rejected in 5m (sitio-staging).
               labels:
                 severity: warning
                 team: sitio
-            - uid: sitio-share-link-denial-spike
-              title: SitioRailsShareLinkDenialSpike
+                env: staging
+
+            - uid: sitio-staging-share-link-denied
+              title: SitioRailsShareLinkDeniedStaging
               condition: C
               data:
                 - refId: A
                   relativeTimeRange:
-                    from: 600
+                    from: 300
                     to: 0
                   datasourceUid: loki
                   model:
@@ -1675,12 +1677,12 @@ grafana:
                       type: loki
                       uid: loki
                     editorMode: code
-                    expr: 'sum(count_over_time({service_name="sitio-rails"} | json | attributes_event="share_link.denied" [10m]))'
+                    expr: 'sum(count_over_time({service_name="sitio-rails", service_namespace="sitio-staging"} | json | attributes_event="share_link.denied" [5m]))'
                     queryType: instant
                     refId: A
                 - refId: B
                   relativeTimeRange:
-                    from: 600
+                    from: 300
                     to: 0
                   datasourceUid: __expr__
                   model:
@@ -1706,14 +1708,14 @@ grafana:
                     type: reduce
                 - refId: C
                   relativeTimeRange:
-                    from: 600
+                    from: 300
                     to: 0
                   datasourceUid: __expr__
                   model:
                     conditions:
                       - evaluator:
                           params:
-                            - 20
+                            - 0
                           type: gt
                         operator:
                           type: and
@@ -1732,13 +1734,335 @@ grafana:
                     type: threshold
               noDataState: OK
               execErrState: Error
-              for: 10m
+              for: 1m
               annotations:
-                summary: Share-link denial spike in sitio-rails
-                description: More than 20 share_link.denied events in 10m for 10m.
+                summary: Share-link access denied in sitio-staging
+                description: At least one share_link.denied in 5m (sitio-staging); typo token or revoked/stale link.
               labels:
                 severity: warning
                 team: sitio
+                env: staging
+
+            - uid: sitio-staging-app-error
+              title: SitioRailsAppErrorStaging
+              condition: C
+              data:
+                - refId: A
+                  relativeTimeRange:
+                    from: 300
+                    to: 0
+                  datasourceUid: loki
+                  model:
+                    datasource:
+                      type: loki
+                      uid: loki
+                    editorMode: code
+                    expr: 'sum(count_over_time({service_name="sitio-rails", service_namespace="sitio-staging"} | json | attributes_event=~"http\\.request_finished|job\\.finished" | attributes_outcome=~"server_error|failed|discarded" [5m]))'
+                    queryType: instant
+                    refId: A
+                - refId: B
+                  relativeTimeRange:
+                    from: 300
+                    to: 0
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                      - evaluator:
+                          params: []
+                          type: gt
+                        operator:
+                          type: and
+                        query:
+                          params:
+                            - B
+                        reducer:
+                          params: []
+                          type: last
+                        type: query
+                    datasource:
+                      type: __expr__
+                      uid: __expr__
+                    expression: A
+                    reducer: last
+                    refId: B
+                    type: reduce
+                - refId: C
+                  relativeTimeRange:
+                    from: 300
+                    to: 0
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                      - evaluator:
+                          params:
+                            - 0
+                          type: gt
+                        operator:
+                          type: and
+                        query:
+                          params:
+                            - C
+                        reducer:
+                          params: []
+                          type: last
+                        type: query
+                    datasource:
+                      type: __expr__
+                      uid: __expr__
+                    expression: B
+                    refId: C
+                    type: threshold
+              noDataState: OK
+              execErrState: Error
+              for: 5m
+              annotations:
+                summary: App or job error in sitio-staging
+                description: At least one HTTP 5xx or job.finished failed/discarded in 5m, sustained for 5m (sitio-staging).
+              labels:
+                severity: warning
+                team: sitio
+                env: staging
+
+            - uid: sitio-production-wix-integration-error
+              title: SitioRailsWixIntegrationErrorProduction
+              condition: C
+              data:
+                - refId: A
+                  relativeTimeRange:
+                    from: 300
+                    to: 0
+                  datasourceUid: loki
+                  model:
+                    datasource:
+                      type: loki
+                      uid: loki
+                    editorMode: code
+                    expr: 'sum(count_over_time({service_name="sitio-rails", service_namespace="sitio-production"} | json | attributes_event=~"wix\\.(event_failed|webhook_rejected)" [5m]))'
+                    queryType: instant
+                    refId: A
+                - refId: B
+                  relativeTimeRange:
+                    from: 300
+                    to: 0
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                      - evaluator:
+                          params: []
+                          type: gt
+                        operator:
+                          type: and
+                        query:
+                          params:
+                            - B
+                        reducer:
+                          params: []
+                          type: last
+                        type: query
+                    datasource:
+                      type: __expr__
+                      uid: __expr__
+                    expression: A
+                    reducer: last
+                    refId: B
+                    type: reduce
+                - refId: C
+                  relativeTimeRange:
+                    from: 300
+                    to: 0
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                      - evaluator:
+                          params:
+                            - 0
+                          type: gt
+                        operator:
+                          type: and
+                        query:
+                          params:
+                            - C
+                        reducer:
+                          params: []
+                          type: last
+                        type: query
+                    datasource:
+                      type: __expr__
+                      uid: __expr__
+                    expression: B
+                    refId: C
+                    type: threshold
+              noDataState: OK
+              execErrState: Error
+              for: 1m
+              annotations:
+                summary: Wix integration error in sitio-production
+                description: At least one wix.event_failed or wix.webhook_rejected in 5m (sitio-production).
+              labels:
+                severity: warning
+                team: sitio
+                env: production
+
+            - uid: sitio-production-share-link-denied
+              title: SitioRailsShareLinkDeniedProduction
+              condition: C
+              data:
+                - refId: A
+                  relativeTimeRange:
+                    from: 300
+                    to: 0
+                  datasourceUid: loki
+                  model:
+                    datasource:
+                      type: loki
+                      uid: loki
+                    editorMode: code
+                    expr: 'sum(count_over_time({service_name="sitio-rails", service_namespace="sitio-production"} | json | attributes_event="share_link.denied" [5m]))'
+                    queryType: instant
+                    refId: A
+                - refId: B
+                  relativeTimeRange:
+                    from: 300
+                    to: 0
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                      - evaluator:
+                          params: []
+                          type: gt
+                        operator:
+                          type: and
+                        query:
+                          params:
+                            - B
+                        reducer:
+                          params: []
+                          type: last
+                        type: query
+                    datasource:
+                      type: __expr__
+                      uid: __expr__
+                    expression: A
+                    reducer: last
+                    refId: B
+                    type: reduce
+                - refId: C
+                  relativeTimeRange:
+                    from: 300
+                    to: 0
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                      - evaluator:
+                          params:
+                            - 0
+                          type: gt
+                        operator:
+                          type: and
+                        query:
+                          params:
+                            - C
+                        reducer:
+                          params: []
+                          type: last
+                        type: query
+                    datasource:
+                      type: __expr__
+                      uid: __expr__
+                    expression: B
+                    refId: C
+                    type: threshold
+              noDataState: OK
+              execErrState: Error
+              for: 1m
+              annotations:
+                summary: Share-link access denied in sitio-production
+                description: At least one share_link.denied in 5m (sitio-production); typo token or revoked/stale link.
+              labels:
+                severity: warning
+                team: sitio
+                env: production
+
+            - uid: sitio-production-app-error
+              title: SitioRailsAppErrorProduction
+              condition: C
+              data:
+                - refId: A
+                  relativeTimeRange:
+                    from: 300
+                    to: 0
+                  datasourceUid: loki
+                  model:
+                    datasource:
+                      type: loki
+                      uid: loki
+                    editorMode: code
+                    expr: 'sum(count_over_time({service_name="sitio-rails", service_namespace="sitio-production"} | json | attributes_event=~"http\\.request_finished|job\\.finished" | attributes_outcome=~"server_error|failed|discarded" [5m]))'
+                    queryType: instant
+                    refId: A
+                - refId: B
+                  relativeTimeRange:
+                    from: 300
+                    to: 0
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                      - evaluator:
+                          params: []
+                          type: gt
+                        operator:
+                          type: and
+                        query:
+                          params:
+                            - B
+                        reducer:
+                          params: []
+                          type: last
+                        type: query
+                    datasource:
+                      type: __expr__
+                      uid: __expr__
+                    expression: A
+                    reducer: last
+                    refId: B
+                    type: reduce
+                - refId: C
+                  relativeTimeRange:
+                    from: 300
+                    to: 0
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                      - evaluator:
+                          params:
+                            - 0
+                          type: gt
+                        operator:
+                          type: and
+                        query:
+                          params:
+                            - C
+                        reducer:
+                          params: []
+                          type: last
+                        type: query
+                    datasource:
+                      type: __expr__
+                      uid: __expr__
+                    expression: B
+                    refId: C
+                    type: threshold
+              noDataState: OK
+              execErrState: Error
+              for: 5m
+              annotations:
+                summary: App or job error in sitio-production
+                description: At least one HTTP 5xx or job.finished failed/discarded in 5m, sustained for 5m (sitio-production).
+              labels:
+                severity: warning
+                team: sitio
+                env: production
+
     sitio-contactpoints.yaml:
       apiVersion: 1
       contactPoints:
@@ -1761,6 +2085,7 @@ grafana:
           group_by:
             - grafana_folder
             - alertname
+            - env
           group_wait: 30s
           group_interval: 5m
           repeat_interval: 4h
@@ -1771,6 +2096,7 @@ grafana:
               group_by:
                 - grafana_folder
                 - alertname
+                - env
               group_wait: 30s
               group_interval: 5m
               repeat_interval: 4h
