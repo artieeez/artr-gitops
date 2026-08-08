@@ -39,10 +39,11 @@ Never log CPF, payment amounts, passwords, JWT, or raw webhook bodies.
 | `wix.webhook_rejected` | Auth/parse failure | `outcome: unauthorized\|bad_request`, optional `reason` |
 | `wix.event_processed` | `process_now` success | `wix_event_id`, `event_type`, `kind`, `outcome: ok` |
 | `wix.event_failed` | Final discard / `mark_failed` | `wix_event_id`, `event_type`, `outcome: failed`, `error_class` |
+| `wix.api_error` | Outbound `Wix::Client` non-success (incl. missing API key) | `operation`, `outcome: error`, `status` (nullable), `error_class` — no response body |
 | `share_link.opened` | Active link access | `share_link_id`, `trip_id`, `outcome: ok` |
 | `share_link.denied` | Revoked or unknown token | `share_link_id` (nullable), `trip_id` (nullable), `outcome: revoked\|unknown_token` |
 | `auth.login_failed` | Bad credentials | `outcome: failed`, `email_present` (no password/email) |
-| `http.request_finished` | Status ≥500 **or** duration ≥2000ms only | `controller`, `action`, `status`, `duration_ms`, `outcome: server_error\|slow` |
+| `http.request_finished` | Status ≥400 **or** duration ≥2000ms | `controller`, `action`, `status`, `duration_ms`, `outcome: client_error\|server_error\|slow` |
 | `job.finished` | Job discarded or unhandled failure | `job_class`, `outcome: discarded\|failed`, `executions`, `error_class` |
 
 ---
@@ -54,10 +55,12 @@ OTLP → Loki JSON nests payload under `attributes.*`. After `| json`, use `attr
 ```logql
 {service_name="sitio-rails"} | json | attributes_event="admin.mutated"
 {service_name="sitio-rails"} | json | attributes_event=~"wix\\..*"
+{service_name="sitio-rails"} | json | attributes_event="wix.api_error"
 {service_name="sitio-rails"} | json | attributes_event="wix.event_failed"
 {service_name="sitio-rails"} | json | attributes_event=~"share_link\\..*"
 {service_name="sitio-rails"} | json | attributes_event="auth.login_failed"
 {service_name="sitio-rails"} | json | attributes_event="http.request_finished"
+{service_name="sitio-rails"} | json | attributes_event="http.request_finished" | attributes_outcome="client_error"
 {service_name="sitio-rails"} | json | attributes_event="job.finished" | attributes_job_class="Wix::ProcessEventJob"
 {service_name="sitio-rails", service_namespace="sitio-staging"} | json
 {service_name="sitio-rails", service_namespace="sitio-production"} | json
@@ -89,11 +92,13 @@ Sensitive “any occurrence” rules (spike/sustained rules removed). Each signa
 
 | Alert | Condition | `for` | Severity |
 | --- | --- | --- | --- |
-| `SitioRailsWixIntegrationError{Staging\|Production}` | ≥1 `wix.event_failed` or `wix.webhook_rejected` in 5m | 1m | warning |
+| `SitioRailsWixIntegrationError{Staging\|Production}` | ≥1 `wix.event_failed`, `wix.webhook_rejected`, or `wix.api_error` in 5m | 1m | warning |
 | `SitioRailsShareLinkDenied{Staging\|Production}` | ≥1 `share_link.denied` in 5m (typo token or revoked/stale) | 1m | warning |
-| `SitioRailsAppError{Staging\|Production}` | ≥1 HTTP 5xx or `job.finished` `failed\|discarded` in 5m | 5m (anti-flap) | warning |
+| `SitioRailsAppError{Staging\|Production}` | ≥1 HTTP 4xx/5xx or `job.finished` `failed\|discarded` in 5m | 5m (anti-flap) | warning |
 
-Not alerted: `auth.login_failed`, slow-only requests (`outcome=slow`).
+Not alerted: slow-only requests (`outcome=slow`). Login failures are on the Request & jobs board but not paged.
+
+**Media upload tip:** a Wix key without Media Manager permission fails `generate-upload-url` with Wix **403**. Rails remaps that to HTTP **502** (`WixClientErrors`) while emitting `wix.api_error` with `status=403` and `operation=generate_file_upload_url`. Look for both signals; the UI error text often quotes Wix's 403 even though the Sitio response status is 502.
 
 ### Slack contact point
 
