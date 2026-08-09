@@ -498,7 +498,7 @@ grafana:
                 },
                 "options": {
                   "mode": "markdown",
-                  "content": "### Wix / webhooks\n**Tracked:** ingest accept (`wix.webhook_ingested`) vs reject (`wix.webhook_rejected`); process success (`wix.event_processed`) vs final failure (`wix.event_failed`); outbound API failures (`wix.api_error` from `Wix::Client`, including media upload URL generation). Complements the in-app Wix event inbox.\n\n**Alerted (Grafana to Slack `slack-sitio`):** `SitioRailsWixIntegrationError*` fires on any `wix.event_failed`, `wix.webhook_rejected`, or `wix.api_error` in 5m (`for: 1m`), per env.\n\n**Go deeper:** `| json | attributes_event=~\"wix\\..*\"` then `attributes_outcome`, `attributes_operation` (API calls), `attributes_status`, `attributes_event_type`, `attributes_error_class`. Interactive Wix failures are also remapped to HTTP 502 by `WixClientErrors` (see Request & jobs). Runbook: `docs/sitio-observability.md`.\n"
+                  "content": "### Wix / webhooks\n**Tracked:** ingest accept (`wix.webhook_ingested`) vs reject (`wix.webhook_rejected`); process success (`wix.event_processed`) vs final failure (`wix.event_failed`); payment sync skips (`wix.payment_sync_skipped` — inbox still processed); outbound API failures (`wix.api_error` from `Wix::Client`, including media upload URL generation). Complements the in-app Wix event inbox.\n\n**Alerted (Grafana to Slack `slack-sitio`):** `SitioRailsWixIntegrationError*` fires on any `wix.event_failed`, `wix.webhook_rejected`, `wix.api_error`, or `wix.payment_sync_skipped` in 5m (`for: 1m`), per env.\n\n**Go deeper:** `| json | attributes_event=~\"wix\\..*\"` then `attributes_outcome`, `attributes_reason` (payment skips), `attributes_operation` (API calls), `attributes_status`, `attributes_event_type`, `attributes_error_class`. Interactive Wix failures are also remapped to HTTP 502 by `WixClientErrors` (see Request & jobs). Runbook: `docs/sitio-observability.md`.\n"
                 },
                 "transparent": true
               },
@@ -589,6 +589,15 @@ grafana:
                     "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | attributes_event=\"wix.event_failed\" [5m]))",
                     "legendFormat": "failed",
                     "refId": "B"
+                  },
+                  {
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-staging\"} | json | attributes_event=\"wix.payment_sync_skipped\" [5m]))",
+                    "legendFormat": "payment_sync_skipped",
+                    "refId": "C"
                   }
                 ],
                 "title": "Event processed vs failed",
@@ -1265,7 +1274,7 @@ grafana:
                 },
                 "options": {
                   "mode": "markdown",
-                  "content": "### Wix / webhooks\n**Tracked:** ingest accept (`wix.webhook_ingested`) vs reject (`wix.webhook_rejected`); process success (`wix.event_processed`) vs final failure (`wix.event_failed`); outbound API failures (`wix.api_error` from `Wix::Client`, including media upload URL generation). Complements the in-app Wix event inbox.\n\n**Alerted (Grafana to Slack `slack-sitio`):** `SitioRailsWixIntegrationError*` fires on any `wix.event_failed`, `wix.webhook_rejected`, or `wix.api_error` in 5m (`for: 1m`), per env.\n\n**Go deeper:** `| json | attributes_event=~\"wix\\..*\"` then `attributes_outcome`, `attributes_operation` (API calls), `attributes_status`, `attributes_event_type`, `attributes_error_class`. Interactive Wix failures are also remapped to HTTP 502 by `WixClientErrors` (see Request & jobs). Runbook: `docs/sitio-observability.md`.\n"
+                  "content": "### Wix / webhooks\n**Tracked:** ingest accept (`wix.webhook_ingested`) vs reject (`wix.webhook_rejected`); process success (`wix.event_processed`) vs final failure (`wix.event_failed`); payment sync skips (`wix.payment_sync_skipped` — inbox still processed); outbound API failures (`wix.api_error` from `Wix::Client`, including media upload URL generation). Complements the in-app Wix event inbox.\n\n**Alerted (Grafana to Slack `slack-sitio`):** `SitioRailsWixIntegrationError*` fires on any `wix.event_failed`, `wix.webhook_rejected`, `wix.api_error`, or `wix.payment_sync_skipped` in 5m (`for: 1m`), per env.\n\n**Go deeper:** `| json | attributes_event=~\"wix\\..*\"` then `attributes_outcome`, `attributes_reason` (payment skips), `attributes_operation` (API calls), `attributes_status`, `attributes_event_type`, `attributes_error_class`. Interactive Wix failures are also remapped to HTTP 502 by `WixClientErrors` (see Request & jobs). Runbook: `docs/sitio-observability.md`.\n"
                 },
                 "transparent": true
               },
@@ -1356,6 +1365,15 @@ grafana:
                     "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | attributes_event=\"wix.event_failed\" [5m]))",
                     "legendFormat": "failed",
                     "refId": "B"
+                  },
+                  {
+                    "datasource": {
+                      "type": "loki",
+                      "uid": "loki"
+                    },
+                    "expr": "sum(count_over_time({service_name=\"sitio-rails\", service_namespace=\"sitio-production\"} | json | attributes_event=\"wix.payment_sync_skipped\" [5m]))",
+                    "legendFormat": "payment_sync_skipped",
+                    "refId": "C"
                   }
                 ],
                 "title": "Event processed vs failed",
@@ -1757,7 +1775,7 @@ grafana:
                       type: loki
                       uid: loki
                     editorMode: code
-                    expr: 'sum(count_over_time({service_name="sitio-rails", service_namespace="sitio-staging"} | json | attributes_event=~"wix\\.(event_failed|webhook_rejected|api_error)" [5m]))'
+                    expr: 'sum(count_over_time({service_name="sitio-rails", service_namespace="sitio-staging"} | json | attributes_event=~"wix\\.(event_failed|webhook_rejected|api_error|payment_sync_skipped)" [5m]))'
                     queryType: instant
                     refId: A
                 - refId: B
@@ -1817,7 +1835,7 @@ grafana:
               for: 1m
               annotations:
                 summary: Wix integration error in sitio-staging
-                description: At least one wix.event_failed, wix.webhook_rejected, or wix.api_error in 5m (sitio-staging).
+                description: At least one wix.event_failed, wix.webhook_rejected, wix.api_error, or wix.payment_sync_skipped in 5m (sitio-staging).
               labels:
                 severity: warning
                 team: sitio
@@ -1997,7 +2015,7 @@ grafana:
                       type: loki
                       uid: loki
                     editorMode: code
-                    expr: 'sum(count_over_time({service_name="sitio-rails", service_namespace="sitio-production"} | json | attributes_event=~"wix\\.(event_failed|webhook_rejected|api_error)" [5m]))'
+                    expr: 'sum(count_over_time({service_name="sitio-rails", service_namespace="sitio-production"} | json | attributes_event=~"wix\\.(event_failed|webhook_rejected|api_error|payment_sync_skipped)" [5m]))'
                     queryType: instant
                     refId: A
                 - refId: B
@@ -2057,7 +2075,7 @@ grafana:
               for: 1m
               annotations:
                 summary: Wix integration error in sitio-production
-                description: At least one wix.event_failed, wix.webhook_rejected, or wix.api_error in 5m (sitio-production).
+                description: At least one wix.event_failed, wix.webhook_rejected, wix.api_error, or wix.payment_sync_skipped in 5m (sitio-production).
               labels:
                 severity: warning
                 team: sitio
