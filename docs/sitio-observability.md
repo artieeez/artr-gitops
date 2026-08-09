@@ -39,6 +39,7 @@ Never log CPF, payment amounts, passwords, JWT, or raw webhook bodies.
 | `wix.webhook_rejected` | Auth/parse failure | `outcome: unauthorized\|bad_request`, optional `reason` |
 | `wix.event_processed` | `process_now` success | `wix_event_id`, `event_type`, `kind`, `outcome: ok` |
 | `wix.event_failed` | Final discard / `mark_failed` | `wix_event_id`, `event_type`, `outcome: failed`, `error_class` |
+| `wix.payment_sync_skipped` | PaymentEvent processed but passenger/payment not created (non-idempotent skip) | `outcome: skipped`, `reason`, optional `order_id` / `wix_transaction_id` / `product_id` — no CPF/amounts |
 | `wix.api_error` | Outbound `Wix::Client` non-success (incl. missing API key) | `operation`, `outcome: error`, `status` (nullable), `error_class` — no response body |
 | `share_link.opened` | Active link access | `share_link_id`, `trip_id`, `outcome: ok` |
 | `share_link.denied` | Revoked or unknown token | `share_link_id` (nullable), `trip_id` (nullable), `outcome: revoked\|unknown_token` |
@@ -57,6 +58,8 @@ OTLP → Loki JSON nests payload under `attributes.*`. After `| json`, use `attr
 {service_name="sitio-rails"} | json | attributes_event=~"wix\\..*"
 {service_name="sitio-rails"} | json | attributes_event="wix.api_error"
 {service_name="sitio-rails"} | json | attributes_event="wix.event_failed"
+{service_name="sitio-rails"} | json | attributes_event="wix.payment_sync_skipped"
+{service_name="sitio-rails"} | json | attributes_event="wix.payment_sync_skipped" | attributes_reason="missing_student"
 {service_name="sitio-rails"} | json | attributes_event=~"share_link\\..*"
 {service_name="sitio-rails"} | json | attributes_event="auth.login_failed"
 {service_name="sitio-rails"} | json | attributes_event="http.request_finished"
@@ -76,7 +79,7 @@ Each env folder has five dashboards (app boards default range last 6h; backup la
 
 1. **SQLite backups** — hours since last success + Failed Job count
 2. **Admin actions** — `admin.mutated` rate + logs
-3. **Wix / webhooks** — ingest ok/rejected; processed/failed; Wix logs
+3. **Wix / webhooks** — ingest ok/rejected; processed/failed; payment_sync_skipped; Wix logs
 4. **Share-link visitors** — opens vs denials
 5. **Request & jobs** — `http.request_finished`, `auth.login_failed`, `job.finished` (incl. Wix job)
 
@@ -92,11 +95,13 @@ Sensitive “any occurrence” rules (spike/sustained rules removed). Each signa
 
 | Alert | Condition | `for` | Severity |
 | --- | --- | --- | --- |
-| `SitioRailsWixIntegrationError{Staging\|Production}` | ≥1 `wix.event_failed`, `wix.webhook_rejected`, or `wix.api_error` in 5m | 1m | warning |
+| `SitioRailsWixIntegrationError{Staging\|Production}` | ≥1 `wix.event_failed`, `wix.webhook_rejected`, `wix.api_error`, or `wix.payment_sync_skipped` in 5m | 1m | warning |
 | `SitioRailsShareLinkDenied{Staging\|Production}` | ≥1 `share_link.denied` in 5m (typo token or revoked/stale) | 1m | warning |
 | `SitioRailsAppError{Staging\|Production}` | ≥1 HTTP 4xx/5xx or `job.finished` `failed\|discarded` in 5m | 5m (anti-flap) | warning |
 
 Not alerted: slow-only requests (`outcome=slow`). Login failures are on the Request & jobs board but not paged.
+
+**Payment sync skip tip:** `wix.payment_sync_skipped` means the inbox event is still **processed** (reprocess will not invent student data). Check `attributes_reason` (`missing_student`, `order_unavailable`, `payment_invalid_amount`, …). Fix checkout custom fields / create the passenger manually for now; a review-queue UX is deferred.
 
 **Media upload tip:** a Wix key without Media Manager permission fails `generate-upload-url` with Wix **403**. Rails remaps that to HTTP **502** (`WixClientErrors`) while emitting `wix.api_error` with `status=403` and `operation=generate_file_upload_url`. Look for both signals; the UI error text often quotes Wix's 403 even though the Sitio response status is 502.
 
