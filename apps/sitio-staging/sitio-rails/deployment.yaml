@@ -27,7 +27,7 @@ spec:
       containers:
         - name: sitio-rails
           # Bumped by sitio-rails GitHub Action (Deploy Rails).
-          image: vcp.ocir.io/axtvnrdemzo7/sitio-rails:sha-77da829
+          image: vcp.ocir.io/axtvnrdemzo7/sitio-rails:sha-5751ed9
           imagePullPolicy: Always
           ports:
             # Thruster defaults to :80; non-root (UID 1000) cannot bind privileged ports.
