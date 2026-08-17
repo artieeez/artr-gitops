@@ -21,7 +21,7 @@ memcached:
 memcachedExporter:
   image:
     repository: docker.io/prom/memcached-exporter
-    tag: v0.16.0
+    tag: v0.17.0
 
 minio:
   enabled: false
