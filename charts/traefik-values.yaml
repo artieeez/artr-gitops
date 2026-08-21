@@ -1,6 +1,7 @@
 service:
   enabled: true
-  type: NodePort
+  spec:
+    type: NodePort
 ports:
   web:
     expose:
