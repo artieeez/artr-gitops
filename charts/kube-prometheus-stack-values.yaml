@@ -2258,7 +2258,12 @@ grafana:
               settings:
                 url: ${SITIO_GRAFANA_SLACK_WEBHOOK_URL}
                 title: '{{`{{ .CommonLabels.alertname }}`}}'
-                text: '{{`{{ .CommonAnnotations.summary }}\n{{ .CommonAnnotations.description }}`}}'
+                # NOTE: use a real newline here (block scalar), not "\n". Grafana's Slack
+                # notifier passes literal backslash-n through to Slack instead of rendering a
+                # newline, producing the weird "\n" in alert messages.
+                text: |-
+                  {{`{{ .CommonAnnotations.summary }}`}}
+                  {{`{{ .CommonAnnotations.description }}`}}
               disableResolveMessage: false
     # Root route must have no matchers (Grafana 13). Nest team=sitio under routes.
     sitio-policies.yaml:
