@@ -31,10 +31,12 @@ ingress:
 secret:
   existingSecret: rustfs-credentials
 
-# Log retention (ART-70): rustfs rotates hourly and gzips, but never prunes — /logs
-# had grown to 6.4 GiB (~6700 files since March). keep_files caps the rotated
-# history at 30 files (~1.5 MiB/hour → ~45 MiB).
+# Log retention + verbosity (ART-70): rustfs rotates hourly and gzips, but never prunes —
+# /logs had grown to 6.4 GiB (~3800 files since March). keep_files caps the rotated
+# history at 30 files; log_level warn kills the INFO-level tracing spans (~46 MiB/hour)
+# that were the real volume driver.
 config:
   rustfs:
+    log_level: "warn"
     log_rotation:
       keep_files: 30
