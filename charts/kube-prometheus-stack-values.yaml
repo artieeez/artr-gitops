@@ -154,6 +154,12 @@ alertmanager:
 
 grafana:
   enabled: true
+  # Deterministic admin credentials: without existingSecret the chart falls back to
+  # randAlphaNum on every render (lookup is nil in ArgoCD), causing a permanent
+  # OutOfSync loop on the admin Secret + Deployment checksum. Secrets are sealed in
+  # apps/monitoring/grafana/grafana-admin-credentials-sealed.yaml.
+  admin:
+    existingSecret: grafana-admin-credentials
   dashboardProviders:
     dashboardproviders.yaml:
       apiVersion: 1

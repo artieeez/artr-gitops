@@ -8,3 +8,7 @@ metadata:
     app.kubernetes.io/part-of: argocd
 data:
   server.insecure: "true"
+  # Application controller tuning (ART-65/66): 20 status processors is overkill for a
+  # single-cluster homelab; lower cache expiration bounds stale app-state retention.
+  controller.status.processors: "8"
+  controller.app.state.cache.expiration: "30m"

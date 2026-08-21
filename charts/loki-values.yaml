@@ -50,8 +50,9 @@ loki:
         index:
           prefix: loki_index_
           period: 24h
+  # Dashboards query with | json, not | pattern; the pattern ingester only costs ~50-150 MiB on loki-0.
   pattern_ingester:
-    enabled: true
+    enabled: false
   limits_config:
     allow_structured_metadata: true
     volume_enabled: true
