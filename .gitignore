@@ -1,1 +1,11 @@
-.DS_STORE
+.DS_Store
+
+# Agent tool dirs (Claude Code, Cursor) — not part of the repo
+.claude/
+.cursor/
+
+# Skills under .agents are ignored by default; only manually created
+# skills tracked in the repo are kept (e.g. sitio-sqlite-backup)
+.agents/skills/*
+!.agents/skills/sitio-sqlite-backup/
+!.agents/skills/sitio-sqlite-backup/**
