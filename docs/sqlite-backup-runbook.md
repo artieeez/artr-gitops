@@ -22,6 +22,19 @@ Operational guide for Sitio Rails nightly SQLite backups to OCI Object Storage a
 
 Both environments share the same bucket; prefixes `staging/` and `production/` isolate objects.
 
+### Job retention & cleanup
+
+- CronJob-created Jobs are pruned by `successfulJobsHistoryLimit: 3` / `failedJobsHistoryLimit: 3` (oldest first).
+- `ttlSecondsAfterFinished: 604800` (7 days) is set on the CronJob job template and on the verify example manifests, so **any** finished Job self-deletes after 7 days — including drill Jobs created via `kubectl create job --from` and manual verify Jobs, which the CronJob history limits cannot prune (they lack the `batch.kubernetes.io/controller-uid` label the CronJob controller matches on, and/or have no ownerReference).
+- Alert visibility: a failed Job stays around up to 7 days, so `SitioRailsSqliteBackupJobFailed` remains investigate-able until TTL cleanup.
+
+**Manual cleanup of leftovers (e.g. before it is obvious the alert is resolved):**
+
+```bash
+kubectl -n sitio-staging delete job -l app=sitio-rails-backup --field-selector=status.successful=0
+kubectl -n sitio-production delete job -l app=sitio-rails-backup --field-selector=status.successful=0
+```
+
 **Verify a CronJob ran:**
 
 ```bash
@@ -51,6 +64,7 @@ Grafana folders **Sitio Staging** / **Sitio Production** → dashboard **SQLite 
 2. Read the Failed Job logs (`kubectl -n <ns> logs job/<name>`).
 3. Common causes: S3 credentials, OCI checksum settings, node disk pressure / image pulls, CronJob `suspend: true`.
 4. After a successful run (or cleanup of Failed Jobs), alerts should resolve; Slack receives resolve notifications.
+5. Stale drill Jobs (`manual-backup-*`, verify Jobs) self-clean after 7 days via `ttlSecondsAfterFinished`; delete immediately with the command in **Job retention & cleanup** above.
 
 ---
 
@@ -107,6 +121,8 @@ kubectl -n sitio-staging logs -f job/sitio-rails-sqlite-backup-verify
 Expected success: `OK: integrity_check passed for s3://sitio-production-backups/...`
 
 On failure, check restore status, credentials, and object key before retrying.
+
+The verify Job self-deletes ~7 days after finishing (`ttlSecondsAfterFinished: 604800`). To remove it immediately after a run: `kubectl -n <ns> delete job sitio-rails-sqlite-backup-verify`.
 
 ---
 
@@ -212,6 +228,8 @@ Record each drill in `sitio-rails/.specs/features/sqlite-backup/validation.md`.
 | Full restore (optional) | ☐ Pass ☐ Fail ☐ Skipped |
 | Notes | _errors, timing, follow-ups_ |
 
+Drill Jobs (`manual-backup-*`, `sitio-rails-sqlite-backup-verify`) self-delete after 7 days via `ttlSecondsAfterFinished`; no manual cleanup needed unless you want them gone sooner (see **Job retention & cleanup** above).
+
 **Recommended cadence:** at least once per quarter, or after any backup manifest change.
 
 ---
@@ -234,6 +252,7 @@ Confirm lifecycle is active in OCI Console → bucket → **Lifecycle Policy**, 
 | Verify Job download fails | Object still in Archive | Run `oci os object restore` first |
 | `integrity_check` ≠ ok | Corrupt backup or incomplete download | Do not restore; pick a different object |
 | Backup skipped | Prior Job still running (`Forbid`) | Check for stuck Jobs; delete if safe |
+| Stale Failed Jobs keep alerting | Old drill Jobs that history limits cannot prune (different `controller-uid` / no ownerReference) | Delete them (`kubectl -n <ns> delete job -l app=sitio-rails-backup --field-selector=status.successful=0`); future drill Jobs self-clean via TTL (7 days) |
 
 ---
 

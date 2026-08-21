@@ -13,6 +13,10 @@ spec:
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
+      # Self-clean finished Jobs after 7 days. History limits miss drill Jobs
+      # created via `kubectl create job --from` (different controller-uid label
+      # / no ownerReference); TTL cleanup runs regardless of ownership.
+      ttlSecondsAfterFinished: 604800
       backoffLimit: 0
       template:
         metadata:
