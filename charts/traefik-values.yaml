@@ -43,6 +43,5 @@ additionalArguments:
 api:
   dashboard: true
   insecure: true
-logs:
-  general:
-    level: INFO
+log:
+  level: INFO
