@@ -27,7 +27,7 @@ spec:
       containers:
         - name: home
           # Bumped by home GitHub Action (Build and push OCIR).
-          image: vcp.ocir.io/axtvnrdemzo7/home:sha-43af5ab
+          image: vcp.ocir.io/axtvnrdemzo7/home:sha-e56ed90
           imagePullPolicy: Always
           ports:
             # Thruster defaults to :80; non-root (UID 1000) cannot bind privileged ports.
