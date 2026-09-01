@@ -23,7 +23,7 @@ spec:
           containers:
             - name: audit
               # Fully qualified ref: OCI containerd enforces short-name mode and refuses bare "alpine/k8s".
-              image: docker.io/alpine/k8s:1.30.4
+              image: docker.io/alpine/k8s:1.37.0
               command:
                 - /bin/sh
                 - -ec
