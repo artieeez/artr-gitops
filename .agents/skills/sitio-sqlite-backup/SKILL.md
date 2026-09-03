@@ -1,6 +1,6 @@
 ---
 name: sitio-sqlite-backup
-description: Operate Sitio Rails SQLite backups on artr (OCI bucket sitio-production-backups + CronJobs): check status and space usage, run a backup now, verify integrity, prune objects only when the user specifies what to delete, and prepare staging or production restore drills. Use when asked about sitio sqlite backup, backup space, verify backup, clear/prune/delete backups, restore staging/production from backup, or Archive restore. Requires artr-platform-ops installed. Do NOT use for general cluster diagnosis, Terraform, non-Sitio apps, or editing GitOps manifests unless the user asks for a backup-ops fix.
+description: "Operate Sitio Rails SQLite backups on artr (OCI bucket sitio-production-backups + CronJobs): check status and space usage, run a backup now, verify integrity, prune objects only when the user specifies what to delete, and prepare staging or production restore drills. Use when asked about sitio sqlite backup, backup space, verify backup, clear/prune/delete backups, restore staging/production from backup, or Archive restore. Requires artr-platform-ops installed. Do NOT use for general cluster diagnosis, Terraform, non-Sitio apps, or editing GitOps manifests unless the user asks for a backup-ops fix."
 license: CC-BY-4.0
 metadata:
   author: arturwebber
