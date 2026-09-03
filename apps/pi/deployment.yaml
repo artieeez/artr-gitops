@@ -28,7 +28,7 @@ spec:
       containers:
         - name: pi
           # CI (artieeez/pi-cloud build-push-ocir) bumps this line; `latest` until first sha lands.
-          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-23633f0
+          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-9c94a0d
           imagePullPolicy: Always
           ports:
             - containerPort: 22
