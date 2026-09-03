@@ -1,0 +1,18 @@
+# Exposes the pi box's sshd (port 22) on the tailnet via the Tailscale operator.
+# Reachable at: pi.<tailnet>.ts.net (add a tailscale ACL rule → your phone/account).
+apiVersion: v1
+kind: Service
+metadata:
+  name: pi-ssh
+  namespace: pi
+  annotations:
+    tailscale.com/hostname: "pi"
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  selector:
+    app: pi
+  ports:
+    - port: 22
+      name: ssh
+      targetPort: ssh

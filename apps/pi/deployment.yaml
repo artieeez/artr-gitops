@@ -1,0 +1,94 @@
+# pi.dev cloud box — Deployment
+# SSH (key-only) is the only entry point. Attach: ssh root@pi.<tailnet>.ts.net -> tmux attach -t pi
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pi
+  namespace: pi
+  labels:
+    app: pi
+    environment: pi
+spec:
+  # Single personal dev box; never scale above 1.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: pi
+  template:
+    metadata:
+      labels:
+        app: pi
+        environment: pi
+    spec:
+      imagePullSecrets:
+        - name: ocir-pull
+      containers:
+        - name: pi
+          # CI (artieeez/pi-cloud build-push-ocir) bumps this line; `latest` until first sha lands.
+          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 22
+              name: ssh
+          env:
+            # 1 = start `pi` inside the tmux session on boot (needs pi-auth sealed first).
+            - name: AUTO_PI
+              value: "0"
+          volumeMounts:
+            - name: home
+              mountPath: /root
+            - name: secrets
+              mountPath: /secrets
+              readOnly: true
+            - name: pi-auth
+              mountPath: /secrets/pi
+              readOnly: true
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              memory: 2Gi
+          # sshd must answer on 22 (bash /dev/tcp; procps not in the slim image).
+          livenessProbe:
+            exec:
+              command: ["/bin/bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/22"]
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command: ["/bin/bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/22"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+      volumes:
+        - name: home
+          persistentVolumeClaim:
+            claimName: pi-home
+        - name: secrets
+          secret:
+            secretName: pi-secrets
+            defaultMode: 0400
+            items:
+              - key: authorized_keys
+                path: ssh/authorized_keys
+              - key: ssh_host_ed25519_key
+                path: ssh/ssh_host_ed25519_key
+              - key: ssh_host_ed25519_key.pub
+                path: ssh/ssh_host_ed25519_key.pub
+              - key: id_ed25519
+                path: git/id_ed25519
+              - key: id_ed25519.pub
+                path: git/id_ed25519.pub
+              - key: known_hosts
+                path: git/known_hosts
+        # Model auth (auth.json with the opencode-go entry). Seal with kubeseal
+        # BEFORE pushing: see README.md + pi-auth-sealed.yaml.
+        - name: pi-auth
+          secret:
+            secretName: pi-auth
+            defaultMode: 0400
+
