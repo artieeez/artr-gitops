@@ -22,6 +22,7 @@ spec:
         app: pi
         environment: pi
     spec:
+      serviceAccountName: pi-admin
       imagePullSecrets:
         - name: ocir-pull
       containers:
