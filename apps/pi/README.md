@@ -37,17 +37,23 @@ before resealing (or append it on the PVC via `kubectl exec` and restart).
 
 ### Model keys for pi (`pi-auth`) — paste-only helper
 
-`reseal-pi-auth.sh` adds/rotates a provider key in the `pi-auth` sealed secret
-without the key ever touching the shell, history, or disk in plaintext
-(`read -s` prompt → merge with the live secret → seal over stdin):
+`scripts/reseal-pi-auth.sh` adds/rotates keys in the `pi-auth` sealed secret
+without a key ever touching the shell, history, or disk in plaintext
+(`read -s` prompts → merge with the LIVE cluster secret → seal over stdin →
+review diff → install):
 
 ```bash
-./reseal-pi-auth.sh google     # or: deepseek, opencode-go, any provider id
+# from the repo root — default run adds BOTH google and DEEPINFRA_API_KEY
+./scripts/reseal-pi-auth.sh
+# or single keys:
+./scripts/reseal-pi-auth.sh google        # auth.json entry (builtin provider)
+./scripts/reseal-pi-auth.sh deepseek      # any auth.json provider
+./scripts/reseal-pi-auth.sh --env DEEPINFRA_API_KEY   # raw env key for models.json $VAR
 ```
 
-Review the diff (only the `auth.json` ciphertext line should change), confirm,
-then commit + push + `kubectl rollout restart deployment/pi -n pi` (the
-entrypoint re-merges auth at boot).
+The diff should only change/add ciphertext lines. Confirm, then commit + push +
+`kubectl rollout restart deployment/pi -n pi` (the entrypoint re-merges auth at
+boot). `seal-pi-auth.sh` is the older one-shot bootstrap (opencode-go only).
 
 ## Notes
 
