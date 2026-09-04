@@ -21,7 +21,8 @@ spec:
         runAsGroup: 1000
       containers:
         - name: sealed-secrets-web
-          image: ghcr.io/bakito/sealed-secrets-web:v3.3.2
+          # Pinned to v3.1.9: v3.3.2 arm64 image ships an amd64 binary (Exec format error on arm64 nodes). Re-bump only after upstream fixes the multi-arch release.
+          image: ghcr.io/bakito/sealed-secrets-web:v3.1.9
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
