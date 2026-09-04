@@ -37,6 +37,18 @@ spec:
             # 1 = start `pi` inside the tmux session on boot (needs pi-auth sealed first).
             - name: AUTO_PI
               value: "0"
+            # 1 = activate the pi-cloud-context extension (injects the box's
+            # environment into pi's system prompt; see pi-config repo).
+            - name: PI_CLOUD
+              value: "1"
+            # Custom-provider keys resolved as env by models.json ($VAR).
+            # Optional: unset until the key is sealed into pi-auth.
+            - name: DEEPINFRA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: pi-auth
+                  key: DEEPINFRA_API_KEY
+                  optional: true
           volumeMounts:
             - name: home
               mountPath: /root
