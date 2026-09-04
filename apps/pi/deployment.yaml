@@ -34,7 +34,7 @@ spec:
             - containerPort: 22
               name: ssh
           env:
-            # 1 = start `pi` inside the tmux session on boot (needs pi-auth sealed first).
+            # 1 = start a pi agent pane in the boot herdr server (needs pi-auth sealed first).
             - name: AUTO_PI
               value: "0"
             # 1 = activate the pi-cloud-context extension (injects the box's

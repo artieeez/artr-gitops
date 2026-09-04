@@ -7,8 +7,10 @@ Persistent SSH dev box running [pi](https://pi.dev) + Ruby. Image: `artieeez/pi-
 
 ```bash
 ssh root@pi.<tailnet>.ts.net     # via Tailscale operator Service (pi-ssh)
-tmux attach -t pi
+herdr                            # attach to the boot herdr server (agent host)
 ```
+
+(or `herdr --remote pi-cloud` from a device with the herdr CLI)
 
 ## Sealed secrets (namespace `pi`)
 
