@@ -16,7 +16,7 @@ tmux attach -t pi
 |---|---|---|
 | `ocir-pull` | `.dockerconfigjson` | Pull `vcp.ocir.io/axtvnrdemzo7/pi-cloud` |
 | `pi-secrets` | `authorized_keys`, `ssh_host_ed25519_key(.pub)`, `id_ed25519(.pub)`, `known_hosts` | sshd host keys + login keys; GitHub deploy key |
-| `pi-auth` | `auth.json` | pi model auth (opencode-go token) — add once you have the token |
+| `pi-auth` | `auth.json` | pi model auth (opencode-go, deepseek, google) — see `reseal-pi-auth.sh` |
 
 `pi-secrets` is projected into `/secrets/ssh/*` and `/secrets/git/*` (see `deployment.yaml` items);
 `pi-auth` (when added) mounts to `/secrets/pi/auth.json`. The container entrypoint assembles
@@ -34,6 +34,20 @@ kubeseal --controller-namespace=sealed-secrets --controller-name=sealed-secrets 
 
 To authorize a new SSH client: add its `~/.ssh/id_ed25519.pub` line to `authorized_keys`
 before resealing (or append it on the PVC via `kubectl exec` and restart).
+
+### Model keys for pi (`pi-auth`) — paste-only helper
+
+`reseal-pi-auth.sh` adds/rotates a provider key in the `pi-auth` sealed secret
+without the key ever touching the shell, history, or disk in plaintext
+(`read -s` prompt → merge with the live secret → seal over stdin):
+
+```bash
+./reseal-pi-auth.sh google     # or: deepseek, opencode-go, any provider id
+```
+
+Review the diff (only the `auth.json` ciphertext line should change), confirm,
+then commit + push + `kubectl rollout restart deployment/pi -n pi` (the
+entrypoint re-merges auth at boot).
 
 ## Notes
 
