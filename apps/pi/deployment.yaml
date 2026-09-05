@@ -49,6 +49,14 @@ spec:
                   name: pi-auth
                   key: DEEPINFRA_API_KEY
                   optional: true
+            # gh cli API auth (fine-grained PAT; sealed into pi-auth). gh reads
+            # GH_TOKEN automatically; git pushes stay on the ssh deploy key.
+            - name: GH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: pi-auth
+                  key: GH_TOKEN
+                  optional: true
           volumeMounts:
             - name: home
               mountPath: /root
