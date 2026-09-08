@@ -1,5 +1,5 @@
 # pi.dev cloud box — Deployment
-# SSH (key-only) is the only entry point. Attach: ssh root@pi.<tailnet>.ts.net -> tmux attach -t pi
+# SSH (key-only) is the only entry point. Attach: ssh root@pi.<tailnet>.ts.net -> herdr
 apiVersion: apps/v1
 kind: Deployment
 metadata:
