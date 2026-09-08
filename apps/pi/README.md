@@ -60,5 +60,5 @@ boot). `seal-pi-auth.sh` is the older one-shot bootstrap (opencode-go only).
 ## Notes
 
 - Image runs as root with key-only sshd — do **not** expose this app publicly (Tailscale only).
-- `AUTO_PI=1` env boots pi inside the tmux session; default 0 (run `pi` on attach).
+- `AUTO_PI=1` env starts a pi agent pane inside the boot herdr server; default 0 (run `pi` on attach).
 - Single replica (Recreate) — one box, persistent home on `pi-home` PVC (nfs-client, RWX).
