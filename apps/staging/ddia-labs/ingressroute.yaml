@@ -7,6 +7,15 @@ spec:
   entryPoints:
     - websecure
   routes:
+    # Go encoder arm: direct path route to the sidecar process (strip /go).
+    - match: Host(`ddia.artr.com.br`) && PathPrefix(`/go`)
+      kind: Rule
+      priority: 100
+      middlewares:
+        - name: ddia-labs-strip-go
+      services:
+        - name: ddia-labs-go
+          port: 8081
     - match: Host(`ddia.artr.com.br`)
       kind: Rule
       services:

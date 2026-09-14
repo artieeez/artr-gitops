@@ -1,0 +1,11 @@
+# Strips the /go prefix before forwarding to the Go encoder sidecar, so the
+# Go process can keep its plain /v1/encode routes behind the ingress path.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: ddia-labs-strip-go
+  namespace: staging
+spec:
+  stripPrefix:
+    prefixes:
+      - /go

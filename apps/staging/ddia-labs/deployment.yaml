@@ -30,6 +30,8 @@ spec:
           ports:
             - containerPort: 8080
               name: http
+            - containerPort: 8081
+              name: go
           env:
             - name: RAILS_ENV
               value: production
