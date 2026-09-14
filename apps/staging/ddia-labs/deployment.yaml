@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ddia-labs
+  namespace: staging
+  labels:
+    app: ddia-labs
+    environment: staging
+spec:
+  # Stateless lab app — no SQLite, no writes to the pod filesystem.
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ddia-labs
+  template:
+    metadata:
+      labels:
+        app: ddia-labs
+        environment: staging
+    spec:
+      imagePullSecrets:
+        - name: ocir-pull
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: ddia-labs
+          # Bumped by the ddia-labs GitHub Action (Build and push OCIR).
+          image: vcp.ocir.io/axtvnrdemzo7/ddia-labs:staging-latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: RAILS_ENV
+              value: production
+            - name: PORT
+              value: "8080"
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: ddia-labs-secrets
+                  key: SECRET_KEY_BASE
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /up
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /up
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10

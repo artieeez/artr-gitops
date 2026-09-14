@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ddia-labs
+  namespace: staging
+  labels:
+    app: ddia-labs
+spec:
+  type: ClusterIP
+  selector:
+    app: ddia-labs
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
