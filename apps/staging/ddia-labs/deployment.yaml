@@ -25,7 +25,7 @@ spec:
       containers:
         - name: ddia-labs
           # Bumped by the ddia-labs GitHub Action (Build and push OCIR).
-          image: vcp.ocir.io/axtvnrdemzo7/ddia-labs:sha-2cfa933
+          image: vcp.ocir.io/axtvnrdemzo7/ddia-labs:sha-f13b1a1
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
