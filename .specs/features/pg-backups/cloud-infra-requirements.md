@@ -9,7 +9,7 @@
 ## 1. Object Storage Bucket (PROVISIONED)
 
 | Property | Value | Notes |
-|---|---|---|
+| --- | --- | --- |
 | **Name** | `sitio-production-backups` | |
 | **Default Storage Tier** | **Archive** | All objects automatically stored in Archive tier (~$0.0014/GB/mo). Objects require ~1h restore. |
 | **Region** | `sa-vinhedo-1` | Same region as OKE cluster. |
@@ -23,7 +23,7 @@
 ## 2. Object Lifecycle Policy (PROVISIONED)
 
 | Field | Value |
-|---|---|
+| --- | --- |
 | **Rule name** | `delete-old-backups` |
 | **Target** | All objects |
 | **Action** | Delete after 90 days |

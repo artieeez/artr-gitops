@@ -15,7 +15,7 @@ herdr                            # attach to the boot herdr server (agent host)
 ## Sealed secrets (namespace `pi`)
 
 | SealedSecret | Keys | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | `ocir-pull` | `.dockerconfigjson` | Pull `vcp.ocir.io/axtvnrdemzo7/pi-cloud` |
 | `pi-secrets` | `authorized_keys`, `ssh_host_ed25519_key(.pub)`, `id_ed25519(.pub)`, `known_hosts` | sshd host keys + login keys; GitHub deploy key |
 | `pi-auth` | `auth.json` | pi model auth (opencode-go, deepseek, google) — see `reseal-pi-auth.sh` |

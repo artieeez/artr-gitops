@@ -9,6 +9,7 @@ This is a **GitOps infrastructure-as-code repository** (ArgoCD App-of-Apps patte
 ### Development tools
 
 The development environment requires:
+
 - `yamllint` — YAML linting (`pip install yamllint`)
 - `kubeconform` — Kubernetes manifest validation (binary from GitHub releases)
 - `kubectl` — Kubernetes CLI
@@ -18,7 +19,7 @@ The development environment requires:
 ### Lint / Validate commands
 
 | Check | Command | Notes |
-|---|---|---|
+| --- | --- | --- |
 | YAML lint | `yamllint -d relaxed .` | 2 pre-existing trailing-space errors in IngressRoute files; warnings are non-blocking |
 | K8s manifest validation | `kubeconform -summary -ignore-missing-schemas -kubernetes-version 1.30.0 $(find . -name '*.yaml' -not -path './.git/*' -not -path './charts/*')` | Exclude `charts/` (Helm values, not manifests). ~50 CRDs skipped (no schema); 0 invalid expected |
 | Helm template (Traefik) | `helm template traefik-oci traefik/traefik --version 33.0.0 -f charts/traefik-values.yaml --namespace traefik` | Requires `helm repo add traefik https://traefik.github.io/charts` first |
@@ -41,3 +42,9 @@ The development environment requires:
 When changes are ready, suggest a commit message (1–2 sentences, focus on why) and list the files to stage. Stop there — do not run `git add`, `git commit`, or `git push`.
 
 This repo is often a Cursor worktree (`~/.cursor/worktrees/artr-gitops/*`); the primary clone is at `~/Documents/sitio/artr-gitops`. ArgoCD deploys from `origin/main` after the human pushes and merges.
+
+## Markdown lint
+
+Neovim lints markdown with `markdownlint-cli2`, reading this repo's `.markdownlint.json`.
+
+When a task creates or edits markdown files, run `markdownlint-cli2 --fix` on the changed files before finishing and leave zero remaining errors (binary: `~/.local/share/nvim/mason/bin/markdownlint-cli2`, fallback `npx markdownlint-cli2`).

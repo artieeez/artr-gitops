@@ -33,7 +33,7 @@ graph LR
 ### Existing Components to Leverage
 
 | Component | Location | How to Use |
-|---|---|---|
+| --- | --- | --- |
 | ArgoCD leaf app pattern | `argocd/applications/sitio-production/sitio-production-postgres.yaml` | Copy structure, change name + path |
 | SealedSecret pattern | `apps/sitio-production/postgres/postgres-sitio-production-auth-sealed.yaml` | Same Secret→SealedSecret→secretKeyRef chain |
 | Sync policy convention | All leaf apps under `argocd/applications/` | Use identical syncPolicy (automated, prune, selfHeal) |
@@ -42,7 +42,7 @@ graph LR
 ### Integration Points
 
 | System | Integration Method |
-|---|---|
+| --- | --- |
 | PostgreSQL (`postgres.sitio-production.svc.cluster.local:5432`) | TCP connection from CronJob pod within same namespace |
 | OCI Object Storage (S3-compatible) | `s3cmd` via env vars (ACCESS_KEY_ID, SECRET_ACCESS_KEY, HOST_BASE, HOST_BUCKET, BUCKET) |
 | ArgoCD parent app (`artr-sitio-production`) | New leaf app YAML auto-discovered in `argocd/applications/sitio-production/` directory |
@@ -112,7 +112,7 @@ graph LR
 ## Error Handling Strategy
 
 | Error Scenario | Handling | Impact |
-|---|---|---|
+| --- | --- | --- |
 | Postgres unreachable | pg_dump fails → pod exits non-zero → CronJob records failure. `restartPolicy: OnFailure` retries once in same pod. | Failed run visible in `kubectl get cj postgres-backup -n sitio-production`. |
 | OCI Object Storage unreachable | s3cmd upload fails → pod exits non-zero → dump lost (no local retention). | Backup missed for that night. Next successful run will have fresh dump. OCI SLA is 99.9%+. |
 | Backup pod OOM | Pod killed by kubelet with OOMKilled → CronJob records failure. | Increase memory limit. DBA runbook includes file size trend monitoring to anticipate this. |
@@ -125,7 +125,7 @@ graph LR
 ## Tech Decisions
 
 | Decision | Choice | Rationale |
-|---|---|---|
+| --- | --- | --- |
 | `RUN_ONCE=true` vs internal cron | `RUN_ONCE=true` | K8s CronJob is the scheduler. Container's internal cron is redundant. One-shot execution is the K8s-native pattern. |
 | S3 env vars vs mounted s3cfg file | Env vars + SealedSecret | Zero file mounts. Sensitive values in SealedSecret. Non-sensitive values hardcoded in CronJob env. |
 | `DBLIST=app` vs default "all databases" | Explicit `app` | Postgres container has `postgres`, `template0`, `template1` databases. Backing up template DBs is wasteful and pollutes the bucket. |

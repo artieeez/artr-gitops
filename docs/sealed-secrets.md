@@ -82,12 +82,16 @@ You cannot “unseal” offline; decryption only happens in the cluster.
 1. **New key** – The controller creates new keys on a schedule (e.g. 30 days). Existing SealedSecrets still decrypt with old keys; new seals use the latest key.
 2. **Reseal everything** – To migrate to the new key and stop relying on old ones, run the “Reseal all SealedSecrets” loop above, then commit.
 3. **Optional: list / blacklist keys** – Keys live in the controller namespace (e.g. `sealed-secrets`). To see them:
+
    ```bash
    kubectl get secret -n sealed-secrets -l sealedsecrets.bitnami.com/sealed-secrets-key
    ```
+
    To mark a key as compromised (stops using it for decryption):
+
    ```bash
    kubectl -n sealed-secrets label secret <key-secret-name> \
      sealedsecrets.bitnami.com/sealed-secrets-key=compromised --overwrite
    ```
+
    Restart the controller so it picks up the label.

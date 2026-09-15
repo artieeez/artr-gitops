@@ -25,4 +25,3 @@ kubectl port-forward -n argocd svc/argocd-server 8080:80
 - Open `http://localhost:8080` and log in with user `admin`.
 - Add the Git repo in Argo CD (Settings > Repositories).
 - Change the admin password (User Info > Update Password).
-

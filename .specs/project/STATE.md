@@ -3,7 +3,7 @@
 ## Active Features
 
 | Feature | Phase | Status |
-|---|---|---|
+| --- | --- | --- |
 | pg-backups | Specify | In progress — spec written, awaiting approval |
 | cert-monitoring | Execute | Complete — alerts, blackbox probes, runbook, audit script, Grafana dashboard, weekly CronJob |
 

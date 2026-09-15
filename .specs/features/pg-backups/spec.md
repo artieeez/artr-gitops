@@ -14,7 +14,7 @@ The `sitio-production` PostgreSQL database (single-instance Deployment, 20Gi NFS
 ## Out of Scope
 
 | Feature | Reason |
-|---|---|
+| --- | --- |
 | Point-in-time recovery (WAL archiving) | Adds complexity (WAL shipping, base backups, restore tooling). Logical dumps satisfy RPO of ~24h for v1. |
 | Backup encryption at rest (client-side) | OCI Object Storage already encrypts all data at rest by default. |
 | Staging database backups | P3 — can be added later by copying manifests with different env values. |
@@ -81,7 +81,7 @@ The `sitio-production` PostgreSQL database (single-instance Deployment, 20Gi NFS
 ## Requirement Traceability
 
 | Requirement ID | Story | Description | Phase | Status |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | BACKUP-01 | P1 | CronJob YAML manifest with kartoza/pg-backup:16-3.6, scheduled nightly, connected to `postgres.sitio-production.svc.cluster.local:5432`, DB `app`, user `postgres`. Uses SealedSecret for DB password (reuses existing `postgres-sitio-production-auth`). | Specify | Pending |
 | BACKUP-02 | P1 | SealedSecret for OCI Customer Secret Key (S3-compatible access/secret key pair). | Specify | Pending |
 | BACKUP-03 | P1 | ConfigMap with `s3cfg` content configured for OCI S3-compatible endpoint (`<namespace>.compat.objectstorage.<region>.oci.customer-oci.com`), pointing to the backup bucket. | Specify | Pending |

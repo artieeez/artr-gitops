@@ -35,4 +35,3 @@ kubeseal --format yaml \
 ```
 
 Commit and push the updated `pocketid-credentials-sealed.yaml`. ArgoCD will sync it and the SealedSecrets controller will create/update the `pocketid-credentials` Secret in the `platform` namespace, which both Pocket ID and Tinyauth consume.
-

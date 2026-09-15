@@ -83,7 +83,7 @@ Each env folder has five dashboards (app boards default range last 6h; backup la
 4. **Share-link visitors** — opens vs denials
 5. **Request & jobs** — `http.request_finished`, `auth.login_failed`, `job.finished` (incl. Wix job)
 
-Open: https://grafana.artr.com.br → **Sitio Staging** or **Sitio Production**.
+Open: <https://grafana.artr.com.br> → **Sitio Staging** or **Sitio Production**.
 
 ---
 

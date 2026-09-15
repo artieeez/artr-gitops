@@ -40,7 +40,7 @@ flowchart LR
 ## Components
 
 | Component | Location | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | Tailscale Operator (Helm) | `tailscale` namespace | Reconciles exposed Services; creates tailnet proxies |
 | `operator-oauth` Secret | `tailscale` namespace | OAuth client credentials (SealedSecret, not in Git plaintext) |
 | Pi-hole Helm values patch | `charts/pihole-values.yaml` | `tailscale.com/expose`, `FTLCONF_dns_listeningMode=all` |
@@ -103,7 +103,7 @@ OAuth client needs **Devices: Write** and **Auth Keys: Write**, scoped to tag `t
 ## Risks
 
 | Risk | Mitigation |
-|---|---|
+| --- | --- |
 | Operator syncs before OAuth Secret | Document bootstrap order; operator app sync-wave -1, secret created first |
 | Android DNS conflicts with Private DNS | Runbook step to disable Android Private DNS |
 | Pi-hole rejects non-local queries | `FTLCONF_dns_listeningMode=all` |

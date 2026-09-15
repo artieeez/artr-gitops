@@ -36,7 +36,7 @@ flowchart LR
 Alerts (via kube-prometheus-stack + blackbox exporter):
 
 | Alert | Meaning |
-|---|---|
+| --- | --- |
 | `CertManagerCertificateNotReady` | cert-manager cannot issue/renew — check Cloudflare token and ACME challenges |
 | `CertManagerCertificateExpirySoon` | Certificate CR expires within 21 days |
 | `TlsProbeFailed` | External HTTPS probe failing |
@@ -131,6 +131,7 @@ kubectl rollout restart deployment/reflector -n reflector
 ```
 
 **Verify:** All namespace secrets should have:
+
 - `reflector.v1.k8s.emberstack.com/reflects: cert-manager/wildcard-artr-com-br-tls`
 - Same certificate expiry as source (check with `./scripts/audit-tls-secrets.sh`)
 

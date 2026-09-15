@@ -103,7 +103,7 @@ dig @pihole-dns.<your-tailnet>.ts.net doubleclick.net +short   # expect 0.0.0.0 
 In **DNS** settings:
 
 | Setting | Value |
-|---|---|
+| --- | --- |
 | MagicDNS | **On** |
 | Nameservers → Add custom | `pihole-dns.<your-tailnet>.ts.net` (or its `100.x.x.x` IP) |
 | Fallback nameserver (recommended) | `1.1.1.1` |
@@ -166,7 +166,7 @@ Optional: Mac **Login Items** / Android **Always-on VPN** (device settings) if y
 ## Troubleshooting
 
 | Symptom | Check |
-|---|---|
+| --- | --- |
 | No `pihole-dns` machine | Operator logs: `kubectl -n tailscale logs -l app=operator`; OAuth Secret keys must be `client_id` / `client_secret` |
 | `dig @pihole-dns...` timeout | Pi-hole pod: `kubectl -n platform get pods -l app=pihole`; FTL listening mode `all` in values |
 | Mac works, Android doesn’t | Turn off **Private DNS**; update Tailscale app |
@@ -178,7 +178,7 @@ Optional: Mac **Login Items** / Android **Always-on VPN** (device settings) if y
 ## Related files
 
 | Path | Purpose |
-|---|---|
+| --- | --- |
 | `argocd/applications/platform/platform-tailscale-secrets.yaml` | OAuth SealedSecret (sync-wave -2) |
 | `argocd/applications/platform/platform-tailscale-operator.yaml` | Operator Helm via ArgoCD |
 | `charts/tailscale-operator-values.yaml` | Operator Helm values |

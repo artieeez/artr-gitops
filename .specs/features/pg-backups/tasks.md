@@ -35,10 +35,12 @@ All 4 file-creation tasks (T2–T5) are independent — different files, no shar
 **Requirement:** BACKUP-01, BACKUP-02
 
 **Tools:**
+
 - MCP: NONE
 - Skill: NONE
 
 **Done when:**
+
 - [ ] Directory `apps/sitio-production/postgres-backup/` exists
 
 **Tests:** none (infrastructure)
@@ -52,16 +54,19 @@ All 4 file-creation tasks (T2–T5) are independent — different files, no shar
 **Where:** `apps/sitio-production/postgres-backup/cronjob.yaml`
 **Depends on:** T1
 **Reuses:**
+
 - DB credentials from existing Secret `postgres-sitio-production-auth` (key `password`)
 - Env var pattern from `apps/sitio-production/postgres/deployment.yaml` (L26-35)
 - Labels convention: `app: postgres-backup`, `environment: sitio-production`
 **Requirement:** BACKUP-01
 
 **Tools:**
+
 - MCP: NONE
 - Skill: NONE
 
 **Done when:**
+
 - [ ] CronJob YAML follows existing indentation/style conventions
 - [ ] Uses image `kartoza/pg-backup:16-3.6`
 - [ ] Env vars: POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, POSTGRES_DB, POSTGRES_PASS (from secretRef), STORAGE_BACKEND=S3, RUN_ONCE=true, DUMP_ARGS=-Fc, DUMPPREFIX=sitio_prod, DBLIST=app
@@ -87,10 +92,12 @@ All 4 file-creation tasks (T2–T5) are independent — different files, no shar
 **Requirement:** BACKUP-02
 
 **Tools:**
+
 - MCP: NONE
 - Skill: NONE
 
 **Done when:**
+
 - [ ] SealedSecret with name `s3-credentials` in namespace `sitio-production`
 - [ ] `encryptedData` has keys: `access-key-id`, `secret-access-key`
 - [ ] Template includes documented instructions for sealing with kubeseal
@@ -100,6 +107,7 @@ All 4 file-creation tasks (T2–T5) are independent — different files, no shar
 **Gate:** `yamllint -d relaxed apps/sitio-production/postgres-backup/s3-credentials-sealed.yaml`
 
 **Operator instructions (to be placed as YAML comment in the file):**
+
 ```bash
 # 1. Create a temporary plain Secret:
 kubectl create secret generic s3-credentials \
@@ -127,10 +135,12 @@ rm /tmp/s3-credentials.yaml
 **Requirement:** BACKUP-04
 
 **Tools:**
+
 - MCP: NONE
 - Skill: NONE
 
 **Done when:**
+
 - [ ] `metadata.name: sitio-production-postgres-backup`
 - [ ] `spec.source.path: apps/sitio-production/postgres-backup`
 - [ ] `spec.destination.namespace: sitio-production`
@@ -152,10 +162,12 @@ rm /tmp/s3-credentials.yaml
 **Requirement:** BACKUP-07
 
 **Tools:**
+
 - MCP: NONE
 - Skill: NONE
 
 **Done when:**
+
 - [ ] Section 1: Recovery procedure — locate latest backup in OCI bucket, download, restore to fresh PG, verify data
 - [ ] Section 2: Health check checklist — verify recent CronJob success, check file size trends, perform restore dry-run
 - [ ] Commands include exact `kubectl`, `oci` CLI, and `pg_restore` invocations
@@ -174,10 +186,12 @@ rm /tmp/s3-credentials.yaml
 **Reuses:** Validation commands from `AGENTS.md`
 
 **Tools:**
+
 - MCP: NONE
 - Skill: NONE
 
 **Done when:**
+
 - [ ] `yamllint -d relaxed apps/sitio-production/postgres-backup/` passes (no new errors)
 - [ ] `yamllint -d relaxed argocd/applications/sitio-production/sitio-production-postgres-backup.yaml` passes
 - [ ] `kubeconform -summary -ignore-missing-schemas -kubernetes-version 1.30.0 apps/sitio-production/postgres-backup/cronjob.yaml` accepts the CronJob
@@ -209,7 +223,7 @@ Phase 3:
 ## Task Granularity Check
 
 | Task | Scope | Status |
-|---|---|---|
+| --- | --- | --- |
 | T1: Create directory | 1 mkdir | ✅ Granular |
 | T2: CronJob YAML | 1 file, 1 resource | ✅ Granular |
 | T3: SealedSecret YAML | 1 file, 1 resource | ✅ Granular |
@@ -222,7 +236,7 @@ Phase 3:
 ## Diagram-Definition Cross-Check
 
 | Task | Depends On (body) | Diagram Shows | Status |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | T1 | None | None → T1 | ✅ Match |
 | T2 | T1 | T1 → T2 | ✅ Match |
 | T3 | T1 | T1 → T3 | ✅ Match |
@@ -237,7 +251,7 @@ Phase 3:
 **Note:** This repo has no application code, no test framework, and no TESTING.md. The "tests" column is `none` for all tasks. Validation is done via `yamllint` + `kubeconform` (T6).
 
 | Task | Layer | Matrix Requires | Task Says | Status |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | T1 | Infrastructure | N/A | none | ✅ N/A |
 | T2 | YAML manifest | N/A | none | ✅ N/A |
 | T3 | YAML manifest | N/A | none | ✅ N/A |

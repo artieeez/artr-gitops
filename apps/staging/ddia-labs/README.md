@@ -5,7 +5,7 @@ book club (craft and code club). Monorepo: [`artieeez/ddia-labs`](https://github
 
 | Env | Namespace | URL |
 |-----|-----------|-----|
-| Staging | `staging` | https://ddia.artr.com.br |
+| Staging | `staging` | <https://ddia.artr.com.br> |
 
 Image: `vcp.ocir.io/axtvnrdemzo7/ddia-labs:<tag>`
 

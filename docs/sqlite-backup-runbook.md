@@ -145,7 +145,7 @@ kubectl -n sitio-staging scale deployment sitio-rails --replicas=0
 kubectl -n sitio-staging wait --for=delete pod -l app=sitio-rails --timeout=120s
 ```
 
-2. **Download backup locally or into a helper pod** mounting the PVC:
+1. **Download backup locally or into a helper pod** mounting the PVC:
 
 ```bash
 # Option A: helper pod (recommended)
@@ -171,7 +171,7 @@ kubectl -n sitio-staging run sqlite-restore-helper \
   }'
 ```
 
-3. **Copy and decompress into the PVC** (exec into helper pod):
+1. **Copy and decompress into the PVC** (exec into helper pod):
 
 ```bash
 kubectl -n sitio-staging exec -it sqlite-restore-helper -- sh -c '
@@ -183,7 +183,7 @@ kubectl -n sitio-staging exec -it sqlite-restore-helper -- sh -c '
 '
 ```
 
-4. **Remove helper pod and scale Rails back up:**
+1. **Remove helper pod and scale Rails back up:**
 
 ```bash
 kubectl -n sitio-staging delete pod sqlite-restore-helper
@@ -191,7 +191,7 @@ kubectl -n sitio-staging scale deployment sitio-rails --replicas=1
 kubectl -n sitio-staging rollout status deployment sitio-rails
 ```
 
-5. **Smoke test:**
+1. **Smoke test:**
 
    - Hit `/up` (health check).
    - Log in and confirm expected data is present.

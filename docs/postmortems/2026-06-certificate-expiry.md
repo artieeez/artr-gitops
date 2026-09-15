@@ -16,7 +16,7 @@ Every deployment exposed via Traefik returned `net::ERR_CERT_DATE_INVALID` in br
 ## Impact
 
 | Area | Effect |
-|---|---|
+| --- | --- |
 | User-facing | All HTTPS routes (`argo`, `grafana`, `sitio`, platform apps, etc.) showed browser certificate errors |
 | Operations | No automated alert fired; issue discovered manually |
 | Duration | Expired cert served for ~5 days; renewal blocked for ~84 days |
@@ -27,7 +27,7 @@ Every deployment exposed via Traefik returned `net::ERR_CERT_DATE_INVALID` in br
 ## Timeline
 
 | When | Event |
-|---|---|
+| --- | --- |
 | 2026-03-06 | Last successful wildcard cert issued (`notAfter=2026-06-04`) |
 | 2026-03-11 | Cloudflare API token rotated in Git (`Rotate Cloudflare API key` commit); cluster received updated SealedSecret |
 | 2026-03-17 | `Certificate/wildcard-artr-com-br` enters `Ready=False`; DNS-01 challenges fail with Cloudflare `9109: Invalid access token` |
@@ -91,7 +91,7 @@ Prioritized enhancements to avoid recurrence. Track implementation in GitHub iss
 ### P0 — Do first
 
 | # | Action | Rationale | Status |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | **Add PrometheusRule alerts for cert-manager** | Alert when `certmanager_certificate_ready_status{condition="False"} == 1` for >15m, when cert expires in <14 days, and when ACME orders are pending >1h. cert-manager exposes metrics; enable `prometheus.enabled: true` in [cert-manager-values.yaml](../../charts/cert-manager-values.yaml). | Done — 21-day expiry threshold |
 | 2 | **Add blackbox TLS probe** | External check that `openssl`/HTTP probes on `argo.artr.com.br`, `grafana.artr.com.br`, and `sitio.artr.com.br` report >7 days until expiry. Catches Reflector drift and Traefik serving stale secrets. | Done |
 | 3 | **Expand cert runbook** | Extend [change-cloud-flare-token.md](../change-cloud-flare-token.md) into a full troubleshooting guide: verify token (`curl …/tokens/verify`), check challenges, unstick ACME, verify Reflector propagation, `openssl s_client` checks. | Done — [certificate-runbook.md](../certificate-runbook.md) |
@@ -99,7 +99,7 @@ Prioritized enhancements to avoid recurrence. Track implementation in GitHub iss
 ### P1 — Do soon
 
 | # | Action | Rationale | Status |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 4 | **Post-rotation verification checklist** | After any Cloudflare token change: verify API token, confirm `Certificate` becomes `Ready=True` within 10 minutes, confirm all namespaces have Reflector-annotated secrets with matching `creationTimestamp`. | Done — in runbook |
 | 5 | **Audit namespace TLS secrets** | One-time + periodic script: ensure every namespace using `wildcard-artr-com-br-tls` has `reflector.v1.k8s.emberstack.com/reflects: cert-manager/wildcard-artr-com-br-tls` — not `cert-manager.io/certificate-name`. Remove orphans. | Done — `scripts/audit-tls-secrets.sh` + weekly CronJob |
 | 6 | **Alertmanager notification channel** | Configure Alertmanager receiver (email, Slack, or similar) so cert alerts reach someone who can act. | Deferred — needs webhook URL |
@@ -108,7 +108,7 @@ Prioritized enhancements to avoid recurrence. Track implementation in GitHub iss
 ### P2 — Nice to have
 
 | # | Action | Rationale | Status |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 8 | **Grafana dashboard for cert-manager** | Import or build a dashboard showing Certificate status, expiry countdown, and recent ACME challenge failures. | Done — gnetId 22184 via kube-prometheus-stack |
 | 9 | **Weekly CI / CronJob cert audit** | Script in `scripts/` that checks Certificate CR status and TLS secret `notAfter` dates; fails or notifies if any cert expires within 21 days or is not Ready. | Done — CronJob `cert-audit` in `monitoring` |
 | 10 | **Document Reflector architecture constraint** | Add to AGENTS.md or a dedicated doc: only `cert-manager` namespace holds the source TLS secret; all other namespaces must receive Reflector copies — never cert-manager-issued secrets directly. | Done — AGENTS.md + runbook |

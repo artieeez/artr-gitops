@@ -4,7 +4,7 @@
 **Design**: `.specs/features/tailscale-pihole/design.md`
 
 | ID | Task | Depends | Status |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | T1 | Add `tailscale` namespace | — | Done |
 | T2 | Add operator Helm values + ArgoCD Application (sync-wave -1) | T1 | Done |
 | T3 | Patch `pihole-values.yaml` (expose + listeningMode) | — | Done |

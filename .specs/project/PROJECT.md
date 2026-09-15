@@ -13,6 +13,7 @@
 ## Tech Stack
 
 **Core:**
+
 - Orchestrator: ArgoCD (App-of-Apps)
 - Runtime: Kubernetes 1.30 on OCI OKE
 - Ingress: Traefik (Helm chart v33.0.0)
@@ -21,6 +22,7 @@
 - Identity: Pocket ID OIDC + Tinyauth proxy
 
 **Key dependencies:**
+
 - kube-prometheus-stack, Loki, Grafana, Alloy (monitoring)
 - Filebrowser (web file manager)
 - Pi-hole (DNS ad-blocking)
@@ -31,12 +33,14 @@
 ## Scope
 
 **Included:**
+
 - All Kubernetes workload manifests (Deployments, Services, IngressRoutes, ConfigMaps, SealedSecrets, PVCs, PVs)
 - Helm chart values files for infrastructure components
 - Helper shell scripts for Terraform integration
 - Bootstrap instructions for ArgoCD
 
 **Explicitly out of scope:**
+
 - Application source code (sitio-backend, sitio-dashboard)
 - CI/CD build pipelines (GitHub Actions in separate repos)
 - Terraform infrastructure definitions (in `../terraform-files/oracle-cluster/`)

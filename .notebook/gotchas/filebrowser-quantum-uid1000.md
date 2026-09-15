@@ -5,6 +5,7 @@ Tags: gotcha, filebrowser, quantum, nfs, permissions
 ## Symptom
 
 CrashLoop with:
+
 - `open .../database.db: permission denied`
 - then (after chown) `listen tcp 0.0.0.0:80: bind: permission denied`
 

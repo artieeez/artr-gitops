@@ -55,7 +55,7 @@ Alertmanager mounts the secret at
 **Certificate / TLS** (postmortem scope) and **Sitio SQLite backup** alerts:
 
 | Alert | Severity |
-|---|---|
+| --- | --- |
 | `CertManagerCertificateNotReady` | critical |
 | `CertManagerCertificateExpirySoon` | warning |
 | `TlsProbeFailed` | critical |
@@ -116,7 +116,7 @@ You should see a message in Slack within ~30s (Alertmanager `group_wait`).
 ## Troubleshooting
 
 | Symptom | Check |
-|---|---|
+| --- | --- |
 | No Slack message | Secret missing or wrong key (`slack-api-url`); Alertmanager logs for `notify` errors |
 | `unsupported protocol scheme` | Webhook file empty or malformed URL |
 | `invalid_auth` from Slack | Webhook revoked — create a new one and re-seal |

@@ -4,8 +4,8 @@ Personal portfolio app on OCIR.
 
 | Env | Namespace | URL |
 |-----|-----------|-----|
-| Staging | `staging` | https://home-staging.artr.com.br |
-| Production | `production` | https://artr.com.br |
+| Staging | `staging` | <https://home-staging.artr.com.br> |
+| Production | `production` | <https://artr.com.br> |
 
 Image: `vcp.ocir.io/axtvnrdemzo7/home:<tag>`
 
@@ -16,7 +16,7 @@ SealedSecrets (`ocir-pull`, `home-secrets`, `home-kb-git`) are sealed for both n
 `home-secrets` keys:
 
 | Key | Purpose |
-|-----|---------|
+| ----- | --------- |
 | `RAILS_MASTER_KEY` | Rails credentials / production secrets |
 | `ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY` | Active Record Encryption (Admin DeepSeek key, etc.) |
 | `ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY` | Active Record Encryption |

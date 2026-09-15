@@ -1,6 +1,6 @@
 # FileBrowser (Quantum)
 
-**URL:** https://quantum.artr.com.br
+**URL:** <https://quantum.artr.com.br>
 
 ## First login
 

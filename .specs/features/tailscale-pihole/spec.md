@@ -13,7 +13,7 @@ Pi-hole runs in the OCI cluster and is reachable on the public internet via Trae
 ## Out of Scope
 
 | Item | Reason |
-|---|---|
+| --- | --- |
 | Replacing public Traefik NLB DNS (UDP/TCP 53, DoT :853) | Keep existing home-router / public path |
 | Tailscale exit node (route all internet traffic) | DNS-only requirement |
 | Split DNS for `*.artr.com.br` only | User chose global Pi-hole for all queries |
@@ -73,7 +73,7 @@ Pi-hole runs in the OCI cluster and is reachable on the public internet via Trae
 ## Requirement Traceability
 
 | Requirement ID | Story | Phase | Status |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | TSPIH-01 | P1: Tailnet DNS endpoint | Execute | Pending |
 | TSPIH-02 | P1: Tailnet DNS endpoint | Execute | Pending |
 | TSPIH-03 | P1: Tailnet DNS endpoint | Execute | Pending |
