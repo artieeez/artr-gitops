@@ -76,6 +76,9 @@ spec:
             # Sibling of `current`; written by git-sync exechook (sha + subject).
             - name: KNOWLEDGE_BASE_SYNC_STATUS_PATH
               value: /rails/knowledge/synced.json
+            # Admin MCP (pi.dev) — public PKCE client "mcp-home" on Pocket ID; not secret.
+            - name: ADMIN_MCP_CLIENT_ID
+              value: bb035954-5c21-460c-bde9-55d7b340a2a5
           volumeMounts:
             - name: sqlite-data
               mountPath: /rails/storage
