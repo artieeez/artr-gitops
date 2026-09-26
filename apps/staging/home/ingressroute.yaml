@@ -1,4 +1,6 @@
 # Public portfolio + /up; TinyAuth only on Admin (ADR-005).
+# Admin MCP (/mcp + its OAuth discovery metadata) bypasses the cookie forwardAuth:
+# the app itself is the security boundary (OAuth 2.1 bearer validation, feature admin-mcp-access-links).
 # Middleware tinyauth-forwardauth lives here; it was moved from apps/<env>/hello-world
 # when hello-world was removed (ART-67). Do not delete it — home's /admin route depends on it.
 apiVersion: traefik.io/v1alpha1
@@ -25,6 +27,12 @@ spec:
   entryPoints:
     - websecure
   routes:
+    - match: Host(`home-staging.artr.com.br`) && PathPrefix(`/mcp`, `/.well-known/oauth-protected-resource`)
+      kind: Rule
+      priority: 110
+      services:
+        - name: home
+          port: 80
     - match: Host(`home-staging.artr.com.br`) && PathPrefix(`/admin`)
       kind: Rule
       priority: 100
