@@ -63,6 +63,126 @@ additionalPrometheusRulesMap:
             annotations:
               summary: "Sitio SQLite backup missed schedule in {{ $labels.namespace }}"
               description: "CronJob sitio-rails-sqlite-backup has no successful run in ~30h. Check suspended CronJob, node disk pressure, or Failed Jobs  - docs/sqlite-backup-runbook.md."
+  cpu-throttling-apps:
+    # Replacement for the upstream CPUThrottlingHigh rule: the upstream rule is
+    # removed via defaultRules.disabled below (see the OKE section). Same
+    # expression as kube-prometheus-stack 87.21.0
+    # (templates/prometheus/rules-1.14/kubernetes-resources.yaml), with
+    # kube-system excluded: every pod there is OCI-managed on OKE (oke-*,
+    # oke-dataplane-observability-agent, kube-proxy, flannel, coredns), so its
+    # throttling is not ours to fix - it fired permanently for
+    # oke-node-problem-detector and oke-dataplane-observability-agent.
+    # Re-check this copy when the chart version is bumped (Renovate).
+    groups:
+      - name: cpu-throttling-apps
+        rules:
+          - alert: CPUThrottlingHigh
+            expr: |
+              sum without (id, metrics_path, name, image, endpoint, job, node) (
+                topk by (cluster, namespace, pod, container, instance) (1,
+                  increase(
+                    container_cpu_cfs_throttled_periods_total{
+                      container!="",
+                      namespace!="kube-system",
+                      job="kubelet",
+                      metrics_path="/metrics/cadvisor"
+                    }[5m])
+                )
+              )
+              / on (cluster, namespace, pod, container, instance) group_left ()
+              sum without (id, metrics_path, name, image, endpoint, job, node) (
+                topk by (cluster, namespace, pod, container, instance) (1,
+                  increase(
+                    container_cpu_cfs_periods_total{
+                      namespace!="kube-system",
+                      job="kubelet",
+                      metrics_path="/metrics/cadvisor"
+                    }[5m])
+                )
+              )
+              > (25 / 100)
+            for: 15m
+            labels:
+              severity: info
+            annotations:
+              summary: "Processes experience elevated CPU throttling."
+              description: >-
+                {{ $value | humanizePercentage }} CPU throttling for container
+                {{ $labels.container }} in pod {{ $labels.pod }} (namespace
+                {{ $labels.namespace }}). kube-system is excluded: those pods
+                are OCI-managed on OKE.
+              runbook_url: "https://runbooks.prometheus-operator.dev/runbooks/kubernetes/cputhrottlinghigh"
+
+# ---------------------------------------------------------------------------
+# OKE managed control plane
+#
+# oracle-cluster runs an OCI-managed control plane: etcd,
+# kube-controller-manager and kube-scheduler run outside the tenant and expose
+# no reachable endpoint, so the chart's ServiceMonitors for them never discover
+# a target. Their alert rules are absent()-based, so they fire forever:
+#   KubeControllerManagerDown = absent(up{job="kube-controller-manager"})
+#   KubeSchedulerDown         = absent(up{job="kube-scheduler"})
+# both critical, firing since 2026-07-25 and burying real incidents.
+#
+# Both switches are set on purpose: `<component>.enabled: false` removes the
+# Service/ServiceMonitor, `defaultRules.rules.*: false` removes the rule files,
+# so flipping only one of them cannot silently resurrect the alerts.
+# kubeProxy stays enabled on purpose: kube-proxy is a normal DaemonSet on OKE
+# and is scraped (job="kube-proxy", KubeProxyDown is a genuine check).
+# kubeApiServer stays enabled too: the `kubernetes` Service in the default
+# namespace is reachable and scraped (job="apiserver").
+#
+# Rationale and post-sync verification: docs/sitio-observability.md
+# ("Platform alerting: intentionally disabled on OKE").
+# ---------------------------------------------------------------------------
+defaultRules:
+  rules:
+    etcd: false
+    kubeControllerManager: false
+    kubeSchedulerAlerting: false
+    kubeSchedulerRecording: false
+  # Upstream rule removed; a kube-system-scoped replacement lives in
+  # additionalPrometheusRulesMap.cpu-throttling-apps above.
+  disabled:
+    CPUThrottlingHigh: true
+
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
+kubelet:
+  serviceMonitor:
+    # The ServiceMonitor selector is hardcoded in the chart to
+    # app.kubernetes.io/name=kubelet + k8s-app=kubelet, which matches ANY
+    # Service in kube-system carrying those labels. The orphaned
+    # Service/Endpoints `platform-monitoring-kube-p-kubelet` (left behind by an
+    # older stack release, still pointing at the removed nodes 10.0.1.110 /
+    # 10.0.1.181) matched it and produced 6 permanently down targets ->
+    # TargetDown + KubeletInstanceUnreachable.
+    # Keep only the Service generated by this release: the operator names it
+    # <release name truncated to 26 chars>-kubelet. If the release name changes,
+    # update the regex here - losing every kubelet target makes KubeletDown
+    # fire (critical, 15m) because no up{job="kubelet",metrics_path="/metrics"}
+    # series would be left.
+    # The same guard covers the cAdvisor and probes endpoints. The resource
+    # endpoint (kubelet.serviceMonitor.resource) is off by default; if it is
+    # ever enabled, add resourceRelabelings with this same block.
+    relabelings: &kubeletServiceGuard
+      # Chart default, repeated because these lists replace (do not merge)
+      # the upstream values: metrics_path is required by the upstream rules.
+      - action: replace
+        sourceLabels: [__metrics_path__]
+        targetLabel: metrics_path
+      - action: keep
+        sourceLabels: [__meta_kubernetes_service_name]
+        regex: monitoring-kube-prometheus-kubelet
+    cAdvisorRelabelings: *kubeletServiceGuard
+    probesRelabelings: *kubeletServiceGuard
 
 prometheus:
   prometheusSpec:
