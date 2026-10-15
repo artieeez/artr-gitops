@@ -7,6 +7,9 @@ metadata:
     app: sitio-rails-backup
     environment: sitio-production
 spec:
+  # Stays at 06:00 UTC; sitio-staging runs at 06:30 UTC so the two Jobs
+  # never install packages at the same time on the single node. See
+  # docs/sqlite-backup-runbook.md (Resource sizing and OOM).
   schedule: "0 6 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
@@ -30,6 +33,11 @@ spec:
           containers:
             - name: backup
               # AL2023: SQLite >= 3.27 (VACUUM INTO). AL2 aws-cli image ships 3.7.17.
+              # The runtime `dnf install` below (not the database) is the
+              # memory/disk hotspot: ~400 MiB peak, 128-516 MiB of node
+              # disk writes, 85 packages per run. A prebuilt image with
+              # sqlite/awscli/gzip baked in is the durable fix -- see
+              # docs/sqlite-backup-runbook.md (Resource sizing and OOM).
               image: public.ecr.aws/amazonlinux/amazonlinux:2023
               command:
                 - /bin/sh
@@ -61,12 +69,19 @@ spec:
                       name: s3-credentials
                       key: secret-access-key
               resources:
+                # Successful runs peak at 357-429 MiB working set
+                # (production hit 417.7 MiB on 2026-10-14) while `dnf
+                # install` unpacks packages, then drop to ~105 MiB for
+                # the backup itself. The old 512Mi limit left <20%
+                # headroom and was an OOMKill waiting to happen.
+                # Requests track the real footprint, so the Job is not
+                # the first eviction candidate under node pressure.
                 requests:
                   cpu: 100m
-                  memory: 256Mi
+                  memory: 512Mi
                 limits:
                   cpu: 500m
-                  memory: 512Mi
+                  memory: 1Gi
               volumeMounts:
                 - name: sqlite-data
                   mountPath: /rails/storage

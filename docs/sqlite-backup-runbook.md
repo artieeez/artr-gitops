@@ -10,7 +10,7 @@ Operational guide for Sitio Rails nightly SQLite backups to OCI Object Storage a
 
 | Item | Value |
 | --- | --- |
-| Schedule | `0 6 * * *` UTC (03:00 America/São Paulo) |
+| Schedule | production `0 6 * * *` UTC (03:00 America/São Paulo) · staging `30 6 * * *` UTC (03:30 America/São Paulo) — staggered because both Jobs share one node |
 | CronJob | `sitio-rails-sqlite-backup` in `sitio-staging` / `sitio-production` |
 | Mechanism | `VACUUM INTO` → gzip → `aws s3 cp` to OCI S3-compatible endpoint |
 | Bucket | `sitio-production-backups` (Archive tier) |
@@ -19,6 +19,7 @@ Operational guide for Sitio Rails nightly SQLite backups to OCI Object Storage a
 | Example key | `staging/sitio-rails/production-20260803T060000Z.sqlite3.gz` |
 | Retention | 90-day lifecycle rule on the bucket (objects auto-deleted after 90 days) |
 | Credentials | SealedSecret `s3-credentials` per namespace (Customer Secret Key) |
+| Container resources | `requests: 100m CPU / 512Mi` · `limits: 500m CPU / 1Gi`; the start-up package install, not the database, is the memory hotspot |
 
 Both environments share the same bucket; prefixes `staging/` and `production/` isolate objects.
 
@@ -47,6 +48,86 @@ Successful backup logs end with `Uploaded s3://sitio-production-backups/...`.
 
 ---
 
+## Resource sizing and OOM
+
+The Job container starts as `public.ecr.aws/amazonlinux/amazonlinux:2023` and installs its
+tooling at run time:
+
+```sh
+dnf install -y -q sqlite awscli gzip
+exec /scripts/backup.sh
+```
+
+`dnf install` — **not the database** — is the memory and disk hotspot. Measured on the live
+cluster (Prometheus, 2026-10-07 → 2026-10-15):
+
+| Phase | Working set | Notes |
+| --- | --- | --- |
+| `dnf install` (first ~35-60 s) | 357-429 MiB | RSS up to 409 MiB; `container_memory_cache` up to 328 MiB; `container_fs_writes_bytes_total` 128-516 MiB per run (median ~190 MiB) |
+| `VACUUM INTO` + gzip + `aws s3 cp` | ~105-140 MiB | for a 312 KiB DB (staging) and a 36 MiB DB (production) |
+
+The install pulls **85 packages**: AL2023's `awscli` is AWS CLI v2, which drags in
+`python3-awscrt`, `python3-docutils`, `perl-*`, `groff` and more.
+
+The database size is irrelevant to the sizing: staging's `production.sqlite3` is 312 KiB
+(10.4 KiB gzipped) and production's is 36 MiB (2.4 MiB gzipped).
+
+The container previously ran with `limits: memory: 512Mi` — under 20% headroom above the
+observed peak — and the staging CronJob was OOMKilled (exit 137) on 2026-10-12 and
+2026-10-14, both ~30 s in, i.e. during `dnf install` and before `backup.sh` ran. On
+2026-10-14 the staging Job ran **alone** (production had finished at 06:01 UTC) with the
+node holding ~3.2 GiB of free memory, so the cause was the container's own limit rather
+than node pressure. Production hit 417.7 MiB on the same day, so both environments were at
+risk.
+
+Current sizing, applied to **both** environments:
+
+```yaml
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+```
+
+The schedules are staggered (production 06:00 UTC, staging 06:30 UTC) so a second
+concurrent `dnf install` cannot double the peak memory and node-disk churn.
+
+### Durable fix: prebuilt backup image (recommended, not yet implemented)
+
+Baking `sqlite` + `awscli` + `gzip` into an image removes the run-time install entirely:
+seconds instead of 1-2 minutes, ~100 MiB instead of ~430 MiB, no dependency on the AL2023
+repositories at 06:00, and no 128-516 MiB of node-disk writes per run (the single node's root
+filesystem runs ~83% full, and a `DiskPressure` eviction already failed the 2026-10-10
+backup).
+
+It must be built in a repository that already holds OCIR credentials. `artr-gitops` has
+**no** GitHub Actions secrets, and CI/CD build pipelines are out of scope for this repo, so
+this cannot be done here. Concretely:
+
+1. In `artieeez/sitio-rails` (which owns `OCIR_USERNAME` / `OCIR_AUTH_TOKEN`), add
+   `Dockerfile.backup`:
+
+   ```dockerfile
+   FROM public.ecr.aws/amazonlinux/amazonlinux:2023
+   RUN dnf install -y sqlite awscli gzip && \
+       dnf clean all && rm -rf /var/cache/dnf
+   ```
+
+2. Extend `.github/workflows/build-push-ocir.yaml` to build it too (`IMAGE_NAME:
+   sitio-backup`, `file: Dockerfile.backup`, `platforms: linux/arm64` — the node is
+   `aarch64`).
+3. Point both CronJobs at `image: vcp.ocir.io/axtvnrdemzo7/sitio-backup:sha-<rev>` with
+   `imagePullSecrets: [{name: ocir-pull}]` (that secret already exists in both namespaces),
+   drop the `dnf install` command, and run `/scripts/backup.sh` directly.
+
+Keep the 1Gi limit after the switch: it costs nothing and absorbs the `aws`/`VACUUM INTO`
+footprint for a growing database.
+
+---
+
 ## Alerts (Prometheus → Slack)
 
 Backup CronJob health is watched by PrometheusRules in [kube-prometheus-stack-values.yaml](../charts/kube-prometheus-stack-values.yaml). Failures and missed schedules go to Slack via Alertmanager (`slack-infra`) — see [alertmanager-slack-setup.md](alertmanager-slack-setup.md).
@@ -54,7 +135,7 @@ Backup CronJob health is watched by PrometheusRules in [kube-prometheus-stack-va
 | Alert | Severity | Meaning |
 | --- | --- | --- |
 | `SitioRailsSqliteBackupJobFailed` | critical | A Job owned by `sitio-rails-sqlite-backup` is Failed (non-zero exit / Failed condition) for ≥5m |
-| `SitioRailsSqliteBackupMissedSchedule` | warning | No successful CronJob completion in ~30h (schedule `0 6 * * *` UTC + margin) |
+| `SitioRailsSqliteBackupMissedSchedule` | warning | No successful CronJob completion in ~30h (staging `30 6 * * *` / production `0 6 * * *` UTC + margin) |
 
 Grafana folders **Sitio Staging** / **Sitio Production** → dashboard **SQLite backups** shows hours since last success and Failed Job count for that env.
 
@@ -121,6 +202,11 @@ kubectl -n sitio-staging logs -f job/sitio-rails-sqlite-backup-verify
 Expected success: `OK: integrity_check passed for s3://sitio-production-backups/...`
 
 On failure, check restore status, credentials, and object key before retrying.
+
+The verify template installs `sqlite` / `awscli` / `gzip` at start-up like the CronJob, so it
+carries the same `requests: 512Mi` / `limits: 1Gi` sizing — see **Resource sizing and OOM**.
+
+With the prebuilt backup image (recommended there), the verify template should switch to it too.
 
 The verify Job self-deletes ~7 days after finishing (`ttlSecondsAfterFinished: 604800`). To remove it immediately after a run: `kubectl -n <ns> delete job sitio-rails-sqlite-backup-verify`.
 
@@ -206,7 +292,9 @@ For **production**, replace `sitio-staging` with `sitio-production` and use a `p
 
 - Temp files live on the Job's `emptyDir` (`/tmp`), not on the PVC.
 - The PVC is mounted **read-only** for backup; the live DB file is not modified.
-- If the database grows large, ensure the Job's emptyDir and node disk can hold ~1× DB size (512Mi limit on the container may need raising for very large DBs).
+- If the database grows large, ensure the Job's emptyDir and node disk can hold ~1× DB size
+  (the DB copy is what needs `/tmp` headroom; the `1Gi` container limit is sized for the
+  start-up package install, not for the copy — see **Resource sizing and OOM**).
 
 Monitor PVC usage separately — full restore writes directly to the PVC and needs enough free space for the decompressed file.
 
@@ -252,6 +340,8 @@ Confirm lifecycle is active in OCI Console → bucket → **Lifecycle Policy**, 
 | Verify Job download fails | Object still in Archive | Run `oci os object restore` first |
 | `integrity_check` ≠ ok | Corrupt backup or incomplete download | Do not restore; pick a different object |
 | Backup skipped | Prior Job still running (`Forbid`) | Check for stuck Jobs; delete if safe |
+| Pod `OOMKilled`, exit 137, ~30 s in | Container memory limit too low for the run-time `dnf install` (~400 MiB peak) | Confirm `limits.memory` is `1Gi`; see **Resource sizing and OOM**. The prebuilt image removes the install |
+| Pod `Evicted`, `node had condition: [DiskPressure]` | Node root filesystem full — each run writes 128-516 MiB to the node's container layer | Free node disk; the prebuilt image removes the churn |
 | Stale Failed Jobs keep alerting | Old drill Jobs that history limits cannot prune (different `controller-uid` / no ownerReference) | Delete them (`kubectl -n <ns> delete job -l app=sitio-rails-backup --field-selector=status.successful=0`); future drill Jobs self-clean via TTL (7 days) |
 
 ---
