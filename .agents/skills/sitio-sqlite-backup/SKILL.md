@@ -29,8 +29,10 @@ When about to run concrete commands, read `references/runbook-map.md` for bucket
 | Namespace staging | `sitio-staging` |
 | Namespace production | `sitio-production` |
 | CronJob | `sitio-rails-sqlite-backup` |
+| Schedule | production `0 6 * * *` UTC · staging `30 6 * * *` UTC (staggered: one shared node) |
 | Key prefix | `{env}/sitio-rails/` |
 | Image | `public.ecr.aws/amazonlinux/amazonlinux:2023` (install `sqlite` + `awscli` + `gzip` via `dnf`; needs SQLite ≥ 3.27 for `VACUUM INTO`) |
+| Memory limit | `512Mi` request / `1Gi` limit — the run-time `dnf install` peaks near 400 MiB; **never lower it back to 512Mi** (OOMKilled 2026-10-12 and 2026-10-14) |
 | Runbook | `docs/sqlite-backup-runbook.md` |
 | Argo apps | `sitio-staging-sitio-rails-backup`, `sitio-production-sitio-rails-backup` |
 
@@ -57,6 +59,9 @@ Match the user intent, then run the matching workflow:
 3. `kubectl -n <ns> get cronjob,job,po -l app=sitio-rails-backup`
 4. Logs on the latest Job pod; successful backup ends with `Uploaded s3://sitio-production-backups/...`
 5. Report: last schedule, latest Job result, one next dig.
+6. Failure triage: `OOMKilled` (exit 137) ~30 s in means the container memory limit is too
+   low for the run-time `dnf install`, not a database problem — check `limits.memory` is
+   `1Gi` on both CronJobs.
 
 ### Space
 
@@ -158,6 +163,25 @@ Solution: Use `public.ecr.aws/amazonlinux/amazonlinux:2023` and `dnf install -y 
 
 Cause: AL2023 base image does not include `gzip`.
 Solution: Add `gzip` to the Job `dnf install` packages (`sqlite awscli gzip`).
+
+### Error: pod OOMKilled, exit 137, ~30 s into the run
+
+Cause: the container memory limit is too small for the run-time `dnf install`, which peaks
+near 400 MiB (RSS up to 409 MiB) while unpacking packages. The database is not the cause —
+staging's DB is ~312 KiB and production's ~36 MiB. The Job container must stay at
+`requests.memory: 512Mi` / `limits.memory: 1Gi`.
+Solution: confirm both CronJobs carry the `1Gi` limit, and verify no concurrent install is
+running in the other namespace (schedules are staggered: production 06:00 UTC, staging 06:30
+UTC). See `docs/sqlite-backup-runbook.md` → **Resource sizing and OOM**. The durable fix is a
+prebuilt image with `sqlite` + `awscli` + `gzip` baked in (build it in a repo that holds
+OCIR credentials — `artr-gitops` has none).
+
+### Error: pod Evicted, `node had condition: [DiskPressure]`
+
+Cause: the single node's root filesystem is nearly full; every run writes 128-516 MiB to the
+node's container layer before the backup starts.
+Solution: free node disk. The prebuilt image removes the per-run churn. This is a node
+condition, not a backup-script bug.
 
 ### Error: AWS chunked encoding not supported / PutObject NotImplemented
 

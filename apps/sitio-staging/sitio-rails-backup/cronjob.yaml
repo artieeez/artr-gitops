@@ -7,7 +7,11 @@ metadata:
     app: sitio-rails-backup
     environment: sitio-staging
 spec:
-  schedule: "0 6 * * *"
+  # 30 min after production's 06:00 UTC slot: both Jobs run on the
+  # same node, and installing packages in the same minute multiplies
+  # the peak memory and disk churn. See docs/sqlite-backup-runbook.md
+  # (Resource sizing and OOM).
+  schedule: "30 6 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -30,6 +34,11 @@ spec:
           containers:
             - name: backup
               # AL2023: SQLite >= 3.27 (VACUUM INTO). AL2 aws-cli image ships 3.7.17.
+              # The runtime `dnf install` below (not the database) is the
+              # memory/disk hotspot: ~400 MiB peak, 128-516 MiB of node
+              # disk writes, 85 packages per run. A prebuilt image with
+              # sqlite/awscli/gzip baked in is the durable fix -- see
+              # docs/sqlite-backup-runbook.md (Resource sizing and OOM).
               image: public.ecr.aws/amazonlinux/amazonlinux:2023
               command:
                 - /bin/sh
@@ -61,12 +70,19 @@ spec:
                       name: s3-credentials
                       key: secret-access-key
               resources:
+                # Successful runs peak at 357-429 MiB working set (RSS
+                # up to 409 MiB) while `dnf install` unpacks packages,
+                # then drop to ~105 MiB for the backup itself. The old
+                # 512Mi limit left <20% headroom and the container was
+                # OOMKilled (exit 137). Requests track the real
+                # footprint, so the Job is not the first eviction
+                # candidate under node memory pressure.
                 requests:
                   cpu: 100m
-                  memory: 256Mi
+                  memory: 512Mi
                 limits:
                   cpu: 500m
-                  memory: 512Mi
+                  memory: 1Gi
               volumeMounts:
                 - name: sqlite-data
                   mountPath: /rails/storage
