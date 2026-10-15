@@ -130,3 +130,51 @@ Contact point `slack-sitio` + notification policy (`team=sitio`) are provisioned
 3. Explore Loki: `{service_name="sitio-rails", service_namespace="sitio-staging"} | json`
 4. Open each dashboard panel under **Sitio Staging** (and spot-check **Sitio Production**)
 5. Optionally force one staging share-link denial, Wix reject, or 5xx and confirm Slack (+ resolve when clear)
+
+---
+
+## Platform alerting: intentionally disabled on OKE
+
+`monitoring-kube-prometheus-stack` (kube-prometheus-stack `87.21.0`) ships scrape configs and alert rules for a **self-hosted** control plane. `oracle-cluster` is OKE with an **OCI-managed** control plane, so part of that default set can never see a target and only produced permanent alerts (masking real ones). What is turned off in [kube-prometheus-stack-values.yaml](../charts/kube-prometheus-stack-values.yaml), and why:
+
+| Disabled | Values key | Why |
+| --- | --- | --- |
+| `kube-controller-manager` scrape + rules | `kubeControllerManager.enabled: false`, `defaultRules.rules.kubeControllerManager: false` | Managed by OCI, not scrapable → `KubeControllerManagerDown = absent(up{job="kube-controller-manager"})` fired **critical forever** (since 2026-07-25) |
+| `kube-scheduler` scrape + rules | `kubeScheduler.enabled: false`, `defaultRules.rules.kubeSchedulerAlerting: false`, `defaultRules.rules.kubeSchedulerRecording: false` | Same → `KubeSchedulerDown = absent(up{job="kube-scheduler"})` |
+| `etcd` scrape + rules | `kubeEtcd.enabled: false`, `defaultRules.rules.etcd: false` | Same: no `job=kube-etcd` target exists at all |
+| Upstream `CPUThrottlingHigh` | `defaultRules.disabled.CPUThrottlingHigh: true` | Replaced by the scoped rule in the next row |
+| `CPUThrottlingHigh` inside `kube-system` | `additionalPrometheusRulesMap.cpu-throttling-apps` | Every pod in `kube-system` is OCI-managed on OKE (`oke-*`, `kube-proxy`, `flannel`, `coredns`, ...), so throttling there is not actionable. The replacement is the upstream expression plus `namespace!="kube-system"`, so throttling in our own namespaces still alerts. |
+| Foreign kubelet targets | `kubelet.serviceMonitor.{relabelings,cAdvisorRelabelings,probesRelabelings}` | The chart's kubelet `ServiceMonitor` selector is hardcoded (`app.kubernetes.io/name=kubelet` + `k8s-app=kubelet`), so it also matched an orphaned `platform-monitoring-kube-p-kubelet` Service left behind by an older stack release and still pointing at the removed nodes `10.0.1.110` / `10.0.1.181`. The relabeling keeps only `__meta_kubernetes_service_name = monitoring-kube-prometheus-kubelet`, removing 6 permanently down targets → `TargetDown` + `KubeletInstanceUnreachable`. |
+
+**Kept on purpose:** `kubeProxy` (kube-proxy is a normal DaemonSet on OKE and is scraped correctly, so `KubeProxyDown` is genuine), `kubeApiServer`, kubelet, coredns, node-exporter, kube-state-metrics, `KubeJobFailed`, `SitioRailsSqliteBackup*`, certificate/TLS rules, and the Grafana LogQL → Slack rules above.
+
+**Gotchas when changing this:**
+
+- `kubelet.serviceMonitor.relabelings` **replaces** the chart default, so the `metrics_path` relabeling must stay (upstream rules filter on `metrics_path="/metrics/cadvisor"`). The keep regex is derived from the release name as `<release name truncated to 26 chars>-kubelet`; if the release is renamed and the regex is not updated, every kubelet target disappears and `KubeletDown` fires critical after 15m.
+- `additionalPrometheusRulesMap.cpu-throttling-apps` is a copy of the upstream rule: re-check it when the chart version is bumped (Renovate).
+- Do not reach for Alertmanager silences here: the control-plane rules are `absent()`-based, so they fire again as soon as a silence expires. Fix the rule/scrape configuration in Git instead.
+
+**Verify after Argo syncs** (read-only, from a laptop with the `oracle-cluster` context):
+
+```bash
+kubectl -n monitoring port-forward svc/monitoring-kube-prometheus-alertmanager 9093:9093 &
+curl -s 'http://localhost:9093/api/v2/alerts?active=true' \
+  | jq -r '.[] | "\(.labels.severity) \(.labels.alertname) \(.labels.namespace // "-")"' | sort | uniq -c
+# expected: KubeControllerManagerDown / KubeSchedulerDown / KubeletInstanceUnreachable / TargetDown /
+#           CPUThrottlingHigh(kube-system) are gone; SitioRailsSqliteBackupJobFailed, KubeJobFailed and
+#           Watchdog are still there
+```
+
+```bash
+kubectl -n monitoring port-forward svc/monitoring-kube-prometheus-prometheus 9090:9090 &
+curl -s --get --data-urlencode 'query=up{job="kubelet"}' http://localhost:9090/api/v1/query \
+  | jq -r '.data.result[] | "\(.metric.service) \(.value[1])"'
+# expected: only monitoring-kube-prometheus-kubelet, all values 1
+```
+
+The orphaned Service/Endpoints is harmless once the relabeling is in place; optional tidy-up (the EndpointSlice is garbage-collected with the Endpoints):
+
+```bash
+kubectl -n kube-system delete service platform-monitoring-kube-p-kubelet --ignore-not-found
+kubectl -n kube-system delete endpoints platform-monitoring-kube-p-kubelet --ignore-not-found
+```
