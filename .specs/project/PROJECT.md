@@ -26,7 +26,6 @@
 - kube-prometheus-stack, Loki, Grafana, Alloy (monitoring)
 - Filebrowser (web file manager)
 - Pi-hole (DNS ad-blocking)
-- RustFS (S3-compatible file storage)
 - Docker Registry (in-cluster image cache)
 - NFS provisioner (dynamic PVs via external NFS)
 
