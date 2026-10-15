@@ -8,6 +8,9 @@ SECRET_NAME="wildcard-artr-com-br-tls"
 CERT_NAME="wildcard-artr-com-br"
 SOURCE_NS="cert-manager"
 MIN_DAYS_UNTIL_EXPIRY=21
+# openssl -checkend takes seconds, so expiry is decided by openssl
+# itself: no date(1) parsing (busybox date cannot parse notAfter).
+MIN_SECONDS_UNTIL_EXPIRY=$((MIN_DAYS_UNTIL_EXPIRY * 86400))
 EXPECTED_NAMESPACES=(
   argocd
   staging
@@ -21,21 +24,37 @@ EXPECTED_NAMESPACES=(
 EXPECTED_REFLECTS="${SOURCE_NS}/${SECRET_NAME}"
 
 errors=0
+workdir="$(mktemp -d)"
+trap 'rm -rf "${workdir}"' EXIT
 
-days_until_expiry() {
-  local expiry_date="$1"
-  local expiry_epoch now_epoch
-  expiry_epoch="$(date -d "${expiry_date}" +%s)"
-  now_epoch="$(date +%s)"
-  echo $(( (expiry_epoch - now_epoch) / 86400 ))
+# Decode the secret's tls.crt to "${workdir}/<namespace>.pem".
+fetch_cert() {
+  local ns="$1"
+  kubectl get secret -n "${ns}" "${SECRET_NAME}" \
+    -o jsonpath='{.data.tls\.crt}' | base64 -d > "${workdir}/${ns}.pem"
 }
 
 cert_not_after() {
   local ns="$1"
-  kubectl get secret -n "${ns}" "${SECRET_NAME}" \
-    -o jsonpath='{.data.tls\.crt}' | base64 -d \
-    | openssl x509 -noout -enddate 2>/dev/null \
+  openssl x509 -in "${workdir}/${ns}.pem" -noout -enddate \
     | sed 's/notAfter=//'
+}
+
+# SHA-256 fingerprint of the whole certificate, used for source-vs-copy
+# comparison: it detects any content difference, including a re-issue
+# that happens to keep the same notAfter.
+cert_fingerprint() {
+  local ns="$1"
+  openssl x509 -in "${workdir}/${ns}.pem" -noout -fingerprint -sha256 \
+    | sed 's/^.*=//'
+}
+
+# Succeeds when the cert stays valid for at least MIN_DAYS_UNTIL_EXPIRY;
+# fails (openssl exit 1) when it expires inside that window.
+cert_outlives_threshold() {
+  local ns="$1"
+  openssl x509 -in "${workdir}/${ns}.pem" -noout \
+    -checkend "${MIN_SECONDS_UNTIL_EXPIRY}" >/dev/null 2>&1
 }
 
 if ! kubectl get secret -n "${SOURCE_NS}" "${SECRET_NAME}" &>/dev/null; then
@@ -52,11 +71,14 @@ else
   echo "OK:    Certificate ${SOURCE_NS}/${CERT_NAME} is Ready"
 fi
 
+fetch_cert "${SOURCE_NS}"
 source_expiry="$(cert_not_after "${SOURCE_NS}")"
-source_days_left="$(days_until_expiry "${source_expiry}")"
-echo "Source secret ${SOURCE_NS}/${SECRET_NAME} expires: ${source_expiry} (${source_days_left} days)"
-if [[ "${source_days_left}" -lt "${MIN_DAYS_UNTIL_EXPIRY}" ]]; then
-  echo "ERROR: source cert expires in ${source_days_left} days (< ${MIN_DAYS_UNTIL_EXPIRY} day threshold)"
+source_fingerprint="$(cert_fingerprint "${SOURCE_NS}")"
+echo "Source secret ${SOURCE_NS}/${SECRET_NAME} expires: ${source_expiry}"
+if cert_outlives_threshold "${SOURCE_NS}"; then
+  echo "OK:    source cert is valid for more than ${MIN_DAYS_UNTIL_EXPIRY} days"
+else
+  echo "ERROR: source cert expires within ${MIN_DAYS_UNTIL_EXPIRY} days (notAfter=${source_expiry})"
   errors=$((errors + 1))
 fi
 echo
@@ -72,7 +94,9 @@ for ns in "${EXPECTED_NAMESPACES[@]}"; do
     -o jsonpath='{.metadata.annotations.reflector\.v1\.k8s\.emberstack\.com/reflects}' 2>/dev/null || true)"
   cm_cert="$(kubectl get secret -n "${ns}" "${SECRET_NAME}" \
     -o jsonpath='{.metadata.annotations.cert-manager\.io/certificate-name}' 2>/dev/null || true)"
+  fetch_cert "${ns}"
   ns_expiry="$(cert_not_after "${ns}")"
+  ns_fingerprint="$(cert_fingerprint "${ns}")"
 
   if [[ -n "${cm_cert}" && -z "${reflects}" ]]; then
     echo "ERROR: ${ns}/${SECRET_NAME} — orphan cert-manager secret (not Reflector-managed)"
@@ -80,8 +104,8 @@ for ns in "${EXPECTED_NAMESPACES[@]}"; do
   elif [[ "${reflects}" != "${EXPECTED_REFLECTS}" ]]; then
     echo "ERROR: ${ns}/${SECRET_NAME} — reflects=${reflects:-<none>}, expected ${EXPECTED_REFLECTS}"
     errors=$((errors + 1))
-  elif [[ "${ns_expiry}" != "${source_expiry}" ]]; then
-    echo "ERROR: ${ns}/${SECRET_NAME} — cert expires ${ns_expiry}, source expires ${source_expiry}"
+  elif [[ "${ns_fingerprint}" != "${source_fingerprint}" ]]; then
+    echo "ERROR: ${ns}/${SECRET_NAME} — certificate differs from source (expires ${ns_expiry}, source expires ${source_expiry})"
     errors=$((errors + 1))
   else
     echo "OK:    ${ns}/${SECRET_NAME} — Reflector copy matches source (expires ${ns_expiry})"

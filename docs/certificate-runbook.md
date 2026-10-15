@@ -44,7 +44,9 @@ Alerts (via kube-prometheus-stack + blackbox exporter):
 
 **Grafana:** Dashboard *cert-manager* (folder: Certificates) — Certificate status, expiry, ACME metrics.
 
-**Weekly audit:** CronJob `cert-audit` in `monitoring` runs `./scripts/audit-tls-secrets.sh` every Monday 09:00 UTC. Manual run: `./scripts/audit-tls-secrets.sh`.
+**Weekly audit:** CronJob `cert-audit` in `monitoring` runs `./scripts/audit-tls-secrets.sh` every Monday 09:00 UTC. It exits 1 (Job `Failed`) when the Certificate CR is not `Ready`, the cert expires within **21 days** — the same threshold as `CertManagerCertificateExpirySoon` — or any namespace copy is missing, not Reflector-managed, or holds a certificate that differs from the source. Manual run: `./scripts/audit-tls-secrets.sh`.
+
+**How it runs:** the CronJob uses `docker.io/alpine/k8s:1.37.0` and starts with `apk add --no-cache bash openssl`, because that image has no `openssl`; without it the script aborted with exit 127. Expiry is evaluated with `openssl x509 -checkend <seconds>`, not by parsing `notAfter` with `date -d`, since the image's busybox `date` cannot parse openssl's date format. The `cert-audit-script` ConfigMap ([configmap.yaml](../apps/monitoring/cert-audit/configmap.yaml)) embeds a copy of the script and must be regenerated whenever `scripts/audit-tls-secrets.sh` changes — the command is recorded in [.specs/project/STATE.md](../.specs/project/STATE.md).
 
 **Slack:** Certificate/TLS alerts route to Slack when [alertmanager-slack-webhook](../alertmanager-slack-setup.md) is configured.
 

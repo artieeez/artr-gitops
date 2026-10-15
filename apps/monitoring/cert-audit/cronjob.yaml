@@ -28,7 +28,7 @@ spec:
                 - /bin/sh
                 - -ec
                 - |
-                  apk add --no-cache bash >/dev/null
+                  apk add --no-cache bash openssl >/dev/null
                   exec bash /scripts/audit-tls-secrets.sh
               resources:
                 requests:
