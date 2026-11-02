@@ -1,6 +1,6 @@
 # Tailscale + Pi-hole (MacBook & Android)
 
-Pi-hole runs in the OCI cluster. This guide adds a **private tailnet DNS path** so your MacBook and Android phone always use Pi-hole when Tailscale is connected. The existing **public Traefik NLB** path (home router → NLB :53) is unchanged.
+Pi-hole runs in the OCI cluster and is reachable **only over the tailnet**: the public Traefik NLB path (home router → NLB :53) was closed in `oracle-cluster` (ADR 002), so this is the single DNS entry point.
 
 **GitOps changes** (already in repo after merge):
 
@@ -13,7 +13,6 @@ Pi-hole runs in the OCI cluster. This guide adds a **private tailnet DNS path** 
 
 ```text
 Mac / Android  →  Tailscale (Override local DNS)  →  pihole-dns.<tailnet>.ts.net  →  Pi-hole pod
-Home router    →  Traefik NLB :53                    →  Pi-hole pod   (unchanged)
 ```
 
 ---
@@ -170,7 +169,7 @@ Optional: Mac **Login Items** / Android **Always-on VPN** (device settings) if y
 | No `pihole-dns` machine | Operator logs: `kubectl -n tailscale logs -l app=operator`; OAuth Secret keys must be `client_id` / `client_secret` |
 | `dig @pihole-dns...` timeout | Pi-hole pod: `kubectl -n platform get pods -l app=pihole`; FTL listening mode `all` in values |
 | Mac works, Android doesn’t | Turn off **Private DNS**; update Tailscale app |
-| Public home DNS broke | Traefik NLB path is separate; check `apps/platform/pihole/README.md` NLB section |
+| Public DNS on the NLB stopped answering | Expected: port 53/853 are no longer published. Use the tailnet name instead (`apps/platform/pihole/README.md`) |
 | DNS works but no ad block | Confirm global nameserver is Pi-hole, not fallback only |
 
 ---
@@ -183,4 +182,4 @@ Optional: Mac **Login Items** / Android **Always-on VPN** (device settings) if y
 | `argocd/applications/platform/platform-tailscale-operator.yaml` | Operator Helm via ArgoCD |
 | `charts/tailscale-operator-values.yaml` | Operator Helm values |
 | `charts/pihole-values.yaml` | Tailnet expose annotations + `listeningMode=all` |
-| `apps/platform/pihole/README.md` | Public NLB / Traefik DNS |
+| `apps/platform/pihole/README.md` | Tailnet DNS exposure and client setup |
