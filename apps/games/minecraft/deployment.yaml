@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minecraft
+  namespace: games
+  labels:
+    app: minecraft
+spec:
+  # Vanilla 1.7.10 is single-threaded per world; never scale above 1.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: minecraft
+  template:
+    metadata:
+      labels:
+        app: minecraft
+    spec:
+      # NFS subdir provisioner volumes are created root-owned; fsGroup lets uid 1000 write /data.
+      securityContext:
+        fsGroup: 1000
+      # itzg traps SIGTERM and issues a graceful `stop`; give it time to flush region files.
+      terminationGracePeriodSeconds: 90
+      containers:
+        - name: minecraft
+          # java8 tag is mandatory for pre-1.13 servers (JDK 9+ breaks legacy classloading).
+          # Digest pinned; Renovate tracks the tag/digest pair.
+          image: itzg/minecraft-server:java8@sha256:70c6e30e928743f237ce5729662a62afd1f9a180b53ff117979c6880ad5244ee
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: minecraft
+              containerPort: 25565
+              protocol: TCP
+            - name: rcon
+              containerPort: 25575
+              protocol: TCP
+          env:
+            - name: EULA
+              value: "TRUE"
+            - name: TYPE
+              value: "VANILLA"
+            - name: VERSION
+              value: "1.7.10"
+            # Heap: 1.5G is comfortable for the ~6 players this node can serve.
+            # Node has ~2.3 GiB free, so the JVM is the largest single consumer here.
+            - name: MEMORY
+              value: "1536M"
+            - name: INIT_MEMORY
+              value: "768M"
+            - name: USE_AIKAR_FLAGS
+              value: "true"
+            - name: LEVEL
+              value: "world"
+            - name: MOTD
+              value: "artr vanilla 1.7.10"
+            - name: DIFFICULTY
+              value: "normal"
+            - name: MODE
+              value: "survival"
+            - name: PVP
+              value: "true"
+            - name: MAX_PLAYERS
+              value: "8"
+            # 1.7.10 chunk ticking is CPU-bound; a 2 OCPU node cannot sustain larger radius.
+            - name: VIEW_DISTANCE
+              value: "8"
+            - name: ALLOW_NETHER
+              value: "true"
+            - name: ONLINE_MODE
+              value: "TRUE"
+            - name: SPAWN_PROTECTION
+              value: "16"
+            - name: OVERRIDE_SERVER_PROPERTIES
+              value: "true"
+            # RCON stays cluster-internal (no Service port) and powers `rcon-cli` ops.
+            - name: ENABLE_RCON
+              value: "true"
+            - name: RCON_PORT
+              value: "25575"
+            - name: RCON_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minecraft-rcon
+                  key: RCON_PASSWORD
+            - name: TZ
+              value: "America/Sao_Paulo"
+          resources:
+            # Requests are near the node's scheduling ceiling (1712m/1836m already requested),
+            # so request little and allow the JVM to burst into the ~1.5 idle cores.
+            requests:
+              cpu: 100m
+              memory: 1800Mi
+            limits:
+              cpu: 1200m
+              memory: 2300Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          # First boot generates the world on 2 shared cores and can take several minutes;
+          # do not let a startup/liveness probe restart it mid-generation.
+          startupProbe:
+            tcpSocket:
+              port: minecraft
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 90
+          readinessProbe:
+            tcpSocket:
+              port: minecraft
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: minecraft-data
