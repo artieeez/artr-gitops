@@ -29,7 +29,9 @@ spec:
         - name: pi
           # CI (artieeez/pi-cloud build-push-ocir) bumps this line; `latest` until first sha lands.
           image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-aef05ea
-          imagePullPolicy: Always
+          # Immutable sha tag => IfNotPresent. `Always` only pays off
+          # for a floating tag; see docs/image-pull-policy.md.
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 22
               name: ssh

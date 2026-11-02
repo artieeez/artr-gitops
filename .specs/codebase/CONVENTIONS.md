@@ -47,3 +47,4 @@ Each component is a flat directory — no subdirectories or kustomize overlays.
 - OCI Registry images use full path: `vcp.ocir.io/<namespace>/<repo>:<tag>`
 - Docker Hub images: `docker.io/<org>/<image>:<tag>`
 - No `latest` tag in production — always pinned to a specific version
+- **Pull policy follows tag mutability:** immutable `sha-<rev>`, pinned version, or `@sha256:` digest ⇒ `imagePullPolicy: IfNotPresent`; `Always` only for floating tags (and comment why). The cluster is a single node, so a needless pull is pure disk churn. See `docs/image-pull-policy.md`.

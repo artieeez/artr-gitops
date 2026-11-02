@@ -33,6 +33,7 @@ The development environment requires:
 - **Helper scripts** in `scripts/` require an external Terraform directory (`../terraform-files/oracle-cluster`) that is not part of this repo. They cannot be executed standalone.
 - **SealedSecrets** require `kubeseal` + access to the live cluster's sealed-secrets controller. They cannot be created/rotated locally without cluster access.
 - **TLS certificates:** Single wildcard cert in `cert-manager` namespace; Reflector copies `wildcard-artr-com-br-tls` to workload namespaces. Never issue certs directly into workload namespaces — see `docs/certificate-runbook.md`.
+- **Image pull policy:** immutable sha tag ⇒ `IfNotPresent`; use `Always` only for floating tags. Single node, so every needless pull is disk churn — see `docs/image-pull-policy.md`.
 - See `docs/quick-start.md` for ArgoCD bootstrap instructions and `docs/pocketid-tinyauth-setup.md` for identity provider setup.
 
 ### Git
