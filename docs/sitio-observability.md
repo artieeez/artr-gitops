@@ -16,6 +16,10 @@ Rails domain/ops events → OTLP → Alloy → Loki → Grafana folders **Sitio 
 | Loki labels | Alloy promotes `service.name` → `service_name`, `service.namespace` → `service_namespace` |
 | Grafana | Folders **Sitio Staging** / **Sitio Production** (providers `sitio-staging`, `sitio-production`) |
 
+Alloy also collects container stdout/stderr for the rest of the cluster (labels `namespace`,
+`pod`, `container`, `node`, no `service_*`) — see [pod-log-collection.md](pod-log-collection.md).
+Queries here are unaffected: OTLP streams carry no `namespace` label.
+
 ### Expected Deployment env
 
 | Variable | Staging | Production |

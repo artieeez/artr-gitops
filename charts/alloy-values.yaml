@@ -1,4 +1,26 @@
-# Grafana Alloy — OTLP (logs) → Loki push. Depends on Loki gateway in monitoring.
+# Grafana Alloy — log pipeline for the cluster. Depends on Loki gateway in monitoring.
+#
+# Two independent sources, one sink:
+#
+#   1. OTLP  — the two Rails apps push structured domain events (see
+#      docs/sitio-observability.md). Unchanged behavior.
+#   2. Pod stdout/stderr — every other namespace (monitoring, argocd, platform,
+#      pi, Job pods, ...) writes to its container log and was invisible before.
+#
+# Both forward to `loki.write.local`.
+#
+# Source choice for pod logs: `loki.source.kubernetes` (Kubernetes API, one
+# `pods/log?follow=true` stream per container) instead of `loki.source.file`
+# with a `/var/log/pods` hostPath. The chart renders a DaemonSet
+# (`controller.type` default is `daemonset`), so hostPath collection would work
+# on this single node, but the API path needs no host mount, no runtime-specific
+# log path parsing, and no extra RBAC — the chart's ClusterRole already grants
+# `pods/log` cluster-wide. Cost: the apiserver relays ~140 MB/day of log bytes
+# (see docs/pod-log-collection.md for the sizing) and Alloy re-reads the
+# retained container log from the start after a pod restart, because
+# `loki.source.kubernetes` has no `tail_from_end` (Alloy 1.14) and its positions
+# file lives in `/tmp/alloy`.
+#
 # Chart: grafana/alloy
 
 alloy:
@@ -23,6 +45,11 @@ alloy:
         format = "logfmt"
       }
 
+      // ----------------------------------------------------------------------
+      // Source 1: OTLP from the Rails apps (grpc 4317 / http 4318).
+      // Promotes service.name -> service_name and service.namespace ->
+      // service_namespace, which is what the Sitio dashboards query.
+      // ----------------------------------------------------------------------
       otelcol.receiver.otlp "default" {
         grpc {}
 
@@ -55,18 +82,84 @@ alloy:
         forward_to = [loki.write.local.receiver]
       }
 
+      // ----------------------------------------------------------------------
+      // Source 2: pod stdout/stderr via the Kubernetes API.
+      // ----------------------------------------------------------------------
+      discovery.kubernetes "pods" {
+        role = "pod"
+      }
+
+      discovery.relabel "pod_logs" {
+        targets = discovery.kubernetes.pods.targets
+
+        // Drop policy 1: kube-system is entirely OCI-managed on OKE (coredns,
+        // flannel, kube-proxy, csi-oci, oke-* agents) and cannot be fixed from
+        // this repo. It was 143 MB/day (~32% of all pod log bytes) of noise.
+        // Narrow this regex to keep a specific pod instead.
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          regex         = "kube-system"
+          action        = "drop"
+        }
+
+        // Drop policy 2: Loki's own stdout was 156 MB/day (~35% of all pod log
+        // bytes) and every line follows a Grafana query, so ingesting it is a
+        // feedback loop. Drop only the `loki` container; loki-gateway, the
+        // memcached caches and the sidecars stay.
+        rule {
+          source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_container_name"]
+          regex         = "monitoring;loki"
+          action        = "drop"
+        }
+
+        // Stream labels. `namespace`, `pod`, `container` and `node` are not
+        // produced by the OTLP path, so they cannot collide with
+        // service_name / service_namespace; an OTLP entry simply has no
+        // pod-level labels and a pod log entry has no service_* labels.
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_node_name"]
+          target_label  = "node"
+        }
+      }
+
+      loki.source.kubernetes "pods" {
+        targets    = discovery.relabel.pod_logs.output
+        forward_to = [loki.write.local.receiver]
+      }
+
+      // ----------------------------------------------------------------------
+      // Sink: Loki gateway (monitoring namespace).
+      // ----------------------------------------------------------------------
       loki.write "local" {
         endpoint {
           url = "http://loki-gateway.monitoring.svc.cluster.local/loki/api/v1/push"
         }
       }
 
+  # Pod log tailing adds ~140 MB/day of ingest and up to ~70 concurrent streams
+  # on top of the OTLP path. Measured baseline was 78 MiB RSS; the limit is
+  # raised so a burst cannot OOMKill the only log shipper (node has ~3 GiB free).
   resources:
     requests:
       cpu: 50m
-      memory: 128Mi
+      memory: 192Mi
     limits:
-      memory: 512Mi
+      memory: 768Mi
 
 crds:
   create: false
