@@ -12,6 +12,12 @@ spec:
   failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
+      # Self-clean finished Jobs after 7 days. `failedJobsHistoryLimit` keeps
+      # the three most recent failures, so once a failure is fixed the stale
+      # Job object keeps firing KubeJobFailed until three more failures
+      # replace it. With a weekly schedule this TTL drops a stale Job before
+      # the next run. Mirrors the sitio-rails-sqlite-backup CronJobs.
+      ttlSecondsAfterFinished: 604800
       backoffLimit: 0
       template:
         metadata:
