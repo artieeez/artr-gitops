@@ -58,12 +58,14 @@ mounted read-only into `/data`. Two details matter:
   not resolve — e.g. `ERROR : Invalid parameter provided for 'manage-users'
   command: Could not resolve user from Playerdb: Ge`
 
-To add a player, compute their offline UUID and add it to the ConfigMap:
+To add a player, compute their offline UUID and add it to the ConfigMap.
+The name must match what the client reports **exactly**, including case: the
+UUID is derived from the string, so `Ge` and `Gee` are two different players.
 
 ```bash
 python3 - <<'PY'
 import hashlib, uuid
-name = "Ge"
+name = "Gee"
 d = bytearray(hashlib.md5(b"OfflinePlayer:" + name.encode()).digest())
 d[6] = (d[6] & 0x0F) | 0x30
 d[8] = (d[8] & 0x3F) | 0x80

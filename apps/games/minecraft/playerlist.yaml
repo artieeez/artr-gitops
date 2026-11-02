@@ -16,8 +16,8 @@ data:
         "name": "Artur"
       },
       {
-        "uuid": "cbf6329a-04be-3c55-9a62-7d578b748aba",
-        "name": "Ge"
+        "uuid": "537ed8ad-f09b-32e4-aa83-d069a54c770a",
+        "name": "Gee"
       }
     ]
   # Mounted read-only, so `/op` at runtime cannot persist: edit this file instead.
