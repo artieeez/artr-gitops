@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: minecraft
+  namespace: games
+  labels:
+    app: minecraft
+spec:
+  # NodePort because the OCI Network Load Balancer backends point at node IPs
+  # (modules/oke in artieeez/oracle-cluster: listener 25565 -> backend set ->
+  # node:30565). Keep nodePort in sync with `local.minecraft_node_port` there.
+  type: NodePort
+  selector:
+    app: minecraft
+  ports:
+    - name: minecraft
+      protocol: TCP
+      port: 25565
+      targetPort: minecraft
+      nodePort: 30565
