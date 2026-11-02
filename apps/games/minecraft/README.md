@@ -7,7 +7,7 @@ Vanilla Minecraft **Java 1.7.10** server on the OCI cluster.
 | Address | `play.artr.com.br:25565` (matches the wildcard `*.artr.com.br` → NLB reserved IP) |
 | Version | 1.7.10 vanilla (`TYPE=VANILLA`) |
 | Namespace | `games` |
-| Image | `itzg/minecraft-server:java8@sha256:70c6e30e…` |
+| Image | `docker.io/itzg/minecraft-server:java8@sha256:70c6e30e…` |
 | World | PVC `minecraft-data` (10Gi, `nfs-client`, Retain) |
 
 ## Why `java8`
@@ -16,6 +16,10 @@ Pre-1.13 servers break on JDK 9+ (`LaunchWrapper` casts the system classloader t
 `java.net.URLClassLoader`, which only exists on Java 8). The `java8` tag is
 multi-arch and the only correct base for 1.7.10. The digest is pinned; Renovate
 tracks tag and digest together.
+
+The reference must stay **fully qualified** (`docker.io/…`): the node's CRI-O
+runs `short-name-mode = enforcing`, so a bare `itzg/minecraft-server` fails to
+schedule with `ImageInspectError: … returns ambiguous list`.
 
 ## Traffic path
 
