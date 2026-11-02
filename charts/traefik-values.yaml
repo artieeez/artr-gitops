@@ -11,36 +11,12 @@ ports:
     expose:
       default: true
     nodePort: 32443
-  # Pi-hole DNS via Terraform-managed OCI NLB (IngressRouteUDP / IngressRouteTCP -> pihole-dns:53)
-  dnsudp:
-    port: 5353
-    expose:
-      default: true
-    exposedPort: 53
-    nodePort: 32053
-    protocol: UDP
-  dnstcp:
-    port: 5354
-    expose:
-      default: true
-    exposedPort: 53
-    nodePort: 32054
-    protocol: TCP
-  # DNS-over-TLS (DoT) on 853/TCP -> Traefik terminates TLS and forwards to Pi-hole DNS TCP.
-  dottcp:
-    port: 5853
-    expose:
-      default: true
-    exposedPort: 853
-    nodePort: 31853
-    protocol: TCP
+# Pi-hole DNS is not proxied by Traefik: it is reached over the tailnet
+# (pihole-dns.<tailnet>.ts.net) and the OCI NLB no longer publishes 53/853.
 providers:
   kubernetesCRD:
     enabled: true
     allowCrossNamespace: true
-additionalArguments:
-  # DNS responses can exceed default UDP timeout on slow upstreams
-  - "--entryPoints.dnsudp.udp.timeout=30s"
 api:
   dashboard: true
   insecure: true
