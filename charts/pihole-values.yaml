@@ -1,4 +1,4 @@
-# Pi-hole – DNS via Traefik NLB (IngressRouteUDP/TCP in apps/platform/pihole/), HTTPS UI + TinyAuth.
+# Pi-hole – DNS over the tailnet; HTTPS UI via Traefik + TinyAuth.
 # Chart: https://mojo2600.github.io/pihole-kubernetes/  (pihole 2.35.0)
 # Image: https://github.com/pi-hole/docker-pi-hole/releases  (2026.06.0)
 # Fully qualified image required on OKE/CRI-O (short name mode enforcing).
@@ -13,7 +13,8 @@ replicaCount: 1
 serviceDns:
   type: ClusterIP
   mixedService: true
-  # L3 tailnet ingress via Tailscale operator (public Traefik NLB path unchanged).
+  # L3 tailnet ingress via the Tailscale operator. This is the only DNS path:
+  # nothing is published on the OCI NLB.
   annotations:
     tailscale.com/expose: "true"
     tailscale.com/hostname: "pihole-dns"
