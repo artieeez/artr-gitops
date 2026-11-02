@@ -26,8 +26,9 @@ spec:
       containers:
         - name: minecraft
           # java8 tag is mandatory for pre-1.13 servers (JDK 9+ breaks legacy classloading).
+          # Fully qualified registry: the node's CRI-O runs short-name-mode=enforcing.
           # Digest pinned; Renovate tracks the tag/digest pair.
-          image: itzg/minecraft-server:java8@sha256:70c6e30e928743f237ce5729662a62afd1f9a180b53ff117979c6880ad5244ee
+          image: docker.io/itzg/minecraft-server:java8@sha256:70c6e30e928743f237ce5729662a62afd1f9a180b53ff117979c6880ad5244ee
           imagePullPolicy: IfNotPresent
           ports:
             - name: minecraft
