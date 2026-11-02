@@ -50,18 +50,39 @@ loki:
         index:
           prefix: loki_index_
           period: 24h
+  # Retention is enforced by the compactor, which in SingleBinary runs inside
+  # the same process (target=all) — no separate compactor pod needed.
+  # compaction_interval and retention_delete_delay already default to these
+  # values; listed to document intent. delete_request_store is mandatory
+  # whenever retention is enabled.
+  compactor:
+    working_directory: /var/loki/compactor
+    compaction_interval: 10m
+    retention_enabled: true
+    retention_delete_delay: 2h
+    delete_request_store: filesystem
   # Dashboards query with | json, not | pattern; the pattern ingester only costs ~50-150 MiB on loki-0.
   pattern_ingester:
     enabled: false
   limits_config:
     allow_structured_metadata: true
     volume_enabled: true
+    # Bounded retention is what keeps 1Gi on filesystem from filling up now that
+    # pod stdout is ingested too. Size math: ~142 MB/day of log bytes after the
+    # Alloy drop rules, ~6-13x compression on disk -> 11-24 MiB/day stored, so
+    # 14d lands around 185-415 MiB including index. Without retention the same
+    # ingest fills the 1Gi volume in 2-6 weeks.
+    retention_period: 336h
 
 singleBinary:
   replicas: 1
   persistence:
     enabled: true
     storageClass: nfs-client
+    # 1Gi is enough because retention is bounded (see limits_config above).
+    # Raising it is cheap and non-disruptive if 14d is too short: the class sets
+    # allowVolumeExpansion, and nfs-subdir-external-provisioner enforces no
+    # quota anyway (the directory grows inside nfs-server's 50Gi volume).
     size: 1Gi
 
 backend:
