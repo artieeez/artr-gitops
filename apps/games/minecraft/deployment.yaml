@@ -69,8 +69,18 @@ spec:
               value: "8"
             - name: ALLOW_NETHER
               value: "true"
+            # Offline mode: the household plays from PojavLauncher local profiles, which
+            # present no Mojang session ('Invalid session' if online-mode is on).
+            # Consequence: player identity is the name, so the whitelist below is the
+            # ONLY access control -- never remove it while this is public.
             - name: ONLINE_MODE
-              value: "TRUE"
+              value: "FALSE"
+            # Whitelist content lives in the playerlist ConfigMap (offline UUIDs).
+            # The WHITELIST env var is deliberately unused: itzg resolves names via
+            # PlayerDB/Mojang, so it writes online UUIDs (never match) and aborts
+            # startup for names that do not resolve.
+            - name: ENABLE_WHITELIST
+              value: "true"
             - name: SPAWN_PROTECTION
               value: "16"
             - name: OVERRIDE_SERVER_PROPERTIES
@@ -99,6 +109,14 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
+            # subPath file mounts: read-only, and not refreshed by ConfigMap updates,
+            # so a playerlist change needs `rollout restart` (see README).
+            - name: playerlist
+              mountPath: /data/whitelist.json
+              subPath: whitelist.json
+            - name: playerlist
+              mountPath: /data/ops.json
+              subPath: ops.json
           # First boot generates the world on 2 shared cores and can take several minutes;
           # do not let a startup/liveness probe restart it mid-generation.
           startupProbe:
@@ -117,3 +135,6 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: minecraft-data
+        - name: playerlist
+          configMap:
+            name: minecraft-playerlist
