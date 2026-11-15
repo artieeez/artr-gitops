@@ -181,7 +181,9 @@ spec:
             - name: HERMES_DASHBOARD_OIDC_ISSUER
               value: "https://pocketid.artr.com.br"
           # DEEPSEEK_API_KEY, SLACK_*, GH_TOKEN, LINEAR_API_KEY,
-          # HERMES_DASHBOARD_OIDC_CLIENT_ID — sealed via scripts/seal-hermes-secrets.sh.
+          # HERMES_DASHBOARD_OIDC_CLIENT_ID, HERMES_DASHBOARD_SESSION_TOKEN (Hermes
+          # Desktop over the tailnet, service-tailnet.yaml) — sealed via
+          # scripts/seal-hermes-secrets.sh.
           # Env overrides /opt/data/.env.
           envFrom:
             - secretRef:
