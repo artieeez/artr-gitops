@@ -117,8 +117,18 @@ spec:
               # owns the rest of this file (onboarding, keybindings).
               HDR_CONFIG="$HOME/.config/herdr/config.toml"
               mkdir -p "$(dirname "$HDR_CONFIG")"
-              grep -qs '^\[terminal\]' "$HDR_CONFIG" || \
-                printf '\n[terminal]\ndefault_shell = "/bin/bash"\nshell_mode = "login"\n' >> "$HDR_CONFIG"
+              herdr-pane-config "$HDR_CONFIG" || echo "WARN: herdr-pane-config failed; panes may be non-login shells"
+              # SSH (claude-ssh container): sshd refuses group/world-readable
+              # keys, so copy the sealed ones (mounted 0444) to 0600 copies.
+              install -d -m 700 "$HOME/.sshd" "$HOME/.ssh"
+              install -m 600 /claude-box-ssh/ssh_host_ed25519_key "$HOME/.sshd/ssh_host_ed25519_key"
+              install -m 644 /claude-box-ssh/ssh_host_ed25519_key.pub "$HOME/.sshd/ssh_host_ed25519_key.pub"
+              install -m 600 /claude-box-ssh/authorized_keys "$HOME/.ssh/authorized_keys"
+              # UID 10000 has no passwd entry in the image; sshd (and whoami/git)
+              # need one. claude-box + claude-ssh mount these over /etc.
+              cp /etc/passwd /etc-override/passwd && cp /etc/group /etc-override/group
+              echo "claude:x:10000:10000:Claude (hermes claude-box):/opt/data/claude-home:/bin/bash" >> /etc-override/passwd
+              echo "claude:x:10000:" >> /etc-override/group
               # Login-shell panes reset PATH via /etc/profile: ~/.profile sources
               # this file (regenerated every boot) to re-add claude + gem bins.
               printf 'export PATH="$HOME/.local/bin:$GEM_HOME/bin:$PATH"\n' > "$HOME/.claude-box-env"
@@ -141,6 +151,11 @@ spec:
             - name: data
               mountPath: /opt/data/claude-home
               subPath: claude-home
+            - name: claude-box-ssh
+              mountPath: /claude-box-ssh
+              readOnly: true
+            - name: etc-override
+              mountPath: /etc-override
         # Static kubectl binary for the agent's terminal tool. Uses the pod's
         # ServiceAccount (read-only RBAC, rbac.yaml) via in-cluster config.
         - name: kubectl
@@ -322,6 +337,14 @@ spec:
               mountPath: /etc/claude-code/managed-settings.json
               subPath: managed-settings.json
               readOnly: true
+            - name: etc-override
+              mountPath: /etc/passwd
+              subPath: passwd
+              readOnly: true
+            - name: etc-override
+              mountPath: /etc/group
+              subPath: group
+              readOnly: true
           resources:
             requests:
               cpu: 250m
@@ -333,6 +356,59 @@ spec:
               command: ["test", "-S", "/run/herdr/herdr/herdr.sock"]
             initialDelaySeconds: 5
             periodSeconds: 10
+        # SSH into the claude-box sandbox over Tailscale (service-ssh.yaml):
+        #   ssh claude-box   |   herdr --remote claude-box
+        # Non-root sshd (UID 10000, key-only, user `claude`). Shells run here;
+        # `herdr` attaches to the claude-box server via the shared socket, so
+        # panes still run in claude-box. No secrets in this container's env;
+        # sshd_config SetEnv provides the non-secret paths.
+        - name: claude-ssh
+          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-aef05ea
+          # pi-cloud's WORKDIR is /root/artieeez (root-only); as UID 10000
+          # git/herdr fail to stat it, so start somewhere we own.
+          workingDir: /opt/data/claude-home
+          imagePullPolicy: IfNotPresent
+          command: ["/usr/sbin/sshd", "-D", "-e", "-f", "/etc/claude-box/sshd_config"]
+          ports:
+            - containerPort: 2222
+              name: ssh
+          securityContext:
+            runAsUser: 10000
+            runAsGroup: 10000
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data/claude-home
+              subPath: claude-home
+            - name: data
+              mountPath: /opt/data/workspace
+              subPath: workspace
+            - name: herdr-run
+              mountPath: /run/herdr
+            - name: sshd-run
+              mountPath: /run/sshd
+            - name: claude-box-config
+              mountPath: /etc/claude-box/sshd_config
+              subPath: sshd_config
+              readOnly: true
+            - name: etc-override
+              mountPath: /etc/passwd
+              subPath: passwd
+              readOnly: true
+            - name: etc-override
+              mountPath: /etc/group
+              subPath: group
+              readOnly: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 1Gi
+          readinessProbe:
+            tcpSocket:
+              port: ssh
+            initialDelaySeconds: 5
+            periodSeconds: 20
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -342,6 +418,16 @@ spec:
         - name: claude-box-config
           configMap:
             name: claude-box-config
+        # authorized_keys + host key (scripts/seal-claude-box-ssh.sh). 0444 so
+        # the UID-10000 init can read it; it copies them to 0600 files.
+        - name: claude-box-ssh
+          secret:
+            secretName: claude-box-ssh
+            defaultMode: 0444
+        - name: etc-override
+          emptyDir: {}
+        - name: sshd-run
+          emptyDir: {}
         - name: config
           configMap:
             name: hermes-config

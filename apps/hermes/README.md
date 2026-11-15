@@ -51,6 +51,21 @@ Watch / take over Claude sessions:
 kubectl -n hermes exec -it deploy/hermes -c claude-box -- herdr
 ```
 
+Over Tailscale (Mac, phone/Termux) — the `claude-ssh` container runs a
+non-root, key-only sshd as user `claude`, exposed as `claude-box` on the
+tailnet (`service-ssh.yaml`):
+
+```bash
+ssh claude-box                # shell in the sandbox; `herdr` attaches to the server
+herdr --remote claude-box     # thin local herdr client
+```
+
+`~/.ssh/config`: `Host claude-box` → `HostName claude-box.<tailnet>.ts.net`,
+`User claude`. Keys: `./scripts/seal-claude-box-ssh.sh` (defaults to the
+retired pi box's `authorized_keys`, still on NFS at `/exports/pi/pi-home`; pass a file to change
+them). SSH shells don't carry `GH_TOKEN`/the Claude token — run Claude in
+herdr panes, which get them from the claude-box server.
+
 Hermes' own sessions: dashboard, or
 `kubectl -n hermes exec -it deploy/hermes -c hermes -- hermes --tui`.
 

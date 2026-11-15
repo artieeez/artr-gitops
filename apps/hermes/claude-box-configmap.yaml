@@ -3,6 +3,7 @@
 #                               highest precedence, layered over the personal
 #                               ~/.claude from artieeez/claude-config)
 #   SKILL.md                 -> Hermes skill: delegate coding to Claude via herdr
+#   sshd_config              -> claude-ssh container (non-root sshd, Tailscale)
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -41,6 +42,38 @@ data:
         "sessionUrl": false
       }
     }
+
+  # Non-root sshd for the claude-ssh container (UID 10000, user `claude`).
+  # Own config via -f: Debian's /etc/ssh/sshd_config pulls in pi-cloud's
+  # root-oriented drop-in (port 22, /root host key).
+  sshd_config: |
+    Port 2222
+    ListenAddress 0.0.0.0
+    HostKey /opt/data/claude-home/.sshd/ssh_host_ed25519_key
+    PidFile /opt/data/claude-home/.sshd/sshd.pid
+    AuthorizedKeysFile .ssh/authorized_keys
+    AllowUsers claude
+    PermitRootLogin no
+    PubkeyAuthentication yes
+    PasswordAuthentication no
+    KbdInteractiveAuthentication no
+    PermitEmptyPasswords no
+    UsePAM no
+    StrictModes yes
+    PermitUserEnvironment no
+    X11Forwarding no
+    AllowAgentForwarding no
+    AllowTcpForwarding yes
+    MaxAuthTries 4
+    LoginGraceTime 30
+    ClientAliveInterval 30
+    ClientAliveCountMax 6
+    TCPKeepAlive yes
+    LogLevel VERBOSE
+    Subsystem sftp internal-sftp
+    # sshd resets the env: give sessions the non-secret paths so `herdr`
+    # finds the claude-box server socket and Ruby/gems match the panes.
+    SetEnv XDG_CONFIG_HOME=/run/herdr HERDR_CONFIG_PATH=/opt/data/claude-home/.config/herdr/config.toml GEM_HOME=/opt/data/claude-home/.gem BUNDLE_PATH=/opt/data/claude-home/.bundle-cache BUNDLE_JOBS=4 DISABLE_AUTOUPDATER=1
 
   SKILL.md: |
     ---
