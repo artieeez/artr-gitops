@@ -14,3 +14,6 @@ spec:
     - port: 9119
       name: dashboard
       targetPort: dashboard
+    - port: 8644
+      name: webhook
+      targetPort: webhook
