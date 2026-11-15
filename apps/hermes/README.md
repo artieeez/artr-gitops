@@ -6,7 +6,7 @@
 | Surface | How |
 | --- | --- |
 | Dashboard | `https://hermes.artr.com.br` — Tinyauth (Pocket ID, group `admin`) **then** Hermes native OIDC (Pocket ID) |
-| Hermes Desktop | `http://hermes.<tailnet>.ts.net` (tailnet only, no Tinyauth) — session token (`HERMES_DASHBOARD_SESSION_TOKEN`) |
+| Hermes Desktop | `http://hermes.tailc16433.ts.net` (tailnet only, no Tinyauth) — Hermes OIDC (Pocket ID), or session token |
 | Slack | Socket Mode (outbound WebSocket, no ingress); only `SLACK_ALLOWED_USERS` may talk to it |
 | GitHub | Remote MCP `api.githubcopilot.com/mcp/` + `GH_TOKEN` (fine-grained PAT, artieeez repos, read/write) |
 | Linear | Remote MCP `mcp.linear.app/mcp` with `LINEAR_API_KEY` |
@@ -75,27 +75,27 @@ Hermes' own sessions: dashboard, or
 Desktop can't complete Tinyauth's browser forwardAuth, so it uses a
 tailnet-only route instead (`service-tailnet.yaml`, Tailscale hostname
 `hermes` → dashboard :9119). The public `hermes.artr.com.br` route is
-unchanged. On the tailnet route Hermes' own gate is the only gate, and Desktop
-authenticates with the session-token provider:
+unchanged. On the tailnet route Hermes' own gate is the only gate.
 
-1. Generate a token and seal it:
+Desktop → Settings → Gateways → Remote URL `http://hermes.tailc16433.ts.net`,
+then **Sign in with Self-Hosted OIDC** (Pocket ID in the system browser).
 
-   ```bash
-   openssl rand -base64 32                     # copy the output
-   ./scripts/seal-hermes-secrets.sh HERMES_DASHBOARD_SESSION_TOKEN
-   ```
+Because the dashboard is served on two hosts, `dashboard.public_url` is
+deliberately **unset**: Hermes derives the OIDC callback from the request
+host, so the Pocket ID `hermes` client needs both callback URLs:
 
-2. Commit + push, then `kubectl rollout restart deployment/hermes -n hermes`.
-3. Check: `curl -s http://hermes.<tailnet>.ts.net/api/status | jq '.auth_required, .auth_providers'`
-   → `true` and a list that includes `"session-token"`.
-4. Desktop → Settings → Gateways → add a remote gateway: URL
-   `http://hermes.<tailnet>.ts.net`, auth **Session token**, paste the token.
+- `https://hermes.artr.com.br/auth/callback`
+- `http://hermes.tailc16433.ts.net/auth/callback`
 
-The token is a full-access password for the agent (it can run commands in the
-container). Rotate it with the same seal command; every saved Desktop copy
-then needs the new value. Self-hosted OIDC sign-in from Desktop
-([upstream #84483](https://github.com/NousResearch/hermes-agent/issues/84483))
-would make the token unnecessary once it works with Pocket ID.
+Setting `public_url` again pins the callback to one host and breaks login on
+the other with `{"detail":"Missing PKCE state cookie"}`.
+
+Fallback without OIDC: the session-token provider
+(`HERMES_DASHBOARD_SESSION_TOKEN`, sealed in `hermes-secrets`). In Desktop,
+add a gateway connection with auth **Session token** and paste it. It is a
+full-access password for the agent; rotate with
+`./scripts/seal-hermes-secrets.sh HERMES_DASHBOARD_SESSION_TOKEN`, and every
+saved Desktop copy then needs the new value.
 
 ## Webhooks
 
@@ -130,7 +130,8 @@ signature or unknown route).
 
 1. **Pocket ID** → OIDC Clients → new client `hermes`:
    - **Public client** on, PKCE on (Hermes does not support client secrets)
-   - Callback URL: `https://hermes.artr.com.br/auth/callback`
+   - Callback URLs: `https://hermes.artr.com.br/auth/callback` and
+     `http://hermes.tailc16433.ts.net/auth/callback` (Desktop, tailnet)
    - Allowed user groups: `admin` — Hermes has no user allowlist of its own;
      anyone Pocket ID admits gets full dashboard access
    - Copy the client ID → `HERMES_DASHBOARD_OIDC_CLIENT_ID`

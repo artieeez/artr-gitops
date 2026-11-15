@@ -1,5 +1,5 @@
 # Hermes Desktop -> dashboard API over the tailnet (Tailscale operator):
-#   http://hermes.<tailnet>.ts.net  ->  hermes container :9119
+#   http://hermes.tailc16433.ts.net  ->  hermes container :9119
 # Desktop can't pass Tinyauth's browser forwardAuth, so this path skips it;
 # Hermes' own gate still applies (session-token provider for Desktop,
 # HERMES_DASHBOARD_SESSION_TOKEN, plus the Pocket ID OIDC login). Plain HTTP

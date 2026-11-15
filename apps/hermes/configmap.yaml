@@ -21,7 +21,13 @@ data:
       journal_mode: delete
 
     dashboard:
-      public_url: https://hermes.artr.com.br
+      # No public_url on purpose: it would pin the OIDC callback to ONE host,
+      # and a login started on the other one fails ("Missing PKCE state
+      # cookie" — the cookie lives on the starting host). Unset, Hermes builds
+      # /auth/callback from the request (X-Forwarded-* from trusted_proxies):
+      #   https://hermes.artr.com.br/auth/callback       (browser, via Traefik)
+      #   http://hermes.tailc16433.ts.net/auth/callback  (Desktop, tailnet)
+      # Both must be callback URLs on the Pocket ID `hermes` client.
       # Traefik pod network. OKE flannel default is 10.244.0.0/16 — verify with
       # `kubectl get pod -n traefik -o wide` (IP must fall inside this CIDR).
       trusted_proxies:

@@ -176,8 +176,8 @@ spec:
               value: "true"
             - name: WEBHOOK_PORT
               value: "8644"
-            - name: HERMES_DASHBOARD_PUBLIC_URL
-              value: "https://hermes.artr.com.br"
+            # No HERMES_DASHBOARD_PUBLIC_URL: the dashboard has two hosts
+            # (public + tailnet), see configmap.yaml `dashboard:`.
             - name: HERMES_DASHBOARD_OIDC_ISSUER
               value: "https://pocketid.artr.com.br"
           # DEEPSEEK_API_KEY, SLACK_*, GH_TOKEN, LINEAR_API_KEY,
