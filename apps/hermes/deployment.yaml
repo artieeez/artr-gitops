@@ -127,8 +127,10 @@ spec:
               # UID 10000 has no passwd entry in the image; sshd (and whoami/git)
               # need one. claude-box + claude-ssh mount these over /etc.
               cp /etc/passwd /etc-override/passwd && cp /etc/group /etc-override/group
-              echo "claude:x:10000:10000:Claude (hermes claude-box):/opt/data/claude-home:/bin/bash" >> /etc-override/passwd
-              echo "claude:x:10000:" >> /etc-override/group
+              # (newer pi-cloud images already ship this user: don't duplicate it)
+              grep -q '^claude:' /etc-override/passwd || \
+                echo "claude:x:10000:10000:Claude (hermes claude-box):/opt/data/claude-home:/bin/bash" >> /etc-override/passwd
+              grep -q '^claude:' /etc-override/group || echo "claude:x:10000:" >> /etc-override/group
               # Login-shell panes reset PATH via /etc/profile: ~/.profile sources
               # this file (regenerated every boot) to re-add claude + gem bins.
               printf 'export PATH="$HOME/.local/bin:$GEM_HOME/bin:$PATH"\n' > "$HOME/.claude-box-env"
@@ -297,6 +299,9 @@ spec:
               value: /bin/bash
             - name: TERM
               value: xterm-256color
+            # Debian leaves TMPDIR unset; agents write "$TMPDIR/x" and hit "/x".
+            - name: TMPDIR
+              value: /tmp
             # Ruby: mise's install under /opt/mise is root-owned/read-only, so
             # gems (and Bundler self-updates, e.g. a lockfile's newer Bundler)
             # go to a per-user GEM_HOME, and bundles to ONE shared BUNDLE_PATH:
