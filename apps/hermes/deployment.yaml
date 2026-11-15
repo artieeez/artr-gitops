@@ -60,6 +60,9 @@ spec:
         # dir: $XDG_CONFIG_HOME/herdr/herdr.sock = /run/herdr/herdr/herdr.sock.
         - name: herdr-cli
           image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-aef05ea
+          # pi-cloud's WORKDIR is /root/artieeez (root-only); as UID 10000
+          # git/herdr fail to stat it, so start somewhere we own.
+          workingDir: /tools
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:
@@ -80,6 +83,9 @@ spec:
         # flags so interactive `claude` never waits on an onboarding screen.
         - name: claude-install
           image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-aef05ea
+          # pi-cloud's WORKDIR is /root/artieeez (root-only); as UID 10000
+          # git/herdr fail to stat it, so start somewhere we own.
+          workingDir: /opt/data/claude-home
           imagePullPolicy: IfNotPresent
           command: ["/bin/bash", "-c"]
           args:
@@ -245,6 +251,9 @@ spec:
         # its entrypoint (sshd, boot sync) is replaced by `herdr server`.
         - name: claude-box
           image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-aef05ea
+          # pi-cloud's WORKDIR is /root/artieeez (root-only); as UID 10000
+          # git/herdr fail to stat it, so start somewhere we own.
+          workingDir: /opt/data/claude-home
           # Immutable sha tag => IfNotPresent (2.2 GiB image).
           imagePullPolicy: IfNotPresent
           command: ["herdr", "server"]
