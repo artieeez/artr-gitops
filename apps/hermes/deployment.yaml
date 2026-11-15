@@ -62,9 +62,18 @@ spec:
           ports:
             - containerPort: 9119
               name: dashboard
+            - containerPort: 8644
+              name: webhook
           env:
             - name: HERMES_DASHBOARD
               value: "1"
+            # Inbound webhooks (routes managed in the dashboard). Public via
+            # https://hermes.artr.com.br/webhooks/<route> (ingressroute.yaml);
+            # every route must carry its own secret (HMAC) or requests 404.
+            - name: WEBHOOK_ENABLED
+              value: "true"
+            - name: WEBHOOK_PORT
+              value: "8644"
             - name: HERMES_DASHBOARD_PUBLIC_URL
               value: "https://hermes.artr.com.br"
             - name: HERMES_DASHBOARD_OIDC_ISSUER

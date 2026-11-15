@@ -11,6 +11,36 @@
 | Linear | Remote MCP `mcp.linear.app/mcp` with `LINEAR_API_KEY` |
 | Grafana | `grafana-mcp` sidecar (127.0.0.1:8000), Viewer service account, `--disable-write` |
 | kubectl | Read-only ServiceAccount `hermes` (`view` + `hermes-read-extra`; no Secrets, no exec) |
+| Webhooks | `https://hermes.artr.com.br/webhooks/<route>` → listener :8644, no Tinyauth; each route's HMAC secret is the gate |
+
+## Webhooks
+
+Routes are created in the dashboard (not in `configmap.yaml`). The dashboard
+shows `http://localhost:8644/webhooks/<route>` — that is the in-pod address;
+give senders `https://hermes.artr.com.br/webhooks/<route>` instead.
+
+Linear (`linear-push`):
+
+1. Linear → Settings → API → Webhooks → new webhook, URL
+   `https://hermes.artr.com.br/webhooks/linear-push`, data change events:
+   **Comments** only. Copy Linear's **signing secret**.
+2. In the Hermes route: signature `linear`, secret = that signing secret
+   (Linear generates it; a Hermes-generated secret won't match).
+3. Template the payload into the prompt — a prompt without `{…}` fields
+   sends only the literal text, e.g.:
+
+   ```text
+   Follow the instructions in this Linear comment.
+   Issue: {data.issue.title} — {url}
+   Author: {data.user.name}
+   Comment: {data.body}
+   ```
+
+Payload text is untrusted: anyone who can comment in the workspace can
+instruct the agent, which holds a GitHub write token.
+
+Check delivery: Linear's webhook page shows response codes (`404` = bad
+signature or unknown route).
 
 ## Bootstrap (once, before the first push)
 

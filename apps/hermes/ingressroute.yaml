@@ -1,4 +1,4 @@
-# hermes.artr.com.br — two auth layers, both backed by Pocket ID:
+# hermes.artr.com.br — dashboard: two auth layers, both backed by Pocket ID:
 #   1. Tinyauth forwardAuth at Traefik (group `admin`, see TINYAUTH_APPS_HERMES_*
 #      in apps/platform/tinyauth/deployment.yaml). Also hides the public
 #      /api/status endpoint from the internet.
@@ -28,8 +28,19 @@ spec:
   entryPoints:
     - websecure
   routes:
+    # Inbound webhooks (e.g. Linear) can't do a browser SSO login, so this
+    # path skips Tinyauth. Hermes is the boundary: per-route HMAC signature
+    # (unknown route / bad signature => 404), 30 req/min per route, 1 MB cap.
+    # Only /webhooks/ is exposed — the listener's /health stays internal.
+    - match: Host(`hermes.artr.com.br`) && PathPrefix(`/webhooks/`)
+      kind: Rule
+      priority: 100
+      services:
+        - name: hermes
+          port: 8644
     - match: Host(`hermes.artr.com.br`)
       kind: Rule
+      priority: 10
       middlewares:
         - name: tinyauth-forwardauth
       services:
