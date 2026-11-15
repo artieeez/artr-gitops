@@ -24,7 +24,7 @@ All first-party OCIR images are built by app-repo GitHub Actions (`.github/workf
 
 | Workload | Tag kind | Pull policy |
 | --- | --- | --- |
-| `apps/pi` (`pi-cloud`) | immutable `sha-<rev>` | `IfNotPresent` |
+| `apps/hermes` (`pi-cloud`, claude-box sidecar + init) | immutable `sha-<rev>` | `IfNotPresent` |
 | `apps/staging/home` | immutable `sha-<rev>` | `IfNotPresent` |
 | `apps/production/home` | immutable `sha-<rev>` (promoted) | `IfNotPresent` |
 | `apps/sitio-staging/sitio-rails` | immutable `sha-<rev>` | `IfNotPresent` |

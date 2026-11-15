@@ -25,14 +25,25 @@ spec:
         environment: hermes
     spec:
       serviceAccountName: hermes
+      # claude-box uses the private pi-cloud image (OCIR).
+      imagePullSecrets:
+        - name: ocir-pull
       initContainers:
-        # Git is the source of truth for config.yaml (see configmap.yaml).
+        # Git is the source of truth for config.yaml (see configmap.yaml) and
+        # the claude-herdr Hermes skill. Also pre-creates claude-box's subPath
+        # dirs owned by 10000 (kubelet would create them root-owned).
         - name: seed-config
           image: docker.io/nousresearch/hermes-agent:v0.23.1
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:
-            - cp /config/config.yaml /opt/data/config.yaml && chown 10000:10000 /opt/data/config.yaml
+            - |
+              set -e
+              cp /config/config.yaml /opt/data/config.yaml
+              mkdir -p /opt/data/skills/claude-herdr /opt/data/claude-home /opt/data/workspace
+              cp /claude-box-config/SKILL.md /opt/data/skills/claude-herdr/SKILL.md
+              chown 10000:10000 /opt/data/config.yaml /opt/data/claude-home /opt/data/workspace
+              chown -R 10000:10000 /opt/data/skills/claude-herdr
           securityContext:
             runAsUser: 0
           volumeMounts:
@@ -41,6 +52,79 @@ spec:
             - name: config
               mountPath: /config
               readOnly: true
+            - name: claude-box-config
+              mountPath: /claude-box-config
+              readOnly: true
+        # herdr CLI for Hermes, taken from the pi-cloud image (same binary the
+        # claude-box server runs). The wrapper points it at the shared socket
+        # dir: $XDG_CONFIG_HOME/herdr/herdr.sock = /run/herdr/herdr/herdr.sock.
+        - name: herdr-cli
+          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-aef05ea
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              cp "$(command -v herdr)" /tools/herdr-bin
+              printf '#!/bin/sh\nexport XDG_CONFIG_HOME=/run/herdr\nexec /opt/tools/herdr-bin "$@"\n' > /tools/herdr
+              chmod 0755 /tools/herdr-bin /tools/herdr
+          securityContext:
+            runAsUser: 10000
+            runAsGroup: 10000
+          volumeMounts:
+            - name: tools
+              mountPath: /tools
+        # Claude Code (native build, version pinned below; reinstalled only
+        # when the pin changes) + personal Claude config from
+        # artieeez/claude-config (/split, herdr hooks, settings) + first-run
+        # flags so interactive `claude` never waits on an onboarding screen.
+        - name: claude-install
+          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-aef05ea
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              export PATH="$HOME/.local/bin:$PATH"
+              have="$(claude --version 2>/dev/null | awk '{print $1}' || true)"
+              if [ "$have" != "$CLAUDE_CODE_VERSION" ]; then
+                curl -fsSL https://claude.ai/install.sh | bash -s "$CLAUDE_CODE_VERSION"
+              fi
+              # git/gh over HTTPS with GH_TOKEN (credential helper = gh, token stays in env)
+              gh auth setup-git
+              git config --global user.name "artieeez"
+              git config --global user.email "artieeez@users.noreply.github.com"
+              git config --global init.defaultBranch main
+              # personal Claude config: tracked files only; runtime state
+              # (projects/, sessions, history) is ignored by its .gitignore
+              mkdir -p "$HOME/.claude" && cd "$HOME/.claude"
+              [ -d .git ] || { git init -q -b main && git remote add origin https://github.com/artieeez/claude-config.git; }
+              git fetch -q --depth 1 origin main
+              git checkout -q -f -B main FETCH_HEAD
+              # skip first-run onboarding (keeps other ~/.claude.json state)
+              [ -s "$HOME/.claude.json" ] || echo '{}' > "$HOME/.claude.json"
+              jq '.hasCompletedOnboarding = true | .theme = (.theme // "dark")' "$HOME/.claude.json" > "$HOME/.claude.json.tmp"
+              mv "$HOME/.claude.json.tmp" "$HOME/.claude.json"
+              # login-shell panes reset PATH via /etc/profile: re-add ~/.local/bin
+              grep -qs 'claude-box PATH' "$HOME/.profile" || \
+                printf '\n# claude-box PATH\nexport PATH="$HOME/.local/bin:$PATH"\n' >> "$HOME/.profile"
+          env:
+            - name: HOME
+              value: /opt/data/claude-home
+            - name: CLAUDE_CODE_VERSION
+              value: "2.1.325"
+            - name: GH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hermes-secrets
+                  key: GH_TOKEN
+          securityContext:
+            runAsUser: 10000
+            runAsGroup: 10000
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data/claude-home
+              subPath: claude-home
         # Static kubectl binary for the agent's terminal tool. Uses the pod's
         # ServiceAccount (read-only RBAC, rbac.yaml) via in-cluster config.
         - name: kubectl
@@ -91,6 +175,17 @@ spec:
               mountPath: /usr/local/bin/kubectl
               subPath: kubectl
               readOnly: true
+            # herdr CLI (wrapper -> /opt/tools/herdr-bin) + the socket dir
+            # shared with claude-box. See the claude-herdr skill.
+            - name: tools
+              mountPath: /usr/local/bin/herdr
+              subPath: herdr
+              readOnly: true
+            - name: tools
+              mountPath: /opt/tools
+              readOnly: true
+            - name: herdr-run
+              mountPath: /run/herdr
           resources:
             requests:
               cpu: 250m
@@ -141,10 +236,85 @@ spec:
               memory: 32Mi
             limits:
               memory: 128Mi
+        # Claude Code host: headless herdr server; Hermes drives it over the
+        # shared socket (claude-herdr skill). Isolation: only GH_TOKEN + the
+        # Claude login in env, and only claude-home/ + workspace/ of the PVC —
+        # none of Hermes' keys, state or MCP tokens. Attach to watch/take over:
+        #   kubectl -n hermes exec -it deploy/hermes -c claude-box -- herdr
+        # pi-cloud image reused for its toolchain (herdr, git, gh, node, Ruby);
+        # its entrypoint (sshd, boot sync) is replaced by `herdr server`.
+        - name: claude-box
+          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-aef05ea
+          # Immutable sha tag => IfNotPresent (2.2 GiB image).
+          imagePullPolicy: IfNotPresent
+          command: ["herdr", "server"]
+          env:
+            - name: HOME
+              value: /opt/data/claude-home
+            - name: XDG_CONFIG_HOME
+              value: /run/herdr
+            - name: HERDR_CONFIG_PATH
+              value: /etc/herdr/config.toml
+            - name: PATH
+              value: /opt/data/claude-home/.local/bin:/opt/mise-root/local/bin:/opt/mise/shims:/opt/nvim/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+            - name: SHELL
+              value: /bin/bash
+            - name: TERM
+              value: xterm-256color
+            # Version is pinned by claude-install; never self-update.
+            - name: DISABLE_AUTOUPDATER
+              value: "1"
+            - name: GH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hermes-secrets
+                  key: GH_TOKEN
+            # `claude setup-token` (subscription) — no browser in the pod.
+            - name: CLAUDE_CODE_OAUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hermes-secrets
+                  key: CLAUDE_CODE_OAUTH_TOKEN
+          securityContext:
+            runAsUser: 10000
+            runAsGroup: 10000
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data/claude-home
+              subPath: claude-home
+            - name: data
+              mountPath: /opt/data/workspace
+              subPath: workspace
+            - name: herdr-run
+              mountPath: /run/herdr
+            - name: claude-box-config
+              mountPath: /etc/herdr/config.toml
+              subPath: herdr-config.toml
+              readOnly: true
+            - name: claude-box-config
+              mountPath: /etc/claude-code/managed-settings.json
+              subPath: managed-settings.json
+              readOnly: true
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 4Gi
+          readinessProbe:
+            exec:
+              command: ["test", "-S", "/run/herdr/herdr/herdr.sock"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: hermes-data
+        - name: herdr-run
+          emptyDir: {}
+        - name: claude-box-config
+          configMap:
+            name: claude-box-config
         - name: config
           configMap:
             name: hermes-config

@@ -52,11 +52,6 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: pi
----
-apiVersion: v1
-kind: Namespace
-metadata:
   name: games
 ---
 apiVersion: v1
