@@ -73,7 +73,7 @@ data:
     Subsystem sftp internal-sftp
     # sshd resets the env: give sessions the non-secret paths so `herdr`
     # finds the claude-box server socket and Ruby/gems match the panes.
-    SetEnv XDG_CONFIG_HOME=/run/herdr HERDR_CONFIG_PATH=/opt/data/claude-home/.config/herdr/config.toml GEM_HOME=/opt/data/claude-home/.gem BUNDLE_PATH=/opt/data/claude-home/.bundle-cache BUNDLE_JOBS=4 DISABLE_AUTOUPDATER=1
+    SetEnv XDG_CONFIG_HOME=/run/herdr HERDR_CONFIG_PATH=/opt/data/claude-home/.config/herdr/config.toml GEM_HOME=/opt/data/claude-home/.gem BUNDLE_PATH=/opt/data/claude-home/.bundle-cache BUNDLE_JOBS=4 DISABLE_AUTOUPDATER=1 TMPDIR=/tmp
 
   SKILL.md: |
     ---
