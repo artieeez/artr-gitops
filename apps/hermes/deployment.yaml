@@ -112,8 +112,18 @@ spec:
               jq '.hasCompletedOnboarding = true | .theme = (.theme // "dark")' "$HOME/.claude.json" > "$HOME/.claude.json.tmp"
               mv "$HOME/.claude.json.tmp" "$HOME/.claude.json"
               # login-shell panes reset PATH via /etc/profile: re-add ~/.local/bin
-              grep -qs 'claude-box PATH' "$HOME/.profile" || \
-                printf '\n# claude-box PATH\nexport PATH="$HOME/.local/bin:$PATH"\n' >> "$HOME/.profile"
+              # herdr config: panes must be bash LOGIN shells so /etc/profile.d
+              # gives them the pi-cloud toolchain. Append only if missing — herdr
+              # owns the rest of this file (onboarding, keybindings).
+              HDR_CONFIG="$HOME/.config/herdr/config.toml"
+              mkdir -p "$(dirname "$HDR_CONFIG")"
+              grep -qs '^\[terminal\]' "$HDR_CONFIG" || \
+                printf '\n[terminal]\ndefault_shell = "/bin/bash"\nshell_mode = "login"\n' >> "$HDR_CONFIG"
+              # Login-shell panes reset PATH via /etc/profile: ~/.profile sources
+              # this file (regenerated every boot) to re-add claude + gem bins.
+              printf 'export PATH="$HOME/.local/bin:$GEM_HOME/bin:$PATH"\n' > "$HOME/.claude-box-env"
+              grep -qs 'claude-box-env' "$HOME/.profile" || \
+                printf '\n[ -f "$HOME/.claude-box-env" ] && . "$HOME/.claude-box-env"\n' >> "$HOME/.profile"
           env:
             - name: HOME
               value: /opt/data/claude-home
@@ -262,14 +272,26 @@ spec:
               value: /opt/data/claude-home
             - name: XDG_CONFIG_HOME
               value: /run/herdr
+            # Writable (herdr saves onboarding/keybindings here), on the PVC so
+            # it survives restarts; claude-install ensures the [terminal] block.
             - name: HERDR_CONFIG_PATH
-              value: /etc/herdr/config.toml
+              value: /opt/data/claude-home/.config/herdr/config.toml
             - name: PATH
-              value: /opt/data/claude-home/.local/bin:/opt/mise-root/local/bin:/opt/mise/shims:/opt/nvim/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+              value: /opt/data/claude-home/.local/bin:/opt/data/claude-home/.gem/bin:/opt/mise-root/local/bin:/opt/mise/shims:/opt/nvim/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
             - name: SHELL
               value: /bin/bash
             - name: TERM
               value: xterm-256color
+            # Ruby: mise's install under /opt/mise is root-owned/read-only, so
+            # gems (and Bundler self-updates, e.g. a lockfile's newer Bundler)
+            # go to a per-user GEM_HOME, and bundles to ONE shared BUNDLE_PATH:
+            # a fresh worktree's `bundle install` reuses already-built gems.
+            - name: GEM_HOME
+              value: /opt/data/claude-home/.gem
+            - name: BUNDLE_PATH
+              value: /opt/data/claude-home/.bundle-cache
+            - name: BUNDLE_JOBS
+              value: "4"
             # Version is pinned by claude-install; never self-update.
             - name: DISABLE_AUTOUPDATER
               value: "1"
@@ -296,10 +318,6 @@ spec:
               subPath: workspace
             - name: herdr-run
               mountPath: /run/herdr
-            - name: claude-box-config
-              mountPath: /etc/herdr/config.toml
-              subPath: herdr-config.toml
-              readOnly: true
             - name: claude-box-config
               mountPath: /etc/claude-code/managed-settings.json
               subPath: managed-settings.json

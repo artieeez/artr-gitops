@@ -1,6 +1,4 @@
 # claude-box sidecar config (see deployment.yaml + README.md "Claude Code").
-#   herdr-config.toml        -> HERDR_CONFIG_PATH (panes = bash login shells,
-#                               so /etc/profile.d gives them the pi-cloud toolchain)
 #   managed-settings.json    -> /etc/claude-code/ (Claude Code managed policy:
 #                               highest precedence, layered over the personal
 #                               ~/.claude from artieeez/claude-config)
@@ -14,11 +12,6 @@ metadata:
     app: hermes
     environment: hermes
 data:
-  herdr-config.toml: |
-    [terminal]
-    default_shell = "/bin/bash"
-    shell_mode = "login"
-
   # Guarded bypass: no permission prompts (nobody is there to answer), but
   # destructive git/gh actions are denied. Deny rules are a speed bump, not a
   # wall (a shell can be creative) — branch protection on `main` is the real
@@ -82,20 +75,34 @@ data:
     2. **Pane**: create a workspace/tab or split a pane whose cwd is the
        worktree (`herdr workspace …` / `herdr pane split …`). Shell panes start
        in the sidecar.
-    3. **Agent**: `herdr agent start claude` in that pane with a name like
-       `t-<task>` (names: `[a-z][a-z0-9_-]{0,31}`). Claude starts in bypass
-       mode with managed deny rules (no force-push, no push to main, no merge).
-    4. **Prompt**: `herdr agent prompt <name> "<task>"`. Include: the goal,
-       acceptance criteria, the repo's test command, and always end with:
+    3. **Bootstrap the worktree** in that pane BEFORE starting Claude
+       (`herdr pane run <pane> "<cmd>"`, then wait for the prompt):
+       - Ruby repos (Gemfile): `mise trust -y && mise install && mise exec -- bundle install`.
+         GEM_HOME/BUNDLE_PATH are preset to writable shared dirs, so this
+         reuses gems built for earlier worktrees and can self-install the
+         lockfile's Bundler version. Never `sudo`, never write under /opt/mise.
+       - Node repos (package.json): `npm ci` (or the lockfile's package manager).
+       If bootstrap fails, report the error instead of delegating.
+    4. **Agent**: `herdr agent start t-<task> --kind claude --pane <pane> -- --dangerously-skip-permissions`
+       (names: `[a-z][a-z0-9_-]{0,31}`). ALWAYS pass that flag: nobody can
+       answer permission prompts. Managed deny rules still apply (no
+       force-push, no push to main, no merge).
+    5. **Prompt**: `herdr agent prompt <name> "<task>"`. Include: the goal,
+       acceptance criteria, that the environment is already bootstrapped (gems
+       installed; run tests with `mise exec -- bin/ci` or the repo's test
+       command), and always end with:
        "Commit on this branch, push it, open a PR with `gh pr create`, then
        write a short summary plus the PR URL to RESULT.md in the repo root."
-    5. **Wait**: `herdr agent wait <name>` for `done`/`idle`/`blocked` with a
+       Tools available: git, gh, node/npx, Ruby via mise, jq, rg, python3,
+       file, markdownlint-cli2 (if `markdownlint-cli2` is missing on an older
+       image, use `npx -y markdownlint-cli2`).
+    6. **Wait**: `herdr agent wait <name>` for `done`/`idle`/`blocked` with a
        timeout (long tasks: wait in a loop, report progress).
        - `done`/`idle`: read `RESULT.md` in the worktree (shared path) and
          report the summary + PR link.
        - `blocked`: `herdr agent read <name>` to see the question. Answer with
          `herdr agent prompt` if it is within the task; otherwise ask the user.
-    6. **Leave the pane open** unless told to clean up — the user may attach
+    7. **Leave the pane open** unless told to clean up — the user may attach
        (`kubectl exec … -c claude-box -- herdr`) to review or take over.
        Clean up merged work with `git worktree remove`.
 
