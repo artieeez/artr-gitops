@@ -6,6 +6,7 @@
 | Surface | How |
 | --- | --- |
 | Dashboard | `https://hermes.artr.com.br` — Tinyauth (Pocket ID, group `admin`) **then** Hermes native OIDC (Pocket ID) |
+| Hermes Desktop | `http://hermes.<tailnet>.ts.net` (tailnet only, no Tinyauth) — session token (`HERMES_DASHBOARD_SESSION_TOKEN`) |
 | Slack | Socket Mode (outbound WebSocket, no ingress); only `SLACK_ALLOWED_USERS` may talk to it |
 | GitHub | Remote MCP `api.githubcopilot.com/mcp/` + `GH_TOKEN` (fine-grained PAT, artieeez repos, read/write) |
 | Linear | Remote MCP `mcp.linear.app/mcp` with `LINEAR_API_KEY` |
@@ -68,6 +69,33 @@ herdr panes, which get them from the claude-box server.
 
 Hermes' own sessions: dashboard, or
 `kubectl -n hermes exec -it deploy/hermes -c hermes -- hermes --tui`.
+
+## Hermes Desktop
+
+Desktop can't complete Tinyauth's browser forwardAuth, so it uses a
+tailnet-only route instead (`service-tailnet.yaml`, Tailscale hostname
+`hermes` → dashboard :9119). The public `hermes.artr.com.br` route is
+unchanged. On the tailnet route Hermes' own gate is the only gate, and Desktop
+authenticates with the session-token provider:
+
+1. Generate a token and seal it:
+
+   ```bash
+   openssl rand -base64 32                     # copy the output
+   ./scripts/seal-hermes-secrets.sh HERMES_DASHBOARD_SESSION_TOKEN
+   ```
+
+2. Commit + push, then `kubectl rollout restart deployment/hermes -n hermes`.
+3. Check: `curl -s http://hermes.<tailnet>.ts.net/api/status | jq '.auth_required, .auth_providers'`
+   → `true` and a list that includes `"session-token"`.
+4. Desktop → Settings → Gateways → add a remote gateway: URL
+   `http://hermes.<tailnet>.ts.net`, auth **Session token**, paste the token.
+
+The token is a full-access password for the agent (it can run commands in the
+container). Rotate it with the same seal command; every saved Desktop copy
+then needs the new value. Self-hosted OIDC sign-in from Desktop
+([upstream #84483](https://github.com/NousResearch/hermes-agent/issues/84483))
+would make the token unnecessary once it works with Pocket ID.
 
 ## Webhooks
 

@@ -23,6 +23,7 @@ ALL_KEYS=(
   LINEAR_API_KEY
   GRAFANA_SERVICE_ACCOUNT_TOKEN
   HERMES_DASHBOARD_OIDC_CLIENT_ID
+  HERMES_DASHBOARD_SESSION_TOKEN
   CLAUDE_CODE_OAUTH_TOKEN
 )
 
@@ -54,6 +55,7 @@ for k in "${KEYS[@]}"; do
     SLACK_BOT_TOKEN) [[ "$v" == xoxb-* ]] || echo "note: $k doesn't start with xoxb-" ;;
     SLACK_APP_TOKEN) [[ "$v" == xapp-* ]] || echo "note: $k doesn't start with xapp-" ;;
     GH_TOKEN) [[ "$v" == github_pat_* ]] || echo "note: $k is not a fine-grained PAT" ;;
+    HERMES_DASHBOARD_SESSION_TOKEN) [ "${#v}" -ge 32 ] || echo "note: $k is short — use \`openssl rand -base64 32\`" ;;
     CLAUDE_CODE_OAUTH_TOKEN) [[ "$v" == sk-ant-oat* ]] || echo "note: $k doesn't look like a \`claude setup-token\` token" ;;
   esac
   DATA="$(printf '%s' "$DATA" | jq --arg k "$k" --arg v "$v" '.[$k] = $v')"

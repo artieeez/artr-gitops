@@ -4,6 +4,7 @@
 #      /api/status endpoint from the internet.
 #   2. Hermes' native self-hosted OIDC (public PKCE client in Pocket ID).
 # The dashboard can edit MCP config / run tools, so never drop both layers.
+# Hermes Desktop uses a separate tailnet-only route (service-tailnet.yaml).
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
