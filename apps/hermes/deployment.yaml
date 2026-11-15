@@ -59,10 +59,7 @@ spec:
         # claude-box server runs). The wrapper points it at the shared socket
         # dir: $XDG_CONFIG_HOME/herdr/herdr.sock = /run/herdr/herdr/herdr.sock.
         - name: herdr-cli
-          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-aef05ea
-          # pi-cloud's WORKDIR is /root/artieeez (root-only); as UID 10000
-          # git/herdr fail to stat it, so start somewhere we own.
-          workingDir: /tools
+          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-a000f18
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:
@@ -82,10 +79,7 @@ spec:
         # artieeez/claude-config (/split, herdr hooks, settings) + first-run
         # flags so interactive `claude` never waits on an onboarding screen.
         - name: claude-install
-          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-aef05ea
-          # pi-cloud's WORKDIR is /root/artieeez (root-only); as UID 10000
-          # git/herdr fail to stat it, so start somewhere we own.
-          workingDir: /opt/data/claude-home
+          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-a000f18
           imagePullPolicy: IfNotPresent
           command: ["/bin/bash", "-c"]
           args:
@@ -124,13 +118,6 @@ spec:
               install -m 600 /claude-box-ssh/ssh_host_ed25519_key "$HOME/.sshd/ssh_host_ed25519_key"
               install -m 644 /claude-box-ssh/ssh_host_ed25519_key.pub "$HOME/.sshd/ssh_host_ed25519_key.pub"
               install -m 600 /claude-box-ssh/authorized_keys "$HOME/.ssh/authorized_keys"
-              # UID 10000 has no passwd entry in the image; sshd (and whoami/git)
-              # need one. claude-box + claude-ssh mount these over /etc.
-              cp /etc/passwd /etc-override/passwd && cp /etc/group /etc-override/group
-              # (newer pi-cloud images already ship this user: don't duplicate it)
-              grep -q '^claude:' /etc-override/passwd || \
-                echo "claude:x:10000:10000:Claude (hermes claude-box):/opt/data/claude-home:/bin/bash" >> /etc-override/passwd
-              grep -q '^claude:' /etc-override/group || echo "claude:x:10000:" >> /etc-override/group
               # Login-shell panes reset PATH via /etc/profile: ~/.profile sources
               # this file (regenerated every boot) to re-add claude + gem bins.
               printf 'export PATH="$HOME/.local/bin:$GEM_HOME/bin:$PATH"\n' > "$HOME/.claude-box-env"
@@ -156,8 +143,6 @@ spec:
             - name: claude-box-ssh
               mountPath: /claude-box-ssh
               readOnly: true
-            - name: etc-override
-              mountPath: /etc-override
         # Static kubectl binary for the agent's terminal tool. Uses the pod's
         # ServiceAccount (read-only RBAC, rbac.yaml) via in-cluster config.
         - name: kubectl
@@ -277,9 +262,8 @@ spec:
         # pi-cloud image reused for its toolchain (herdr, git, gh, node, Ruby);
         # its entrypoint (sshd, boot sync) is replaced by `herdr server`.
         - name: claude-box
-          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-aef05ea
-          # pi-cloud's WORKDIR is /root/artieeez (root-only); as UID 10000
-          # git/herdr fail to stat it, so start somewhere we own.
+          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-a000f18
+          # Start shells/panes in Claude's home (the image's WORKDIR is /tmp).
           workingDir: /opt/data/claude-home
           # Immutable sha tag => IfNotPresent (2.2 GiB image).
           imagePullPolicy: IfNotPresent
@@ -299,9 +283,6 @@ spec:
               value: /bin/bash
             - name: TERM
               value: xterm-256color
-            # Debian leaves TMPDIR unset; agents write "$TMPDIR/x" and hit "/x".
-            - name: TMPDIR
-              value: /tmp
             # Ruby: mise's install under /opt/mise is root-owned/read-only, so
             # gems (and Bundler self-updates, e.g. a lockfile's newer Bundler)
             # go to a per-user GEM_HOME, and bundles to ONE shared BUNDLE_PATH:
@@ -342,14 +323,6 @@ spec:
               mountPath: /etc/claude-code/managed-settings.json
               subPath: managed-settings.json
               readOnly: true
-            - name: etc-override
-              mountPath: /etc/passwd
-              subPath: passwd
-              readOnly: true
-            - name: etc-override
-              mountPath: /etc/group
-              subPath: group
-              readOnly: true
           resources:
             requests:
               cpu: 250m
@@ -368,9 +341,8 @@ spec:
         # panes still run in claude-box. No secrets in this container's env;
         # sshd_config SetEnv provides the non-secret paths.
         - name: claude-ssh
-          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-aef05ea
-          # pi-cloud's WORKDIR is /root/artieeez (root-only); as UID 10000
-          # git/herdr fail to stat it, so start somewhere we own.
+          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-a000f18
+          # Start shells/panes in Claude's home (the image's WORKDIR is /tmp).
           workingDir: /opt/data/claude-home
           imagePullPolicy: IfNotPresent
           command: ["/usr/sbin/sshd", "-D", "-e", "-f", "/etc/claude-box/sshd_config"]
@@ -394,14 +366,6 @@ spec:
             - name: claude-box-config
               mountPath: /etc/claude-box/sshd_config
               subPath: sshd_config
-              readOnly: true
-            - name: etc-override
-              mountPath: /etc/passwd
-              subPath: passwd
-              readOnly: true
-            - name: etc-override
-              mountPath: /etc/group
-              subPath: group
               readOnly: true
           resources:
             requests:
@@ -429,8 +393,6 @@ spec:
           secret:
             secretName: claude-box-ssh
             defaultMode: 0444
-        - name: etc-override
-          emptyDir: {}
         - name: sshd-run
           emptyDir: {}
         - name: config
