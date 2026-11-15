@@ -29,6 +29,10 @@ claude-box ── herdr server ── panes: claude (bypass + managed deny rules
 - **Image**: pi-cloud (herdr, git, gh, node, Ruby); entrypoint replaced by
   `herdr server`, runs as UID 10000. Bump the `pi-cloud:sha-…` tag on all
   three lines (two init containers + sidecar) via pi-cloud's `promote` workflow.
+- **Ruby**: mise's Ruby under `/opt/mise` is root-owned, so `GEM_HOME`
+  (`~/.gem`) and one shared `BUNDLE_PATH` (`~/.bundle-cache`) live in
+  claude-home; worktrees reuse built gems. The skill bootstraps each worktree
+  (`mise exec -- bundle install`) before starting Claude.
 - **Claude Code**: native build, pinned by `CLAUDE_CODE_VERSION` in the
   `claude-install` init container; auto-update off.
 - **Personal config**: `~/.claude` is a checkout of `artieeez/claude-config`
