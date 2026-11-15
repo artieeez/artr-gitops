@@ -1,0 +1,18 @@
+# HERMES_HOME (/opt/data): sessions, memory, skills, MCP OAuth tokens, SQLite state.
+# On NFS, so SQLite runs with journal_mode: delete (WAL is unsafe on NFS) —
+# see configmap.yaml. Single replica only.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hermes-data
+  namespace: hermes
+  labels:
+    app: hermes
+    environment: hermes
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: nfs-client

@@ -1,0 +1,143 @@
+# Hermes Agent (Nous Research) — gateway (Slack, Socket Mode: outbound only)
+# + web dashboard on :9119, both supervised by s6 inside one container.
+# Sidecar: grafana MCP on 127.0.0.1:8000. kubectl is copied in by an init container.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hermes
+  namespace: hermes
+  labels:
+    app: hermes
+    environment: hermes
+spec:
+  # Slack Socket Mode allows ONE connection per app token; SQLite on NFS.
+  # Never scale above 1.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: hermes
+  template:
+    metadata:
+      labels:
+        app: hermes
+        environment: hermes
+    spec:
+      serviceAccountName: hermes
+      initContainers:
+        # Git is the source of truth for config.yaml (see configmap.yaml).
+        - name: seed-config
+          image: docker.io/nousresearch/hermes-agent:v0.23.1
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - cp /config/config.yaml /opt/data/config.yaml && chown 10000:10000 /opt/data/config.yaml
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data
+            - name: config
+              mountPath: /config
+              readOnly: true
+        # Static kubectl binary for the agent's terminal tool. Uses the pod's
+        # ServiceAccount (read-only RBAC, rbac.yaml) via in-cluster config.
+        - name: kubectl
+          image: docker.io/alpine/kubectl:1.36.4
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - cp "$(command -v kubectl)" /tools/kubectl && chmod 0755 /tools/kubectl
+          volumeMounts:
+            - name: tools
+              mountPath: /tools
+      containers:
+        - name: hermes
+          # Pinned release; bump deliberately (startup runs config migrations).
+          image: docker.io/nousresearch/hermes-agent:v0.23.1
+          # Immutable version tag => IfNotPresent (docs/image-pull-policy.md).
+          imagePullPolicy: IfNotPresent
+          args: ["gateway", "run"]
+          ports:
+            - containerPort: 9119
+              name: dashboard
+          env:
+            - name: HERMES_DASHBOARD
+              value: "1"
+            - name: HERMES_DASHBOARD_PUBLIC_URL
+              value: "https://hermes.artr.com.br"
+            - name: HERMES_DASHBOARD_OIDC_ISSUER
+              value: "https://pocketid.artr.com.br"
+          # DEEPSEEK_API_KEY, SLACK_*, GH_TOKEN, LINEAR_API_KEY,
+          # HERMES_DASHBOARD_OIDC_CLIENT_ID — sealed via scripts/seal-hermes-secrets.sh.
+          # Env overrides /opt/data/.env.
+          envFrom:
+            - secretRef:
+                name: hermes-secrets
+          volumeMounts:
+            - name: data
+              mountPath: /opt/data
+            - name: tools
+              mountPath: /usr/local/bin/kubectl
+              subPath: kubectl
+              readOnly: true
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 2Gi
+          # /api/status is the dashboard's public status endpoint (also hidden
+          # from the internet by tinyauth). First boot seeds + migrates config.
+          startupProbe:
+            httpGet:
+              path: /api/status
+              port: dashboard
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /api/status
+              port: dashboard
+            periodSeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /api/status
+              port: dashboard
+            periodSeconds: 10
+            timeoutSeconds: 5
+        - name: grafana-mcp
+          image: docker.io/grafana/mcp-grafana:2.3.0
+          imagePullPolicy: IfNotPresent
+          # Loopback only: reachable by hermes in this pod, not by the cluster.
+          args:
+            - --transport
+            - streamable-http
+            - --address
+            - 127.0.0.1:8000
+            - --disable-write
+          env:
+            - name: GRAFANA_URL
+              value: "http://monitoring-kube-prometheus-stack-grafana.monitoring.svc.cluster.local"
+            - name: GRAFANA_SERVICE_ACCOUNT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: hermes-secrets
+                  key: GRAFANA_SERVICE_ACCOUNT_TOKEN
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: hermes-data
+        - name: config
+          configMap:
+            name: hermes-config
+        - name: tools
+          emptyDir: {}
