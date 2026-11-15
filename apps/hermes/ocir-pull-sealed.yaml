@@ -1,0 +1,14 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: ocir-pull
+  namespace: hermes
+spec:
+  encryptedData:
+    .dockerconfigjson: AgAqFewgNLkZdX9kJ/JGdmve6cDBynCXQKr+FLvmGGbSALvGdaEsY98qIxE95+eYtfwkMHFVT/O7JfYso7vSsDVUtnn8U/KPc/I45I7uYd13rITaPU8HiIg62iFC7BRrSPv61mtIOT0XTOAOcY7J0lINKASBSOkUxarIzyM5z62KjZMHJ3ko/Wfgnv4QrZTKHaFO3DaLdmzS1hsQqB3Z/7mmSO6M2IUgw8bhQZQ3XzFOdpnWp1gJnTVnEhNJCtt/mXLXA8pIfq+VAyfwogVXqmZYw1zhumx4dQ9S0ZiXGaw02xPLzVPYM0TBXjHXGjp5DQdA4zINARKBzMXzEj+nrYa5l0viM4du3gj6sQ1ntVEJdnhd2RPoMk8KTFUI5rmV2pwa9FgmBh89O8Uw909HTy1tyLHwy39f2iLU/bFXwmcVLdjIVzMzXkK14GJIIX5gJMWmSZgX3WFnWi8w2xNkO4SkUj+lAs7Q4dtlQ6hL67Wp2kiQPZ7frE2KFD0Cs2AKicVQk3wCnJYxx8Nmzqpw/EztZoTFdKbpczEhtnqaQ7Ezm5PoV+0qdNNOkmFx3GFmeU5SCdKBv955JVqt+lTrOcibz4TOAf8uNoEQb/1eKHGawGMR/SYr6pBTpL0j510I9tnyBRcdlTLMHbH5PZQFO4NWaDcOgyUlvINWjb4Qhe2KBdYrOVPFx7yekmhpuwWC+qXvJpY+reXBU1ZLrwqDWco5ZZDFDVz+kBP6P6dYz5t4gPs68+tdoaZ5dN2wuUYwE8GxUFxI2RVUEinLLmEnSw/2YM9TltQN96NDfrrHiGIlm42pimrwL5geXx3WWbVH7okN/YxHE8hQlwUh8ah7Ykuc5QuS1GuYch9/1zIjX9LKBAfzahvX4DyuPVyaUlg+iyxrqL9ceINvgTJNyrLrsgaOzRmdTGPajCulR+ck8gVaJ5mwlxxifWIIK2CsO6DU7ZUQx3/LzLFA201Kvaa17uYujh1sMwI9Ly314YyFe96kdFyiHofkDL1rM5+FqqQdgZAJsBA=
+  template:
+    metadata:
+      name: ocir-pull
+      namespace: hermes
+    type: kubernetes.io/dockerconfigjson

@@ -13,6 +13,43 @@
 | kubectl | Read-only ServiceAccount `hermes` (`view` + `hermes-read-extra`; no Secrets, no exec) |
 | Webhooks | `https://hermes.artr.com.br/webhooks/<route>` → listener :8644, no Tinyauth; each route's HMAC secret is the gate |
 
+## Claude Code (`claude-box` sidecar)
+
+Hermes delegates coding to Claude Code through herdr (skill `claude-herdr`,
+seeded from `claude-box-configmap.yaml` into `/opt/data/skills/`).
+
+```text
+hermes container ── herdr CLI ──▶ /run/herdr/herdr/herdr.sock (shared emptyDir)
+                                       │
+claude-box ── herdr server ── panes: claude (bypass + managed deny rules)
+              PVC subPaths only: /opt/data/claude-home, /opt/data/workspace
+              env: GH_TOKEN, CLAUDE_CODE_OAUTH_TOKEN
+```
+
+- **Image**: pi-cloud (herdr, git, gh, node, Ruby); entrypoint replaced by
+  `herdr server`, runs as UID 10000. Bump the `pi-cloud:sha-…` tag on all
+  three lines (two init containers + sidecar) via pi-cloud's `promote` workflow.
+- **Claude Code**: native build, pinned by `CLAUDE_CODE_VERSION` in the
+  `claude-install` init container; auto-update off.
+- **Personal config**: `~/.claude` is a checkout of `artieeez/claude-config`
+  (main), refreshed on every boot — `/split`, herdr hooks, settings. Push
+  changes there, then restart the pod. The PAT must include that repo.
+- **Policy**: `/etc/claude-code/managed-settings.json` (bypass permissions;
+  deny force-push, push to main, `gh pr merge`, `kubectl`). Enable branch
+  protection on `main` in each repo — deny rules alone are not a wall.
+- **Auth**: `claude setup-token` on your laptop (browser there), then
+  `./scripts/seal-hermes-secrets.sh CLAUDE_CODE_OAUTH_TOKEN`. Re-run when it
+  expires.
+
+Watch / take over Claude sessions:
+
+```bash
+kubectl -n hermes exec -it deploy/hermes -c claude-box -- herdr
+```
+
+Hermes' own sessions: dashboard, or
+`kubectl -n hermes exec -it deploy/hermes -c hermes -- hermes --tui`.
+
 ## Webhooks
 
 Routes are created in the dashboard (not in `configmap.yaml`). The dashboard
