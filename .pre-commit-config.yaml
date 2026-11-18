@@ -1,0 +1,29 @@
+# Mirrors .github/workflows/validate.yaml. Install: pre-commit install
+repos:
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+        args: [--strict]
+
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.11.0
+    hooks:
+      - id: shellcheck
+
+  - repo: local
+    hooks:
+      - id: kubeconform
+        name: kubeconform
+        entry: scripts/ci-kubeconform.sh
+        language: system
+        files: \.yaml$
+        exclude: ^(charts|\.github|\.notebook)/|^\.pre-commit-config\.yaml$
+        # Always validate the whole tree, as CI does.
+        pass_filenames: false
+      - id: helm-template
+        name: helm template (ArgoCD Application charts)
+        entry: python3 scripts/ci-helm-template.py
+        language: system
+        files: ^(charts/|argocd/applications/)
+        pass_filenames: false
