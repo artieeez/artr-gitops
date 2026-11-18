@@ -63,6 +63,45 @@ additionalPrometheusRulesMap:
             annotations:
               summary: "Sitio SQLite backup missed schedule in {{ $labels.namespace }}"
               description: "CronJob sitio-rails-sqlite-backup has no successful run in ~30h. Check suspended CronJob, node disk pressure, or Failed Jobs  - docs/sqlite-backup-runbook.md."
+  app-backups:
+    # Generic rules for the app-backup-* CronJobs (apps/app-backups/*); see
+    # docs/app-backups.md. Keyed by the CronJob name prefix because
+    # kube-state-metrics does not export CronJob labels here.
+    groups:
+      - name: app-backups
+        rules:
+          - alert: AppBackupFailed
+            expr: |
+              (
+                kube_job_status_failed{job_name=~"app-backup-.*"} > 0
+              )
+              * on(namespace, job_name) group_left(owner_name)
+              (
+                kube_job_owner{owner_kind="CronJob", owner_name=~"app-backup-.*"}
+              )
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "App backup {{ $labels.owner_name }} failed in {{ $labels.namespace }}"
+              description: "Job {{ $labels.job_name }} failed. Check its logs and docs/app-backups.md (bucket cluster-app-backups must exist and the reflected s3-credentials Secret must be present in the namespace)."
+          - alert: AppBackupStale
+            expr: |
+              (
+                time() - kube_cronjob_status_last_successful_time{cronjob=~"app-backup-.*"} > 26 * 3600
+              )
+              or
+              (
+                (time() - kube_cronjob_created{cronjob=~"app-backup-.*"} > 26 * 3600)
+                unless on(namespace, cronjob)
+                kube_cronjob_status_last_successful_time{cronjob=~"app-backup-.*"}
+              )
+            for: 15m
+            labels:
+              severity: warning
+            annotations:
+              summary: "App backup {{ $labels.cronjob }} has no success in 26h ({{ $labels.namespace }})"
+              description: "CronJob {{ $labels.cronjob }} has not completed successfully for over 26h (or never has). Check for a suspended CronJob, failed Jobs, or a missing bucket/credentials - docs/app-backups.md."
   cpu-throttling-apps:
     # Replacement for the upstream CPUThrottlingHigh rule: the upstream rule is
     # removed via defaultRules.disabled below (see the OKE section). Same
@@ -235,7 +274,7 @@ alertmanager:
       routes:
         - receiver: slack-infra
           matchers:
-            - alertname =~ "CertManager.*|Tls.*|SitioRailsSqliteBackup.*"
+            - alertname =~ "CertManager.*|Tls.*|SitioRailsSqliteBackup.*|AppBackup.*"
           group_by:
             - alertname
             - namespace

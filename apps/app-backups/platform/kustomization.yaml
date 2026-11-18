@@ -1,0 +1,10 @@
+# pocketid and tinyauth share the platform namespace, so they share one
+# kustomization (and one Argo CD Application): two apps rendering ../base into
+# the same namespace would both claim its ConfigMap and SealedSecret.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: platform
+resources:
+  - ../base
+  - cronjob-pocketid.yaml
+  - cronjob-tinyauth.yaml
