@@ -18,18 +18,20 @@ The development environment requires:
 
 ### Lint / Validate commands
 
+CI runs these on every pull request and push to `main` (`.github/workflows/validate.yaml`). The same checks run locally via `.pre-commit-config.yaml` (`pre-commit run --all-files`) or by hand:
+
 | Check | Command | Notes |
 | --- | --- | --- |
-| YAML lint | `yamllint -d relaxed .` | 2 pre-existing trailing-space errors in IngressRoute files; warnings are non-blocking |
-| K8s manifest validation | `kubeconform -summary -ignore-missing-schemas -kubernetes-version 1.30.0 $(find . -name '*.yaml' -not -path './.git/*' -not -path './charts/*')` | Exclude `charts/` (Helm values, not manifests). ~50 CRDs skipped (no schema); 0 invalid expected |
-| Helm template (Traefik) | `helm template traefik-oci traefik/traefik --version 33.0.0 -f charts/traefik-values.yaml --namespace traefik` | Requires `helm repo add traefik https://traefik.github.io/charts` first |
-| Shell lint | `shellcheck scripts/*.sh` | Should pass clean |
+| YAML lint | `yamllint --strict .` | Config in `.yamllint` (relaxed, line length off); warnings fail in strict mode |
+| K8s manifest validation | `scripts/ci-kubeconform.sh` | Strict mode, Kubernetes 1.36.0, default schemas plus the datreeio CRDs-catalog (ArgoCD, Traefik, SealedSecret, cert-manager). Excludes `charts/` and `.github/`. CRDs without a schema are skipped. Strict mode catches misplaced fields such as `allowEmpty` outside `syncPolicy.automated` |
+| Helm template | `python3 scripts/ci-helm-template.py` | Renders each chart in `argocd/applications/` with its pinned repo and version (e.g. Traefik 41.0.2) and the values files in `charts/`. Needs `helm` and PyYAML |
+| Shell lint | `git ls-files '*.sh' \| xargs shellcheck` | Should pass clean |
 
 ### Key caveats
 
 - **No application to "run"**: there is no dev server, no `docker-compose up`, no build step. The repo is consumed by ArgoCD reading from Git.
 - **Helm values files** (`charts/*.yaml`) are not standalone K8s manifests — kubeconform will error on them if not excluded.
-- **CRDs** (ArgoCD `Application`, Traefik `IngressRoute`, Bitnami `SealedSecret`) are skipped by kubeconform due to missing schemas — this is expected.
+- **CRDs** (ArgoCD `Application`, Traefik `IngressRoute`, Bitnami `SealedSecret`) are validated against the CRDs-catalog schemas where one exists; CRDs without a schema are skipped, which is expected.
 - **Helper scripts** in `scripts/` require an external Terraform directory (`../terraform-files/oracle-cluster`) that is not part of this repo. They cannot be executed standalone.
 - **SealedSecrets** require `kubeseal` + access to the live cluster's sealed-secrets controller. They cannot be created/rotated locally without cluster access.
 - **TLS certificates:** Single wildcard cert in `cert-manager` namespace; Reflector copies `wildcard-artr-com-br-tls` to workload namespaces. Never issue certs directly into workload namespaces — see `docs/certificate-runbook.md`.
