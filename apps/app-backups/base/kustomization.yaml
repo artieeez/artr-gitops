@@ -1,0 +1,17 @@
+# Shared by every app directory, each with its own `namespace:`, so every
+# namespace gets its own copy (ConfigMaps and Secrets cannot be mounted across
+# namespaces).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  # Append-only Object Storage key for cluster-app-backups, sealed with
+  # --scope cluster-wide so the one ciphertext unseals in every namespace.
+  # Generate with scripts/seal-app-backup-credentials.sh (docs/app-backups.md).
+  - s3-credentials-sealed.yaml
+configMapGenerator:
+  - name: app-backup-scripts
+    files:
+      - backup.sh
+    options:
+      labels:
+        app.kubernetes.io/component: app-backup

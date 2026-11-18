@@ -1,0 +1,19 @@
+# Cluster-internal RCON endpoint for the backup Job (save-off / save-all / save-on).
+# ClusterIP only: not exposed through the NodePort Service or the NLB.
+apiVersion: v1
+kind: Service
+metadata:
+  name: minecraft-rcon
+  namespace: games
+  labels:
+    app: minecraft
+    app.kubernetes.io/component: app-backup
+spec:
+  type: ClusterIP
+  selector:
+    app: minecraft
+  ports:
+    - name: rcon
+      protocol: TCP
+      port: 25575
+      targetPort: rcon
