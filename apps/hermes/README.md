@@ -34,8 +34,10 @@ claude-box ── herdr server ── panes: claude (bypass + managed deny rules
   (`~/.gem`) and one shared `BUNDLE_PATH` (`~/.bundle-cache`) live in
   claude-home; worktrees reuse built gems. The skill bootstraps each worktree
   (`mise exec -- bundle install`) before starting Claude.
-- **Claude Code**: native build, pinned by `CLAUDE_CODE_VERSION` in the
-  `claude-install` init container; auto-update off.
+- **Claude Code**: native build baked into the pi-cloud image
+  (`/usr/local/bin/claude`, pinned `CLAUDE_CODE_VERSION` in its Dockerfile);
+  auto-update off. `claude-install` only falls back to installing into the
+  PVC on older images.
 - **Personal config**: `~/.claude` is a checkout of `artieeez/claude-config`
   (main), refreshed on every boot — `/split`, herdr hooks, settings. Push
   changes there, then restart the pod. The PAT must include that repo.
@@ -66,6 +68,27 @@ herdr --remote claude-box     # thin local herdr client
 retired pi box's `authorized_keys`, still on NFS at `/exports/pi/pi-home`; pass a file to change
 them). SSH shells don't carry `GH_TOKEN`/the Claude token — run Claude in
 herdr panes, which get them from the claude-box server.
+
+### Herdr mobile app (phone)
+
+The [Herdr](https://herdr.dev) app talks to **herdr-core** (`hc`) over SSH:
+it runs `ssh claude-box hc connect`. `hc` is baked into the pi-cloud image;
+the core runs supervised inside the `claude-box` container, with its socket at
+`HC_SOCKET=/run/herdr/hc.sock` (shared emptyDir; claude-ssh gets it via
+`sshd_config` `SetEnv`). So terminals the app opens run in claude-box, with
+`GH_TOKEN` and the Claude login, and `claude` works there directly.
+
+```text
+phone (Herdr app, Tailscale) ── ssh claude@claude-box ── claude-ssh: hc connect
+                                                           │ /run/herdr/hc.sock
+claude-box ── herdr-core serve ── terminals: claude, shells
+```
+
+Setup: phone on the tailnet; in the app add the machine `claude-box.<tailnet>.ts.net`,
+user `claude`, port 22; add the app's public key with
+`./scripts/seal-claude-box-ssh.sh` (header shows how to append one key; the host
+key is kept). herdr-core terminals are separate from the `herdr server` panes
+Hermes drives: the app shows hc terminals, not herdr panes.
 
 Hermes' own sessions: dashboard, or
 `kubectl -n hermes exec -it deploy/hermes -c hermes -- hermes --tui`.

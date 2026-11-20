@@ -10,8 +10,14 @@
 # copied the sealed authorized_keys to /root/.ssh (= the pi-home PVC). nfs-client
 # uses pathPattern ${namespace}/${pvc} + reclaimPolicy Retain, so the directory
 # survived the namespace deletion untouched at /exports/pi/pi-home.
-# A NEW host key is generated in a temp dir, sealed, and the temp dir removed —
-# re-running changes the fingerprint (clients must update known_hosts).
+# The host key is reused from the live Secret (stable fingerprint) when it
+# exists; NEW_HOST_KEY=1 (or no live Secret) generates a new one, which changes
+# the fingerprint (clients must update known_hosts). Temp dir removed on exit.
+#
+# Add a key (e.g. the Herdr phone app's) without touching the others:
+#   kubectl -n hermes get secret claude-box-ssh -o jsonpath='{.data.authorized_keys}' \
+#     | base64 -d > /tmp/ak && echo 'ssh-ed25519 AAAA… herdr-phone' >> /tmp/ak
+#   ./scripts/seal-claude-box-ssh.sh /tmp/ak
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -40,8 +46,17 @@ grep -E '^(ssh-ed25519|ssh-rsa|ecdsa-sha2-[a-z0-9-]+|sk-ssh-ed25519@openssh.com)
 echo "authorized keys:"
 ssh-keygen -lf "$TMP/authorized_keys.clean" | sed 's/^/  /'
 
-ssh-keygen -q -t ed25519 -N '' -C 'claude-box (hermes)' -f "$TMP/ssh_host_ed25519_key"
-echo "new host key: $(ssh-keygen -lf "$TMP/ssh_host_ed25519_key.pub")"
+LIVE="$(kubectl -n hermes get secret claude-box-ssh -o json 2>/dev/null || true)"
+if [ "${NEW_HOST_KEY:-0}" != 1 ] && [ -n "$LIVE" ]; then
+  jq -r '.data.ssh_host_ed25519_key' <<<"$LIVE" | base64 -d > "$TMP/ssh_host_ed25519_key"
+  jq -r '.data["ssh_host_ed25519_key.pub"]' <<<"$LIVE" | base64 -d > "$TMP/ssh_host_ed25519_key.pub"
+  chmod 600 "$TMP/ssh_host_ed25519_key"
+  ssh-keygen -y -f "$TMP/ssh_host_ed25519_key" >/dev/null || die "live host key is unreadable; re-run with NEW_HOST_KEY=1"
+  echo "kept host key: $(ssh-keygen -lf "$TMP/ssh_host_ed25519_key.pub")"
+else
+  ssh-keygen -q -t ed25519 -N '' -C 'claude-box (hermes)' -f "$TMP/ssh_host_ed25519_key"
+  echo "new host key: $(ssh-keygen -lf "$TMP/ssh_host_ed25519_key.pub")"
+fi
 
 jq -n \
   --rawfile ak "$TMP/authorized_keys.clean" \
