@@ -74,8 +74,9 @@ spec:
           volumeMounts:
             - name: tools
               mountPath: /tools
-        # Claude Code (native build, version pinned below; reinstalled only
-        # when the pin changes) + personal Claude config from
+        # Claude Code: baked into the pi-cloud image (fallback for older
+        # images: native build pinned below, reinstalled when the pin
+        # changes) + personal Claude config from
         # artieeez/claude-config (/split, herdr hooks, settings) + first-run
         # flags so interactive `claude` never waits on an onboarding screen.
         - name: claude-install
@@ -86,9 +87,16 @@ spec:
             - |
               set -euo pipefail
               export PATH="$HOME/.local/bin:$PATH"
-              have="$(claude --version 2>/dev/null | awk '{print $1}' || true)"
-              if [ "$have" != "$CLAUDE_CODE_VERSION" ]; then
-                curl -fsSL https://claude.ai/install.sh | bash -s "$CLAUDE_CODE_VERSION"
+              if [ -x /usr/local/bin/claude ]; then
+                # Baked into the image (pi-cloud CLAUDE_CODE_VERSION): drop the
+                # old PVC launcher, which would shadow it on PATH.
+                rm -f "$HOME/.local/bin/claude"
+              else
+                # Older images: install the pinned version into the PVC.
+                have="$(claude --version 2>/dev/null | awk '{print $1}' || true)"
+                if [ "$have" != "$CLAUDE_CODE_VERSION" ]; then
+                  curl -fsSL https://claude.ai/install.sh | bash -s "$CLAUDE_CODE_VERSION"
+                fi
               fi
               # git/gh over HTTPS with GH_TOKEN (credential helper = gh, token stays in env)
               gh auth setup-git
@@ -261,20 +269,38 @@ spec:
         # Claude login in env, and only claude-home/ + workspace/ of the PVC —
         # none of Hermes' keys, state or MCP tokens. Attach to watch/take over:
         #   kubectl -n hermes exec -it deploy/hermes -c claude-box -- herdr
-        # pi-cloud image reused for its toolchain (herdr, git, gh, node, Ruby);
-        # its entrypoint (sshd, boot sync) is replaced by `herdr server`.
+        # pi-cloud image reused for its toolchain (herdr, herdr-core, claude,
+        # git, gh, node, Ruby); its entrypoint (sshd, boot sync) is replaced by
+        # `herdr server` plus a supervised herdr-core (`hc`) for the Herdr
+        # mobile app: the app runs `ssh claude-box hc connect` in claude-ssh,
+        # which reaches this core over $HC_SOCKET (shared emptyDir), so the
+        # app's terminals run HERE, with this env (GH_TOKEN, Claude login).
         - name: claude-box
           image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-a000f18
           # Start shells/panes in Claude's home (the image's WORKDIR is /tmp).
           workingDir: /opt/data/claude-home
           # Immutable sha tag => IfNotPresent (2.2 GiB image).
           imagePullPolicy: IfNotPresent
-          command: ["herdr", "server"]
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              # Images before herdr-core was baked: herdr only.
+              if command -v herdr-core >/dev/null 2>&1; then
+                ( while :; do
+                    herdr-core serve
+                    echo "herdr-core exited ($?); restarting in 5s" >&2
+                    sleep 5
+                  done ) &
+              fi
+              exec herdr server
           env:
             - name: HOME
               value: /opt/data/claude-home
             - name: XDG_CONFIG_HOME
               value: /run/herdr
+            # herdr-core socket, shared with claude-ssh (sshd_config SetEnv).
+            - name: HC_SOCKET
+              value: /run/herdr/hc.sock
             # Writable (herdr saves onboarding/keybindings here), on the PVC so
             # it survives restarts; claude-install ensures the [terminal] block.
             - name: HERDR_CONFIG_PATH
