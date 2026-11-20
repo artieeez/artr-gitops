@@ -74,7 +74,7 @@ data:
     # sshd resets the env: give sessions the non-secret paths so `herdr`
     # and `hc` (Herdr mobile app: `ssh claude-box hc connect`) find the
     # claude-box server sockets and Ruby/gems match the panes.
-    SetEnv XDG_CONFIG_HOME=/run/herdr HC_SOCKET=/run/herdr/hc.sock HERDR_CONFIG_PATH=/opt/data/claude-home/.config/herdr/config.toml GEM_HOME=/opt/data/claude-home/.gem BUNDLE_PATH=/opt/data/claude-home/.bundle-cache BUNDLE_JOBS=4 DISABLE_AUTOUPDATER=1 AGY_CLI_DISABLE_AUTO_UPDATE=1 TMPDIR=/tmp
+    SetEnv XDG_CONFIG_HOME=/run/herdr HC_SOCKET=/run/herdr/hc.sock HERDR_CONFIG_PATH=/opt/data/claude-home/.config/herdr/config.toml GEM_HOME=/opt/data/claude-home/.gem BUNDLE_PATH=/opt/data/claude-home/.bundle-cache BUNDLE_JOBS=4 DISABLE_AUTOUPDATER=1 TMPDIR=/tmp
 
   SKILL.md: |
     ---

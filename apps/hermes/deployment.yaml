@@ -59,7 +59,7 @@ spec:
         # claude-box server runs). The wrapper points it at the shared socket
         # dir: $XDG_CONFIG_HOME/herdr/herdr.sock = /run/herdr/herdr/herdr.sock.
         - name: herdr-cli
-          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-a000f18
+          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-0ecf252
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:
@@ -78,9 +78,10 @@ spec:
         # images: native build pinned below, reinstalled when the pin
         # changes) + personal Claude config from
         # artieeez/claude-config (/split, herdr hooks, settings) + first-run
-        # flags so interactive `claude` never waits on an onboarding screen.
+        # flags so interactive `claude` never waits on an onboarding screen +
+        # LazyVim config (artieeez/nvim-config) with its plugins.
         - name: claude-install
-          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-a000f18
+          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-0ecf252
           imagePullPolicy: IfNotPresent
           command: ["/bin/bash", "-c"]
           args:
@@ -98,6 +99,11 @@ spec:
                   curl -fsSL https://claude.ai/install.sh | bash -s "$CLAUDE_CODE_VERSION"
                 fi
               fi
+              # Antigravity CLI self-updates: seed the image's build into the
+              # writable home once; later updates land there and persist.
+              if [ -x /usr/local/bin/antigravity ] && [ ! -x "$HOME/.local/bin/antigravity" ]; then
+                install -D -m 0755 /usr/local/bin/antigravity "$HOME/.local/bin/antigravity"
+              fi
               # git/gh over HTTPS with GH_TOKEN (credential helper = gh, token stays in env)
               gh auth setup-git
               git config --global user.name "artieeez"
@@ -109,6 +115,20 @@ spec:
               [ -d .git ] || { git init -q -b main && git remote add origin https://github.com/artieeez/claude-config.git; }
               git fetch -q --depth 1 origin main
               git checkout -q -f -B main FETCH_HEAD
+              # LazyVim: artieeez/nvim-config (public), force-synced like
+              # ~/.claude; plugins restored to its lazy-lock.json. Plugin data
+              # stays in ~/.local/share/nvim (PVC). Never blocks the pod.
+              NVIM_CFG="$HOME/.config/nvim"
+              mkdir -p "$NVIM_CFG" && cd "$NVIM_CFG"
+              [ -d .git ] || { git init -q -b main && git remote add origin https://github.com/artieeez/nvim-config.git; }
+              if git fetch -q --depth 1 origin main; then
+                git checkout -q -f -B main FETCH_HEAD
+                timeout 300 nvim --headless "+Lazy! restore" +qa >/dev/null 2>&1 \
+                  || echo "WARN: LazyVim plugin restore failed; nvim installs them on first start"
+              else
+                echo "WARN: nvim-config fetch failed; keeping the existing checkout"
+              fi
+              cd "$HOME"
               # skip first-run onboarding (keeps other ~/.claude.json state)
               [ -s "$HOME/.claude.json" ] || echo '{}' > "$HOME/.claude.json"
               jq '.hasCompletedOnboarding = true | .theme = (.theme // "dark")' "$HOME/.claude.json" > "$HOME/.claude.json.tmp"
@@ -276,7 +296,7 @@ spec:
         # which reaches this core over $HC_SOCKET (shared emptyDir), so the
         # app's terminals run HERE, with this env (GH_TOKEN, Claude login).
         - name: claude-box
-          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-a000f18
+          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-0ecf252
           # Start shells/panes in Claude's home (the image's WORKDIR is /tmp).
           workingDir: /opt/data/claude-home
           # Immutable sha tag => IfNotPresent (2.2 GiB image).
@@ -292,6 +312,9 @@ spec:
                     sleep 5
                   done ) &
               fi
+              # nvim reads $XDG_CONFIG_HOME/nvim (= /run/herdr, for herdr's
+              # socket): point it at the LazyVim config in claude-home.
+              ln -sfn "$HOME/.config/nvim" /run/herdr/nvim
               exec herdr server
           env:
             - name: HOME
@@ -369,7 +392,7 @@ spec:
         # panes still run in claude-box. No secrets in this container's env;
         # sshd_config SetEnv provides the non-secret paths.
         - name: claude-ssh
-          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-a000f18
+          image: vcp.ocir.io/axtvnrdemzo7/pi-cloud:sha-0ecf252
           # Start shells/panes in Claude's home (the image's WORKDIR is /tmp).
           workingDir: /opt/data/claude-home
           imagePullPolicy: IfNotPresent
