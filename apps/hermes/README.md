@@ -41,6 +41,10 @@ claude-box ── herdr server ── panes: claude (bypass + managed deny rules
 - **Personal config**: `~/.claude` is a checkout of `artieeez/claude-config`
   (main), refreshed on every boot — `/split`, herdr hooks, settings. Push
   changes there, then restart the pod. The PAT must include that repo.
+- **Neovim**: LazyVim from `artieeez/nvim-config` (main), force-synced to
+  `~/.config/nvim` on boot with plugins restored to its `lazy-lock.json`
+  (`claude-install`); `/run/herdr/nvim` links to it because `XDG_CONFIG_HOME`
+  is `/run/herdr`. Icons need a Nerd Font in the client terminal.
 - **Policy**: `/etc/claude-code/managed-settings.json` (bypass permissions;
   deny force-push, push to main, `gh pr merge`, `kubectl`). Enable branch
   protection on `main` in each repo — deny rules alone are not a wall.
