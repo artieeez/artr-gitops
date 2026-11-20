@@ -98,6 +98,11 @@ spec:
                   curl -fsSL https://claude.ai/install.sh | bash -s "$CLAUDE_CODE_VERSION"
                 fi
               fi
+              # Antigravity CLI self-updates: seed the image's build into the
+              # writable home once; later updates land there and persist.
+              if [ -x /usr/local/bin/antigravity ] && [ ! -x "$HOME/.local/bin/antigravity" ]; then
+                install -D -m 0755 /usr/local/bin/antigravity "$HOME/.local/bin/antigravity"
+              fi
               # git/gh over HTTPS with GH_TOKEN (credential helper = gh, token stays in env)
               gh auth setup-git
               git config --global user.name "artieeez"
