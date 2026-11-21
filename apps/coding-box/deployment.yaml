@@ -69,18 +69,19 @@ spec:
               git config --global user.email "artieeez@users.noreply.github.com"
               git config --global init.defaultBranch main
               # personal Claude config: tracked files only; runtime state
-              # (projects/, sessions, history) is ignored by its .gitignore
+              # (projects/, sessions, history) is ignored by its .gitignore.
+              # main tracks origin/main, so a manual `git pull` works in the pod.
               mkdir -p "$HOME/.claude" && cd "$HOME/.claude"
               [ -d .git ] || { git init -q -b main && git remote add origin https://github.com/artieeez/claude-config.git; }
-              git fetch -q --depth 1 origin main
-              git checkout -q -f -B main FETCH_HEAD
+              git fetch -q --depth 1 origin +refs/heads/main:refs/remotes/origin/main
+              git checkout -q -f -B main --track origin/main
               # LazyVim: artieeez/nvim-config (public), force-synced like
               # ~/.claude; plugins restored to its lazy-lock.json. Never blocks the pod.
               NVIM_CFG="$HOME/.config/nvim"
               mkdir -p "$NVIM_CFG" && cd "$NVIM_CFG"
               [ -d .git ] || { git init -q -b main && git remote add origin https://github.com/artieeez/nvim-config.git; }
-              if git fetch -q --depth 1 origin main; then
-                git checkout -q -f -B main FETCH_HEAD
+              if git fetch -q --depth 1 origin +refs/heads/main:refs/remotes/origin/main; then
+                git checkout -q -f -B main --track origin/main
                 timeout 300 nvim --headless "+Lazy! restore" +qa >/dev/null 2>&1 \
                   || echo "WARN: LazyVim plugin restore failed; nvim installs them on first start"
               else
