@@ -45,6 +45,12 @@ claude-box ── herdr server ── panes: claude (bypass + managed deny rules
   `~/.config/nvim` on boot with plugins restored to its `lazy-lock.json`
   (`claude-install`); `/run/herdr/nvim` links to it because `XDG_CONFIG_HOME`
   is `/run/herdr`. Icons need a Nerd Font in the client terminal.
+- **Postgres**: a `postgres` sidecar on `127.0.0.1:5432` (user/password
+  `cf`/`cf`, emptyDir data, fsync off) stands in for Docker, which the pod
+  doesn't have. `CF_TEST_POSTGRES_URL` points code-factory's tests at it, in
+  claude-box and in SSH shells (`sshd_config` `SetEnv`). For
+  `pnpm dev:server`, set `DATABASE_URL=postgresql://cf:cf@127.0.0.1:5432/cf`.
+  Loopback only; the hermes container shares the pod's loopback too.
 - **Policy**: `/etc/claude-code/managed-settings.json` (bypass permissions;
   deny force-push, push to main, `gh pr merge`, `kubectl`). Enable branch
   protection on `main` in each repo — deny rules alone are not a wall.
