@@ -1,0 +1,75 @@
+# coding-box config (see deployment.yaml + README.md).
+#   managed-settings.json -> /etc/claude-code/ (Claude Code managed policy:
+#                            highest precedence, layered over the personal
+#                            ~/.claude from artieeez/claude-config)
+#   sshd_config           -> ssh container (non-root sshd, Tailscale)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coding-box-config
+  namespace: coding-box
+  labels:
+    app: coding-box
+data:
+  # Guarded bypass: no permission prompts, but
+  # destructive git/gh actions are denied. Deny rules are a speed bump, not a
+  # wall (a shell can be creative) — branch protection on `main` is the real
+  # guard for GitHub writes.
+  managed-settings.json: |
+    {
+      "permissions": {
+        "defaultMode": "bypassPermissions",
+        "deny": [
+          "Bash(git push --force *)",
+          "Bash(git push -f *)",
+          "Bash(git push --force-with-lease *)",
+          "Bash(git push * --force*)",
+          "Bash(git push origin main*)",
+          "Bash(git push origin HEAD:main*)",
+          "Bash(git push origin master*)",
+          "Bash(gh pr merge *)",
+          "Bash(gh repo delete *)",
+          "Bash(gh release *)",
+          "Bash(kubectl *)"
+        ]
+      },
+      "skipDangerousModePermissionPrompt": true,
+      "attribution": {
+        "commit": "",
+        "pr": "",
+        "sessionUrl": false
+      }
+    }
+
+  # Non-root sshd for the ssh container (UID 10000, user `arturwebber`).
+  # Own config via -f: Debian's /etc/ssh/sshd_config pulls in the image's
+  # root-oriented drop-in (port 22, /root host key).
+  sshd_config: |
+    Port 2222
+    ListenAddress 0.0.0.0
+    HostKey /home/arturwebber/.sshd/ssh_host_ed25519_key
+    PidFile /home/arturwebber/.sshd/sshd.pid
+    AuthorizedKeysFile .ssh/authorized_keys
+    AllowUsers arturwebber
+    PermitRootLogin no
+    PubkeyAuthentication yes
+    PasswordAuthentication no
+    KbdInteractiveAuthentication no
+    PermitEmptyPasswords no
+    UsePAM no
+    StrictModes yes
+    PermitUserEnvironment no
+    X11Forwarding no
+    AllowAgentForwarding no
+    AllowTcpForwarding yes
+    MaxAuthTries 4
+    LoginGraceTime 30
+    ClientAliveInterval 30
+    ClientAliveCountMax 6
+    TCPKeepAlive yes
+    LogLevel VERBOSE
+    Subsystem sftp internal-sftp
+    # sshd resets the env: give sessions the non-secret paths so `hc`
+    # (Herdr apps: `ssh coding-box hc connect`) finds the coding-box
+    # container's herdr-core and Ruby/gems/Postgres match its terminals.
+    SetEnv HC_SOCKET=/run/hc/hc.sock GEM_HOME=/home/arturwebber/.gem BUNDLE_PATH=/home/arturwebber/.bundle-cache BUNDLE_JOBS=4 DISABLE_AUTOUPDATER=1 TMPDIR=/tmp PGHOST=127.0.0.1 PGUSER=postgres PGPASSWORD=postgres DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres CF_TEST_POSTGRES_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres

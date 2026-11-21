@@ -1,0 +1,314 @@
+# coding-box — personal dev box (Claude Code, herdr, herdr-core) reached over
+# Tailscale SSH, plus a throwaway Postgres for test runs. See README.md.
+#   coding-box  herdr-core (`hc`): the Herdr desktop/mobile apps run
+#               `ssh coding-box hc connect`, and their terminals run HERE,
+#               with GH_TOKEN and the Claude login.
+#   ssh         non-root sshd (UID 10000, user `arturwebber`, key-only) sharing
+#               the hc socket with coding-box.
+#   postgres    127.0.0.1:5432, emptyDir — wiped on every restart.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coding-box
+  namespace: coding-box
+  labels:
+    app: coding-box
+spec:
+  # One home on NFS, one herdr-core: never scale above 1.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: coding-box
+  template:
+    metadata:
+      labels:
+        app: coding-box
+    spec:
+      # Nothing here talks to the Kubernetes API.
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: ocir-pull
+      initContainers:
+        # Pre-create the subPath dirs owned by 10000 (kubelet would create
+        # them root-owned).
+        - name: init-dirs
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-6de1d81
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              mkdir -p /data/home /data/workspace
+              chown 10000:10000 /data/home /data/workspace
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: data
+              mountPath: /data
+        # Home setup, every boot: personal Claude config (artieeez/claude-config),
+        # LazyVim (artieeez/nvim-config), git identity, SSH keys from the
+        # sealed Secret.
+        - name: setup
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-6de1d81
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              export PATH="$HOME/.local/bin:$PATH"
+              # Antigravity CLI self-updates: seed the image's build into the
+              # writable home once; later updates land there and persist.
+              if [ -x /usr/local/bin/antigravity ] && [ ! -x "$HOME/.local/bin/antigravity" ]; then
+                install -D -m 0755 /usr/local/bin/antigravity "$HOME/.local/bin/antigravity"
+              fi
+              # git/gh over HTTPS with GH_TOKEN (credential helper = gh, token stays in env)
+              gh auth setup-git
+              git config --global user.name "artieeez"
+              git config --global user.email "artieeez@users.noreply.github.com"
+              git config --global init.defaultBranch main
+              # personal Claude config: tracked files only; runtime state
+              # (projects/, sessions, history) is ignored by its .gitignore
+              mkdir -p "$HOME/.claude" && cd "$HOME/.claude"
+              [ -d .git ] || { git init -q -b main && git remote add origin https://github.com/artieeez/claude-config.git; }
+              git fetch -q --depth 1 origin main
+              git checkout -q -f -B main FETCH_HEAD
+              # LazyVim: artieeez/nvim-config (public), force-synced like
+              # ~/.claude; plugins restored to its lazy-lock.json. Never blocks the pod.
+              NVIM_CFG="$HOME/.config/nvim"
+              mkdir -p "$NVIM_CFG" && cd "$NVIM_CFG"
+              [ -d .git ] || { git init -q -b main && git remote add origin https://github.com/artieeez/nvim-config.git; }
+              if git fetch -q --depth 1 origin main; then
+                git checkout -q -f -B main FETCH_HEAD
+                timeout 300 nvim --headless "+Lazy! restore" +qa >/dev/null 2>&1 \
+                  || echo "WARN: LazyVim plugin restore failed; nvim installs them on first start"
+              else
+                echo "WARN: nvim-config fetch failed; keeping the existing checkout"
+              fi
+              cd "$HOME"
+              # skip first-run onboarding (keeps other ~/.claude.json state)
+              [ -s "$HOME/.claude.json" ] || echo '{}' > "$HOME/.claude.json"
+              jq '.hasCompletedOnboarding = true | .theme = (.theme // "dark")' "$HOME/.claude.json" > "$HOME/.claude.json.tmp"
+              mv "$HOME/.claude.json.tmp" "$HOME/.claude.json"
+              # SSH: sshd refuses group/world-readable keys, so copy the sealed
+              # ones (mounted 0444) to 0600 files. authorized_keys is REPLACED
+              # every boot: add keys via scripts/seal-coding-box.sh, never by
+              # editing ~/.ssh/authorized_keys in the pod.
+              install -d -m 700 "$HOME/.sshd" "$HOME/.ssh"
+              install -m 600 /coding-box-ssh/ssh_host_ed25519_key "$HOME/.sshd/ssh_host_ed25519_key"
+              install -m 644 /coding-box-ssh/ssh_host_ed25519_key.pub "$HOME/.sshd/ssh_host_ed25519_key.pub"
+              install -m 600 /coding-box-ssh/authorized_keys "$HOME/.ssh/authorized_keys"
+              # Login shells reset PATH via /etc/profile: ~/.profile sources
+              # this file (regenerated every boot) to re-add ~/.local/bin + gems.
+              printf 'export PATH="$HOME/.local/bin:$GEM_HOME/bin:$PATH"\n' > "$HOME/.coding-box-env"
+              grep -qs 'coding-box-env' "$HOME/.profile" || \
+                printf '\n[ -f "$HOME/.coding-box-env" ] && . "$HOME/.coding-box-env"\n' >> "$HOME/.profile"
+          env:
+            # The image's `arturwebber` user (UID 10000) has this home in /etc/passwd.
+            - name: HOME
+              value: /home/arturwebber
+            - name: GH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: coding-box-secrets
+                  key: GH_TOKEN
+          securityContext:
+            runAsUser: 10000
+            runAsGroup: 10000
+          volumeMounts:
+            - name: data
+              mountPath: /home/arturwebber
+              subPath: home
+            - name: coding-box-ssh
+              mountPath: /coding-box-ssh
+              readOnly: true
+      containers:
+        - name: coding-box
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-6de1d81
+          workingDir: /home/arturwebber
+          # Immutable sha tag => IfNotPresent (2.2 GiB image).
+          imagePullPolicy: IfNotPresent
+          # herdr-core is the main process: if it exits, the kubelet restarts
+          # this container (terminals are lost either way).
+          command: ["/usr/local/bin/herdr-core", "serve"]
+          env:
+            - name: HOME
+              value: /home/arturwebber
+            # herdr-core socket, shared with the ssh container (sshd_config SetEnv).
+            - name: HC_SOCKET
+              value: /run/hc/hc.sock
+            - name: PATH
+              value: /home/arturwebber/.local/bin:/home/arturwebber/.gem/bin:/opt/mise-root/local/bin:/opt/mise/shims:/opt/nvim/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+            - name: SHELL
+              value: /bin/bash
+            - name: TERM
+              value: xterm-256color
+            # Ruby: mise's install is root-owned, so gems go to a per-user
+            # GEM_HOME and bundles to ONE shared BUNDLE_PATH (worktrees reuse
+            # already-built gems).
+            - name: GEM_HOME
+              value: /home/arturwebber/.gem
+            - name: BUNDLE_PATH
+              value: /home/arturwebber/.bundle-cache
+            - name: BUNDLE_JOBS
+              value: "4"
+            # Claude Code is baked into the image; never self-update.
+            - name: DISABLE_AUTOUPDATER
+              value: "1"
+            # Postgres sidecar (libpq defaults + code-factory's test URL).
+            - name: PGHOST
+              value: 127.0.0.1
+            - name: PGUSER
+              value: postgres
+            - name: PGPASSWORD
+              value: postgres
+            - name: DATABASE_URL
+              value: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+            - name: CF_TEST_POSTGRES_URL
+              value: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+            - name: GH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: coding-box-secrets
+                  key: GH_TOKEN
+            # `claude setup-token` (subscription) — no browser in the pod.
+            - name: CLAUDE_CODE_OAUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: coding-box-secrets
+                  key: CLAUDE_CODE_OAUTH_TOKEN
+          securityContext:
+            runAsUser: 10000
+            runAsGroup: 10000
+          volumeMounts:
+            - name: data
+              mountPath: /home/arturwebber
+              subPath: home
+            - name: data
+              mountPath: /opt/data/workspace
+              subPath: workspace
+            - name: hc-run
+              mountPath: /run/hc
+            - name: config
+              mountPath: /etc/claude-code/managed-settings.json
+              subPath: managed-settings.json
+              readOnly: true
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 4Gi
+          readinessProbe:
+            exec:
+              command: ["test", "-S", "/run/hc/hc.sock"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+        # Tailscale SSH entry (service-ssh.yaml):
+        #   ssh arturwebber@coding-box   |   Herdr apps (`hc connect`)
+        # Shells here have no secrets in env; `hc connect` attaches to the
+        # coding-box container's herdr-core, so the apps' terminals run THERE.
+        - name: ssh
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-6de1d81
+          workingDir: /home/arturwebber
+          imagePullPolicy: IfNotPresent
+          command: ["/usr/sbin/sshd", "-D", "-e", "-f", "/etc/coding-box/sshd_config"]
+          ports:
+            - containerPort: 2222
+              name: ssh
+          securityContext:
+            runAsUser: 10000
+            runAsGroup: 10000
+          volumeMounts:
+            - name: data
+              mountPath: /home/arturwebber
+              subPath: home
+            - name: data
+              mountPath: /opt/data/workspace
+              subPath: workspace
+            - name: hc-run
+              mountPath: /run/hc
+            - name: sshd-run
+              mountPath: /run/sshd
+            - name: config
+              mountPath: /etc/coding-box/sshd_config
+              subPath: sshd_config
+              readOnly: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 1Gi
+          readinessProbe:
+            tcpSocket:
+              port: ssh
+            initialDelaySeconds: 5
+            periodSeconds: 20
+        # Throwaway Postgres for test runs (no Docker in the pod). Loopback
+        # only, so only this pod reaches it; emptyDir, gone on restart.
+        # fsync off: test data only.
+        - name: postgres
+          image: docker.io/postgres:17.11
+          # Immutable version tag => IfNotPresent (docs/image-pull-policy.md).
+          imagePullPolicy: IfNotPresent
+          args:
+            - -c
+            - listen_addresses=127.0.0.1
+            - -c
+            - max_connections=500
+            - -c
+            - fsync=off
+            - -c
+            - full_page_writes=off
+            - -c
+            - synchronous_commit=off
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_INITDB_ARGS
+              value: --locale=C --encoding=UTF8
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: postgres-shm
+              mountPath: /dev/shm
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 1Gi
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-h", "127.0.0.1", "-U", "postgres"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: coding-box-data
+        - name: hc-run
+          emptyDir: {}
+        - name: config
+          configMap:
+            name: coding-box-config
+        # authorized_keys + host key (scripts/seal-coding-box.sh). 0444 so the
+        # UID-10000 init can read it; it copies them to 0600 files.
+        - name: coding-box-ssh
+          secret:
+            secretName: coding-box-ssh
+            defaultMode: 0444
+        - name: sshd-run
+          emptyDir: {}
+        - name: postgres-data
+          emptyDir:
+            sizeLimit: 2Gi
+        # Postgres' parallel queries need more than the runtime's 64 MiB /dev/shm.
+        - name: postgres-shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 256Mi

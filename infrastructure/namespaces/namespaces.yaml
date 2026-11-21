@@ -52,4 +52,4 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: hermes
+  name: coding-box
