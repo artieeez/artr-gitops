@@ -87,6 +87,12 @@ spec:
                 echo "WARN: nvim-config fetch failed; keeping the existing checkout"
               fi
               cd "$HOME"
+              # playwright-cli skill for Claude Code -> ~/.claude/skills/playwright-cli.
+              # Copied from the image's @playwright/cli package (no network), so it
+              # always matches the baked CLI version. Chromium itself is baked in
+              # the image (/opt/ms-playwright). Never blocks the pod.
+              playwright-cli install --skills --global >/dev/null \
+                || echo "WARN: playwright-cli skill install failed"
               # skip first-run onboarding (keeps other ~/.claude.json state)
               [ -s "$HOME/.claude.json" ] || echo '{}' > "$HOME/.claude.json"
               jq '.hasCompletedOnboarding = true | .theme = (.theme // "dark")' "$HOME/.claude.json" > "$HOME/.claude.json.tmp"
