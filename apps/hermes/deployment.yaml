@@ -347,6 +347,9 @@ spec:
             # Version is pinned by claude-install; never self-update.
             - name: DISABLE_AUTOUPDATER
               value: "1"
+            # code-factory's tests use the postgres sidecar instead of Docker.
+            - name: CF_TEST_POSTGRES_URL
+              value: postgresql://cf:cf@127.0.0.1:5432/postgres
             - name: GH_TOKEN
               valueFrom:
                 secretKeyRef:
@@ -429,6 +432,48 @@ spec:
               port: ssh
             initialDelaySeconds: 5
             periodSeconds: 20
+        # Throwaway Postgres for claude-box's test runs (no Docker in the
+        # pod): code-factory's tests create and drop their databases here
+        # (CF_TEST_POSTGRES_URL). Loopback only, so only this pod reaches it;
+        # data on an emptyDir, gone on restart. fsync off: test data only.
+        - name: postgres
+          image: docker.io/postgres:17.11
+          # Immutable version tag => IfNotPresent (docs/image-pull-policy.md).
+          imagePullPolicy: IfNotPresent
+          args:
+            - -c
+            - listen_addresses=127.0.0.1
+            - -c
+            - max_connections=500
+            - -c
+            - fsync=off
+            - -c
+            - full_page_writes=off
+            - -c
+            - synchronous_commit=off
+          env:
+            - name: POSTGRES_USER
+              value: cf
+            - name: POSTGRES_PASSWORD
+              value: cf
+            - name: POSTGRES_INITDB_ARGS
+              value: --locale=C --encoding=UTF8
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: postgres-shm
+              mountPath: /dev/shm
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 1Gi
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-h", "127.0.0.1", "-U", "cf"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -446,6 +491,14 @@ spec:
             defaultMode: 0444
         - name: sshd-run
           emptyDir: {}
+        - name: postgres-data
+          emptyDir:
+            sizeLimit: 2Gi
+        # Postgres' parallel queries need more than the runtime's 64 MiB /dev/shm.
+        - name: postgres-shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 256Mi
         - name: config
           configMap:
             name: hermes-config
