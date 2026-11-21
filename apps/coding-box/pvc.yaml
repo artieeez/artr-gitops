@@ -1,0 +1,16 @@
+# coding-box data on NFS (nfs-client, Retain): subPath `home` = the claude
+# user's HOME (~/.claude, LazyVim, gems), `workspace` = clones.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: coding-box-data
+  namespace: coding-box
+  labels:
+    app: coding-box
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: nfs-client
