@@ -24,7 +24,6 @@
 **Key dependencies:**
 
 - kube-prometheus-stack, Loki, Grafana, Alloy (monitoring)
-- Filebrowser (web file manager)
 - Pi-hole (DNS ad-blocking)
 - Docker Registry (in-cluster image cache)
 - NFS provisioner (dynamic PVs via external NFS)
