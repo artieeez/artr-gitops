@@ -46,18 +46,6 @@
     },
     {
       "matchFileNames": [
-        "apps/platform/filebrowser/"
-      ],
-      "groupName": "filebrowser"
-    },
-    {
-      "matchFileNames": [
-        "apps/platform/sealed-secrets-web/"
-      ],
-      "groupName": "sealed-secrets-web"
-    },
-    {
-      "matchFileNames": [
         "apps/platform/storage/"
       ],
       "groupName": "platform-storage"

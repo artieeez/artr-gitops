@@ -7,8 +7,10 @@ metadata:
     app: home
     environment: staging
 spec:
+  # Parked at 0: staging is not served any more, but this file stays as the
+  # image-tag source for home's CI and the promote-home workflow.
   # SQLite single-writer — never scale above 1.
-  replicas: 1
+  replicas: 0
   strategy:
     type: Recreate
   selector:

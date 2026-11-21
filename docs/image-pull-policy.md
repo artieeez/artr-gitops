@@ -25,13 +25,12 @@ All first-party OCIR images are built by app-repo GitHub Actions (`.github/workf
 | Workload | Tag kind | Pull policy |
 | --- | --- | --- |
 | `apps/hermes` (`pi-cloud`, claude-box sidecar + init) | immutable `sha-<rev>` | `IfNotPresent` |
-| `apps/staging/home` | immutable `sha-<rev>` | `IfNotPresent` |
+| `apps/staging/home` (parked, `replicas: 0`) | immutable `sha-<rev>` | `IfNotPresent` |
 | `apps/production/home` | immutable `sha-<rev>` (promoted) | `IfNotPresent` |
 | `apps/sitio-staging/sitio-rails` | immutable `sha-<rev>` | `IfNotPresent` |
 | `apps/sitio-production/sitio-rails` | immutable `sha-<rev>` (promoted) | `IfNotPresent` |
-| `apps/games/minecraft` | `@sha256:` digest | `IfNotPresent` |
 
-Third-party images pinned to a release tag (`git-sync:v4.7.1`, `alpine/k8s:1.37.0`, `busybox:1.38`, `pocket-id:2.16.0`, `filebrowser:1.5.5-stable`, `sealed-secrets-web:v3.1.9`) also resolve to a fixed digest and can stay `IfNotPresent`.
+Third-party images pinned to a release tag (`git-sync:v4.7.1`, `alpine/k8s:1.37.0`, `busybox:1.38`, `pocket-id:2.16.0`) also resolve to a fixed digest and can stay `IfNotPresent`.
 
 Floating tags that exist in the repo today, and were deliberately left alone on this sweep:
 

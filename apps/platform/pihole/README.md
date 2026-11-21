@@ -1,8 +1,8 @@
 # Pi-hole
 
 - **DNS (tailnet):** Tailscale Kubernetes Operator exposes `pihole-dns` at `pihole-dns.<tailnet>.ts.net` (see `charts/pihole-values.yaml` annotations). Setup: [docs/tailscale-pihole-setup.md](../../../docs/tailscale-pihole-setup.md).
-- **DNS (public):** None. Nothing listens on 53 or 853 in front of the internet: the OCI NLB carries HTTP/HTTPS and the games port only, and Traefik has no DNS entryPoints. Point devices at the tailnet name, not at the NLB IP.
-- **Web UI:** `https://pihole.artr.com.br` — TLS at Traefik; access is gated by **TinyAuth** (`middlewares: [tinyauth-forwardauth]`). The `Middleware` CR lives with [sealed-secrets-web](../sealed-secrets-web/ingressroute.yaml); Pi-hole only references it.
+- **DNS (public):** None. Nothing listens on 53 or 853 in front of the internet: the OCI NLB carries HTTP/HTTPS only, and Traefik has no DNS entryPoints. Point devices at the tailnet name, not at the NLB IP.
+- **Web UI:** `https://pihole.artr.com.br` — TLS at Traefik; access is gated by **TinyAuth** (`middlewares: [tinyauth-forwardauth]`). The `Middleware` CR lives with [tinyauth](../tinyauth/middleware.yaml); Pi-hole only references it.
 - **Pi-hole admin password:** Disabled in Helm (`admin.enabled: false`); rely on TinyAuth for the dashboard.
 - **Upstream DNS:** Managed in the web UI (**Settings → DNS**). Helm leaves `DNS1`/`DNS2` empty so `FTLCONF_dns_upstreams` is not injected (that env would lock the UI). Config survives restarts on the PVC.
 

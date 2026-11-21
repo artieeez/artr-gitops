@@ -4,12 +4,12 @@ Personal portfolio app on OCIR.
 
 | Env | Namespace | URL |
 |-----|-----------|-----|
-| Staging | `staging` | <https://home-staging.artr.com.br> |
+| Staging | `staging` | not served (Deployment parked at `replicas: 0`) |
 | Production | `production` | <https://artr.com.br> |
 
 Image: `vcp.ocir.io/axtvnrdemzo7/home:<tag>`
 
-**CI:** push to `main` in `artieeez/home` builds/pushes and bumps the staging image tag. Promote staging → production with the `Promote home to production` workflow in this repo (`workflow_dispatch`).
+**CI:** push to `main` in `artieeez/home` builds/pushes and bumps the staging image tag. Promote staging → production with the `Promote home to production` workflow in this repo (`workflow_dispatch`). Staging runs no pods and has no IngressRoute or backup; `apps/staging/home/deployment.yaml` is kept only as the tag that CI bumps and promotion reads.
 
 SealedSecrets (`ocir-pull`, `home-secrets`, `home-kb-git`) are sealed for both namespaces.
 
