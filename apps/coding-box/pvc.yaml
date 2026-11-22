@@ -14,3 +14,18 @@ spec:
     requests:
       storage: 10Gi
   storageClassName: nfs-client
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: coding-box-2-data
+  namespace: coding-box
+  labels:
+    app: coding-box-2
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: nfs-client

@@ -318,3 +318,280 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: 256Mi
+---
+# coding-box-2 — second dev box instance pinned away from coding-box onto a
+# separate node via podAntiAffinity, with its own NFS PVC (coding-box-2-data)
+# and Tailscale hostname (coding-box-2).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coding-box-2
+  namespace: coding-box
+  labels:
+    app: coding-box-2
+spec:
+  # One home on NFS, one herdr-core: never scale above 1.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: coding-box-2
+  template:
+    metadata:
+      labels:
+        app: coding-box-2
+    spec:
+      automountServiceAccountToken: false
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: coding-box
+              topologyKey: kubernetes.io/hostname
+      imagePullSecrets:
+        - name: ocir-pull
+      initContainers:
+        - name: init-dirs
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-6de1d81
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              mkdir -p /data/home /data/workspace
+              chown 10000:10000 /data/home /data/workspace
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: data
+              mountPath: /data
+        - name: setup
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-6de1d81
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -euo pipefail
+              export PATH="$HOME/.local/bin:$PATH"
+              if [ -x /usr/local/bin/antigravity ] && [ ! -x "$HOME/.local/bin/antigravity" ]; then
+                install -D -m 0755 /usr/local/bin/antigravity "$HOME/.local/bin/antigravity"
+              fi
+              gh auth setup-git
+              git config --global user.name "artieeez"
+              git config --global user.email "artieeez@users.noreply.github.com"
+              git config --global init.defaultBranch main
+              mkdir -p "$HOME/.claude" && cd "$HOME/.claude"
+              [ -d .git ] || { git init -q -b main && git remote add origin https://github.com/artieeez/claude-config.git; }
+              git fetch -q --depth 1 origin main
+              git checkout -q -f -B main FETCH_HEAD
+              NVIM_CFG="$HOME/.config/nvim"
+              mkdir -p "$NVIM_CFG" && cd "$NVIM_CFG"
+              [ -d .git ] || { git init -q -b main && git remote add origin https://github.com/artieeez/nvim-config.git; }
+              if git fetch -q --depth 1 origin main; then
+                git checkout -q -f -B main FETCH_HEAD
+                timeout 300 nvim --headless "+Lazy! restore" +qa >/dev/null 2>&1 \
+                  || echo "WARN: LazyVim plugin restore failed; nvim installs them on first start"
+              else
+                echo "WARN: nvim-config fetch failed; keeping the existing checkout"
+              fi
+              cd "$HOME"
+              playwright-cli install --skills --global >/dev/null \
+                || echo "WARN: playwright-cli skill install failed"
+              [ -s "$HOME/.claude.json" ] || echo '{}' > "$HOME/.claude.json"
+              jq '.hasCompletedOnboarding = true | .theme = (.theme // "dark")' "$HOME/.claude.json" > "$HOME/.claude.json.tmp"
+              mv "$HOME/.claude.json.tmp" "$HOME/.claude.json"
+              install -d -m 700 "$HOME/.sshd" "$HOME/.ssh"
+              install -m 600 /coding-box-ssh/ssh_host_ed25519_key "$HOME/.sshd/ssh_host_ed25519_key"
+              install -m 644 /coding-box-ssh/ssh_host_ed25519_key.pub "$HOME/.sshd/ssh_host_ed25519_key.pub"
+              install -m 600 /coding-box-ssh/authorized_keys "$HOME/.ssh/authorized_keys"
+              printf 'export PATH="$HOME/.local/bin:$GEM_HOME/bin:$PATH"\n' > "$HOME/.coding-box-env"
+              grep -qs 'coding-box-env' "$HOME/.profile" || \
+                printf '\n[ -f "$HOME/.coding-box-env" ] && . "$HOME/.coding-box-env"\n' >> "$HOME/.profile"
+          env:
+            - name: HOME
+              value: /home/arturwebber
+            - name: GH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: coding-box-secrets
+                  key: GH_TOKEN
+          securityContext:
+            runAsUser: 10000
+            runAsGroup: 10000
+          volumeMounts:
+            - name: data
+              mountPath: /home/arturwebber
+              subPath: home
+            - name: coding-box-ssh
+              mountPath: /coding-box-ssh
+              readOnly: true
+      containers:
+        - name: coding-box
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-6de1d81
+          workingDir: /home/arturwebber
+          imagePullPolicy: IfNotPresent
+          command: ["/usr/local/bin/herdr-core", "serve"]
+          env:
+            - name: HOME
+              value: /home/arturwebber
+            - name: HC_SOCKET
+              value: /run/hc/hc.sock
+            - name: PATH
+              value: /home/arturwebber/.local/bin:/home/arturwebber/.gem/bin:/opt/mise-root/local/bin:/opt/mise/shims:/opt/nvim/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+            - name: SHELL
+              value: /bin/bash
+            - name: TERM
+              value: xterm-256color
+            - name: GEM_HOME
+              value: /home/arturwebber/.gem
+            - name: BUNDLE_PATH
+              value: /home/arturwebber/.bundle-cache
+            - name: BUNDLE_JOBS
+              value: "4"
+            - name: DISABLE_AUTOUPDATER
+              value: "1"
+            - name: PGHOST
+              value: 127.0.0.1
+            - name: PGUSER
+              value: postgres
+            - name: PGPASSWORD
+              value: postgres
+            - name: DATABASE_URL
+              value: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+            - name: CF_TEST_POSTGRES_URL
+              value: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+            - name: GH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: coding-box-secrets
+                  key: GH_TOKEN
+            - name: CLAUDE_CODE_OAUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: coding-box-secrets
+                  key: CLAUDE_CODE_OAUTH_TOKEN
+          securityContext:
+            runAsUser: 10000
+            runAsGroup: 10000
+          volumeMounts:
+            - name: data
+              mountPath: /home/arturwebber
+              subPath: home
+            - name: data
+              mountPath: /opt/data/workspace
+              subPath: workspace
+            - name: hc-run
+              mountPath: /run/hc
+            - name: config
+              mountPath: /etc/claude-code/managed-settings.json
+              subPath: managed-settings.json
+              readOnly: true
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 4Gi
+          readinessProbe:
+            exec:
+              command: ["test", "-S", "/run/hc/hc.sock"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+        - name: ssh
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-6de1d81
+          workingDir: /home/arturwebber
+          imagePullPolicy: IfNotPresent
+          command: ["/usr/sbin/sshd", "-D", "-e", "-f", "/etc/coding-box/sshd_config"]
+          ports:
+            - containerPort: 2222
+              name: ssh
+          securityContext:
+            runAsUser: 10000
+            runAsGroup: 10000
+          volumeMounts:
+            - name: data
+              mountPath: /home/arturwebber
+              subPath: home
+            - name: data
+              mountPath: /opt/data/workspace
+              subPath: workspace
+            - name: hc-run
+              mountPath: /run/hc
+            - name: sshd-run
+              mountPath: /run/sshd
+            - name: config
+              mountPath: /etc/coding-box/sshd_config
+              subPath: sshd_config
+              readOnly: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 1Gi
+          readinessProbe:
+            tcpSocket:
+              port: ssh
+            initialDelaySeconds: 5
+            periodSeconds: 20
+        - name: postgres
+          image: docker.io/postgres:17.11
+          imagePullPolicy: IfNotPresent
+          args:
+            - -c
+            - listen_addresses=127.0.0.1
+            - -c
+            - max_connections=500
+            - -c
+            - fsync=off
+            - -c
+            - full_page_writes=off
+            - -c
+            - synchronous_commit=off
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_INITDB_ARGS
+              value: --locale=C --encoding=UTF8
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: postgres-shm
+              mountPath: /dev/shm
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 1Gi
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-h", "127.0.0.1", "-U", "postgres"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: coding-box-2-data
+        - name: hc-run
+          emptyDir: {}
+        - name: config
+          configMap:
+            name: coding-box-config
+        - name: coding-box-ssh
+          secret:
+            secretName: coding-box-ssh
+            defaultMode: 0444
+        - name: sshd-run
+          emptyDir: {}
+        - name: postgres-data
+          emptyDir:
+            sizeLimit: 2Gi
+        - name: postgres-shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 256Mi
