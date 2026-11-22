@@ -1,8 +1,9 @@
 # apps/coding-box — personal dev box
 
-One pod in namespace `coding-box`, image `coding-box` (built by
-[artieeez/coding-box](https://github.com/artieeez/coding-box), formerly
-`pi-cloud`), reached only over Tailscale.
+Two pods (`coding-box` and `coding-box-2`) in namespace `coding-box`, image
+`coding-box` (built by [artieeez/coding-box](https://github.com/artieeez/coding-box),
+formerly `pi-cloud`), placed on separate nodes (`podAntiAffinity` on
+`coding-box-2` against `app: coding-box`) and reached only over Tailscale.
 
 | Container | Role |
 | --- | --- |
@@ -16,7 +17,7 @@ identity, and the SSH keys.
 
 ## Storage
 
-PVC `coding-box-data` (NFS, Retain):
+PVCs `coding-box-data` and `coding-box-2-data` (NFS, Retain, one per instance):
 
 - `home` → `/home/arturwebber`, the `arturwebber` user's HOME (passwd entry baked into the image)
 - `workspace` → `/opt/data/workspace`, for clones and worktrees
@@ -37,12 +38,15 @@ Mac / phone (Tailscale) ── ssh arturwebber@coding-box ── ssh container
 ```
 
 ```bash
-ssh arturwebber@coding-box                  # shell
+ssh arturwebber@coding-box                  # shell (instance 1)
+ssh arturwebber@coding-box-2                # shell (instance 2)
 kubectl -n coding-box exec -it deploy/coding-box -c coding-box -- bash
+kubectl -n coding-box exec -it deploy/coding-box-2 -c coding-box -- bash
 ```
 
-Herdr desktop and mobile apps: add the machine `coding-box.<tailnet>.ts.net`,
-user `arturwebber`, port 22, then add the app's public key as below.
+Herdr desktop and mobile apps: add the machine `coding-box.<tailnet>.ts.net`
+(and/or `coding-box-2.<tailnet>.ts.net`), user `arturwebber`, port 22, then add
+the app's public key as below.
 
 ## SSH keys
 
@@ -55,7 +59,7 @@ key (for example a Herdr app's), save it to a file and run:
 ```
 
 Commit `apps/coding-box/coding-box-ssh-sealed.yaml`. After Argo CD syncs, run
-`kubectl -n coding-box rollout restart deployment/coding-box`.
+`kubectl -n coding-box rollout restart deployment/coding-box deployment/coding-box-2`.
 
 ## Secrets
 

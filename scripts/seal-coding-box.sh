@@ -130,4 +130,4 @@ case "$WHAT" in
   ocir) seal_ocir ;;
 esac
 echo "commit the changed apps/coding-box/*-sealed.yaml; after Argo CD syncs:"
-echo "  kubectl -n $NS rollout restart deployment/coding-box"
+echo "  kubectl -n $NS rollout restart deployment/coding-box deployment/coding-box-2"

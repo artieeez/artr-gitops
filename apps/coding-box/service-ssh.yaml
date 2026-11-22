@@ -1,5 +1,6 @@
 # SSH into coding-box over the tailnet (Tailscale operator):
-#   ssh arturwebber@coding-box.<tailnet>.ts.net   ->  ssh container :2222
+#   ssh arturwebber@coding-box.<tailnet>.ts.net     ->  coding-box ssh :2222
+#   ssh arturwebber@coding-box-2.<tailnet>.ts.net   ->  coding-box-2 ssh :2222
 # Key-only (scripts/seal-coding-box.sh). Not exposed outside the tailnet.
 apiVersion: v1
 kind: Service
@@ -15,6 +16,25 @@ spec:
   loadBalancerClass: tailscale
   selector:
     app: coding-box
+  ports:
+    - port: 22
+      name: ssh
+      targetPort: ssh
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: coding-box-2-ssh
+  namespace: coding-box
+  labels:
+    app: coding-box-2
+  annotations:
+    tailscale.com/hostname: "coding-box-2"
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  selector:
+    app: coding-box-2
   ports:
     - port: 22
       name: ssh
