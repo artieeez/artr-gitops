@@ -34,7 +34,7 @@ spec:
         # Pre-create the subPath dirs owned by 10000 (kubelet would create
         # them root-owned).
         - name: init-dirs
-          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-6de1d81
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-9460eac
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:
@@ -51,7 +51,7 @@ spec:
         # LazyVim (artieeez/nvim-config), git identity, SSH keys from the
         # sealed Secret.
         - name: setup
-          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-6de1d81
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-9460eac
           imagePullPolicy: IfNotPresent
           command: ["/bin/bash", "-c"]
           args:
@@ -131,7 +131,7 @@ spec:
               readOnly: true
       containers:
         - name: coding-box
-          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-6de1d81
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-9460eac
           workingDir: /home/arturwebber
           # Immutable sha tag => IfNotPresent (2.2 GiB image).
           imagePullPolicy: IfNotPresent
@@ -216,7 +216,7 @@ spec:
         # Shells here have no secrets in env; `hc connect` attaches to the
         # coding-box container's herdr-core, so the apps' terminals run THERE.
         - name: ssh
-          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-6de1d81
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-9460eac
           workingDir: /home/arturwebber
           imagePullPolicy: IfNotPresent
           command: ["/usr/sbin/sshd", "-D", "-e", "-f", "/etc/coding-box/sshd_config"]
@@ -354,7 +354,7 @@ spec:
         - name: ocir-pull
       initContainers:
         - name: init-dirs
-          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-6de1d81
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-9460eac
           imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:
@@ -368,7 +368,7 @@ spec:
             - name: data
               mountPath: /data
         - name: setup
-          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-6de1d81
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-9460eac
           imagePullPolicy: IfNotPresent
           command: ["/bin/bash", "-c"]
           args:
@@ -429,7 +429,7 @@ spec:
               readOnly: true
       containers:
         - name: coding-box
-          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-6de1d81
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-9460eac
           workingDir: /home/arturwebber
           imagePullPolicy: IfNotPresent
           command: ["/usr/local/bin/herdr-core", "serve"]
@@ -500,7 +500,7 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 10
         - name: ssh
-          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-6de1d81
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-9460eac
           workingDir: /home/arturwebber
           imagePullPolicy: IfNotPresent
           command: ["/usr/sbin/sshd", "-D", "-e", "-f", "/etc/coding-box/sshd_config"]
