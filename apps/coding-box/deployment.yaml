@@ -88,12 +88,28 @@ spec:
                 echo "WARN: nvim-config fetch failed; keeping the existing checkout"
               fi
               cd "$HOME"
-              # playwright-cli skill for Claude Code -> ~/.claude/skills/playwright-cli.
+              # playwright-cli skill for Claude Code -> ~/.claude/skills/playwright-cli
+              # and Antigravity -> ~/.gemini/config/skills/playwright-cli.
               # Copied from the image's @playwright/cli package (no network), so it
               # always matches the baked CLI version. Chromium itself is baked in
               # the image (/opt/ms-playwright). Never blocks the pod.
-              playwright-cli install --skills --global >/dev/null \
-                || echo "WARN: playwright-cli skill install failed"
+              if playwright-cli install --skills --global >/dev/null; then
+                (
+                  mkdir -p "$HOME/.gemini/config/skills" &&
+                    rm -rf "$HOME/.gemini/config/skills/playwright-cli" &&
+                    cp -a "$HOME/.claude/skills/playwright-cli" "$HOME/.gemini/config/skills/playwright-cli"
+                ) || echo "WARN: playwright-cli skill install failed (agy)"
+              else
+                echo "WARN: playwright-cli skill install failed"
+              fi
+              # hc skill for Claude Code -> ~/.claude/skills/hc and Antigravity ->
+              # ~/.gemini/config/skills/hc, generated from the image's hc
+              # (`hc --skill`), so it matches the baked version.
+              # Needs an image with install-hc-skill (coding-box). Never blocks the pod.
+              if command -v install-hc-skill >/dev/null; then
+                install-hc-skill >/dev/null || echo "WARN: hc skill install failed (claude)"
+                install-hc-skill "$HOME/.gemini/config/skills/hc" >/dev/null || echo "WARN: hc skill install failed (agy)"
+              fi
               # skip first-run onboarding (keeps other ~/.claude.json state)
               [ -s "$HOME/.claude.json" ] || echo '{}' > "$HOME/.claude.json"
               jq '.hasCompletedOnboarding = true | .theme = (.theme // "dark")' "$HOME/.claude.json" > "$HOME/.claude.json.tmp"
@@ -398,8 +414,19 @@ spec:
                 echo "WARN: nvim-config fetch failed; keeping the existing checkout"
               fi
               cd "$HOME"
-              playwright-cli install --skills --global >/dev/null \
-                || echo "WARN: playwright-cli skill install failed"
+              if playwright-cli install --skills --global >/dev/null; then
+                (
+                  mkdir -p "$HOME/.gemini/config/skills" &&
+                    rm -rf "$HOME/.gemini/config/skills/playwright-cli" &&
+                    cp -a "$HOME/.claude/skills/playwright-cli" "$HOME/.gemini/config/skills/playwright-cli"
+                ) || echo "WARN: playwright-cli skill install failed (agy)"
+              else
+                echo "WARN: playwright-cli skill install failed"
+              fi
+              if command -v install-hc-skill >/dev/null; then
+                install-hc-skill >/dev/null || echo "WARN: hc skill install failed (claude)"
+                install-hc-skill "$HOME/.gemini/config/skills/hc" >/dev/null || echo "WARN: hc skill install failed (agy)"
+              fi
               [ -s "$HOME/.claude.json" ] || echo '{}' > "$HOME/.claude.json"
               jq '.hasCompletedOnboarding = true | .theme = (.theme // "dark")' "$HOME/.claude.json" > "$HOME/.claude.json.tmp"
               mv "$HOME/.claude.json.tmp" "$HOME/.claude.json"
