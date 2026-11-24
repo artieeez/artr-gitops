@@ -9,11 +9,28 @@ formerly `pi-cloud`), placed on separate nodes (`podAntiAffinity` on
 | --- | --- |
 | `coding-box` | `herdr-core serve` (`hc`). The Herdr apps' terminals run here, with `GH_TOKEN` and the Claude login (`CLAUDE_CODE_OAUTH_TOKEN`) |
 | `ssh` | Non-root sshd (UID 10000, user `arturwebber`, key-only, port 2222). No secrets in its env; `hc connect` attaches to the `coding-box` container's herdr-core over the shared socket `/run/hc/hc.sock` |
+| `cron` | [supercronic](https://github.com/aptible/supercronic) on `~/.crontab` (`cron-run`). Edit it with `crontab` from any shell on the box; it reloads on change. Same logins as `coding-box`, so jobs can run `claude`, `gh` and `ork` (the Orkastery pulse beat goes here: `ork fabrica batida instalar`) |
 | `postgres` | Postgres 17 on `127.0.0.1:5432`, user/password `postgres`. emptyDir with fsync off: **wiped on every restart**, for test runs only |
 
 Init containers set up the home every boot: `artieeez/claude-config` →
 `~/.claude`, `artieeez/nvim-config` → `~/.config/nvim` (LazyVim), git
 identity, and the SSH keys.
+
+## Orkastery (two boxes, one factory)
+
+Each instance has a stable Orkastery machine name, `ORK_MAQUINA` (`coding-box`
+and `coding-box-2`): the pod hostname changes on every restart. To share a
+repo's threads and roadmap reservations between the two (through the
+`ork/fabrica-estado` and `ork/roadmap-reservas` branches on GitHub; the boxes
+never talk to each other), in the repo:
+
+```bash
+ork init                # once per repo; then in orkastery.yaml:
+                        #   fabrica: { compartilhada: true, remoto: origin }
+ork fabrica entrar      # once per box (saved in ~/.orkastery, on the PVC)
+ork fabrica batida instalar   # optional: the pulse beat, run by the cron sidecar
+ork fabrica             # what each box is doing
+```
 
 ## Storage
 
