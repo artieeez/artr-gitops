@@ -1,0 +1,27 @@
+# factory.artr.com.br: the server's routes go to cf-server, everything else to the dashboard.
+# No TinyAuth: the server signs people in itself through Pocket ID (AD-059), workers use their
+# cfw_ tokens, and /hooks must stay public for the GitHub and Linear webhooks (each delivery is
+# signed and checked by its plugin).
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: code-factory
+  namespace: code-factory
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`factory.artr.com.br`) && (PathPrefix(`/api`) || PathPrefix(`/auth`) || PathPrefix(`/hooks`) || PathPrefix(`/w/`) || Path(`/health`) || Path(`/ready`))
+      kind: Rule
+      priority: 100
+      services:
+        - name: cf-server
+          port: 4400
+    - match: Host(`factory.artr.com.br`)
+      kind: Rule
+      priority: 10
+      services:
+        - name: cf-dashboard
+          port: 80
+  tls:
+    secretName: wildcard-artr-com-br-tls

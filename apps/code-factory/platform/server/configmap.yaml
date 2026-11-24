@@ -1,0 +1,44 @@
+# factory.yaml (AD-013): `${ENV}` values come from the server's env (Secret cf-server).
+# The plugin instances and workflow bindings are commented out until their secrets are
+# sealed into cf-server: the server stops at start when an instance's secret is missing.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cf-factory
+  namespace: code-factory
+data:
+  factory.yaml: |
+    auth:
+      oidc:
+        issuer: https://pocketid.artr.com.br
+        clientId: ${OIDC_CLIENT_ID}
+        clientSecret: ${OIDC_CLIENT_SECRET}
+        rolesClaim: groups
+        roles:
+          admin: [admin]
+          operator: [admin]
+          viewer: [admin_view_only]
+    # plugins:
+    #   linear:
+    #     plugin: linear@0.1
+    #     config: { team: ${LINEAR_TEAM} }
+    #   github:
+    #     plugin: github@0.1
+    #     config:
+    #       appId: ${GITHUB_APP_ID}
+    #       installationId: ${GITHUB_INSTALLATION_ID}
+    #       # the App's slug: deliveries sent by <appSlug>[bot] give no event (AD-075)
+    #       appSlug: ${GITHUB_APP_SLUG}
+    #       repos: [artieeez/code-factory]
+    # workflows:
+    #   dogfood:
+    #     bind: { tracker: linear, forge: github }
+    #     # defaults shown; states and the repo are checked against Linear and GitHub at register
+    #     settings:
+    #       ready: Factory
+    #       working: In Progress
+    #       review: In Review
+    #       done: Done
+    #       abandoned: Canceled
+    #       repo: artieeez/code-factory
+    #       base: main

@@ -1,0 +1,87 @@
+# code-factory server (NestJS, apps/server). One replica: the engine's sweeps and leases
+# assume a single server. Migrations run in the init container from the same image.
+# Image tag bumped by artieeez/code-factory .github/workflows/deploy.yml.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cf-server
+  namespace: code-factory
+  labels:
+    app: cf-server
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: cf-server
+  template:
+    metadata:
+      labels:
+        app: cf-server
+    spec:
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: ocir-pull
+      securityContext:
+        fsGroup: 1000
+      initContainers:
+        - name: migrate
+          image: vcp.ocir.io/axtvnrdemzo7/cf-server:sha-0000000
+          imagePullPolicy: IfNotPresent
+          command: ["node_modules/.bin/prisma", "migrate", "deploy"]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: cf-postgres
+                  key: url
+      containers:
+        - name: server
+          image: vcp.ocir.io/axtvnrdemzo7/cf-server:sha-0000000
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 4400
+          envFrom:
+            # CF_SECRETS_KEY, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, and later LINEAR_*, GITHUB_*
+            - secretRef:
+                name: cf-server
+          env:
+            - name: CF_PUBLIC_URL
+              value: https://factory.artr.com.br
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: cf-postgres
+                  key: url
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 384Mi
+            limits:
+              memory: 1Gi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/cf
+            - name: factory
+              mountPath: /etc/cf
+              readOnly: true
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: cf-server-data
+        - name: factory
+          configMap:
+            name: cf-factory

@@ -1,0 +1,165 @@
+# dogfood worker (artieeez/code-factory examples/dogfood): two replicas, one per OKE node.
+#   worker    node examples/dogfood/worker.ts; agents run Claude Code with the server's agent
+#             accounts (AD-055)
+#   postgres  throwaway Postgres for code-factory's test runs (CF_TEST_POSTGRES_URL), loopback
+#             only, emptyDir with fsync off, like apps/coding-box
+# A StatefulSet with a volume per pod (code-factory AD-076, docs/design/authoring-and-deploy.md
+# "Worker replicas on k8s"): a restarted pod keeps its name (the worker's host) and its run
+# folders, so the workflow's `affinity: 'required'` runs survive it. The volume also holds
+# pnpm's store, shared by the pod's runs.
+# Image tag bumped by artieeez/code-factory .github/workflows/deploy-workers.yml.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cf-worker-dogfood
+  namespace: code-factory
+  labels:
+    app: cf-worker-dogfood
+spec:
+  serviceName: cf-worker-dogfood
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cf-worker-dogfood
+  template:
+    metadata:
+      labels:
+        app: cf-worker-dogfood
+    spec:
+      automountServiceAccountToken: false
+      # one replica per node: workflow concurrency 2 is one run per node
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app: cf-worker-dogfood
+      imagePullSecrets:
+        - name: ocir-pull
+      # a unit's agent may run for a while: give it time to settle before the pod goes
+      terminationGracePeriodSeconds: 120
+      initContainers:
+        - name: init-workspace
+          image: vcp.ocir.io/axtvnrdemzo7/cf-worker-dogfood:sha-0000000
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "mkdir -p /var/cf/data/work /var/cf/data/cache && chown 1000:1000 /var/cf/data/work /var/cf/data/cache"]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: data
+              mountPath: /var/cf/data
+      containers:
+        - name: worker
+          image: vcp.ocir.io/axtvnrdemzo7/cf-worker-dogfood:sha-0000000
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: health
+              containerPort: 4500
+          envFrom:
+            # CF_WORKER_TOKEN (the worker holds no GitHub key: the server mints tokens, AD-072)
+            - secretRef:
+                name: cf-worker-dogfood
+          env:
+            - name: CF_SERVER
+              value: http://cf-server.code-factory.svc.cluster.local:4400
+            - name: CF_TEST_POSTGRES_URL
+              value: postgresql://postgres:postgres@127.0.0.1:5432/postgres
+            # links in the workflow's Linear comments
+            - name: CF_DASHBOARD_URL
+              value: https://factory.artr.com.br
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: health
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: health
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 4
+          resources:
+            requests:
+              cpu: 500m
+              memory: 2Gi
+            limits:
+              memory: 6Gi
+          volumeMounts:
+            - name: data
+              mountPath: /var/cf/work
+              subPath: work
+            - name: data
+              mountPath: /var/cf/cache
+              subPath: cache
+        - name: postgres
+          image: docker.io/postgres:17.11
+          imagePullPolicy: IfNotPresent
+          args:
+            - -c
+            - listen_addresses=127.0.0.1
+            - -c
+            - max_connections=500
+            - -c
+            - fsync=off
+            - -c
+            - full_page_writes=off
+            - -c
+            - synchronous_commit=off
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_INITDB_ARGS
+              value: --locale=C --encoding=UTF8
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-h", "127.0.0.1", "-U", "postgres"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 1Gi
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: postgres-shm
+              mountPath: /dev/shm
+      volumes:
+        - name: postgres-data
+          emptyDir: {}
+        - name: postgres-shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 256Mi
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: nfs-client
+        resources:
+          requests:
+            storage: 20Gi
+---
+# the StatefulSet's governing Service (headless; nothing calls the workers)
+apiVersion: v1
+kind: Service
+metadata:
+  name: cf-worker-dogfood
+  namespace: code-factory
+  labels:
+    app: cf-worker-dogfood
+spec:
+  clusterIP: None
+  selector:
+    app: cf-worker-dogfood
+  ports:
+    - name: health
+      port: 4500
+      targetPort: health
