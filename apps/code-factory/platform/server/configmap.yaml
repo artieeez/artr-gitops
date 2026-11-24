@@ -53,3 +53,7 @@ data:
         bind: { forge: github }
         settings:
           repo: artieeez/code-factory
+      pr-answer:
+        bind: { forge: github }
+        settings:
+          repo: artieeez/code-factory
