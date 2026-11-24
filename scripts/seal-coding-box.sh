@@ -16,7 +16,8 @@
 # Extra public-key files given after `ssh` are appended to authorized_keys —
 # the ONLY durable way to add a key: the pod replaces ~/.ssh/authorized_keys
 # from this Secret on every boot. NEW_HOST_KEY=1 forces a new host key;
-# ROTATE=1 prompts for every token instead of reusing the live ones.
+# ROTATE=1 prompts for every token instead of reusing the live ones;
+# ROTATE=GH_TOKEN (space/comma-separated key names) prompts for just those.
 # Plaintext lives only in a temp dir removed on exit.
 set -euo pipefail
 
@@ -85,13 +86,18 @@ seal_ssh() {
 }
 
 seal_secrets() {
-  local live old k v args=()
+  local live old k v reuse args=()
   live="$(secret_json "$NS" coding-box-secrets)"
   old="$(secret_json hermes hermes-secrets)"
   for k in GH_TOKEN CLAUDE_CODE_OAUTH_TOKEN; do
-    v=""
-    if [ "${ROTATE:-0}" != 1 ] && [ -n "$live" ]; then v="$(key_of "$live" "$k")"; fi
-    if [ "${ROTATE:-0}" != 1 ] && [ -z "$v" ] && [ -n "$old" ]; then
+    v="" reuse=1
+    case "${ROTATE:-0}" in
+      1) reuse=0 ;;
+      0) ;;
+      *) [[ " ${ROTATE//,/ } " == *" $k "* ]] && reuse=0 ;;
+    esac
+    if [ "$reuse" = 1 ] && [ -n "$live" ]; then v="$(key_of "$live" "$k")"; fi
+    if [ "$reuse" = 1 ] && [ -z "$v" ] && [ -n "$old" ]; then
       v="$(key_of "$old" "$k")"
       [ -n "$v" ] && echo "$k: from hermes/hermes-secrets"
     fi
