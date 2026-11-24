@@ -44,3 +44,9 @@ webhooks.
    webhook secret) into `cf-server`, uncomment `plugins:` and `workflows:` in
    `platform/server/configmap.yaml`, and point the Linear and GitHub App webhooks at
    `https://factory.artr.com.br/hooks/<instance>/<token>`.
+
+## Changing the server's config
+
+The server reads `factory.yaml` (ConfigMap `cf-factory`) and Secret `cf-server` only at start.
+Bump `code-factory/config-rev` on `platform/server/deployment.yaml` in the same commit, so
+Argo CD rolls the pod.
