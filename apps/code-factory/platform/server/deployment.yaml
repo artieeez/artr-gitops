@@ -22,7 +22,7 @@ spec:
       annotations:
         # a pod reads factory.yaml (ConfigMap cf-factory) and Secret cf-server only at start,
         # and nothing restarts it when they change: bump this in the commit that changes them
-        code-factory/config-rev: "3"
+        code-factory/config-rev: "4"
     spec:
       automountServiceAccountToken: false
       imagePullSecrets:

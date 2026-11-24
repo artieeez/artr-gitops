@@ -49,3 +49,7 @@ data:
           abandoned: Canceled
           repo: artieeez/code-factory
           base: main
+      pr-review:
+        bind: { forge: github }
+        settings:
+          repo: artieeez/code-factory
