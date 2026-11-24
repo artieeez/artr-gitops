@@ -41,7 +41,7 @@ spec:
       terminationGracePeriodSeconds: 120
       initContainers:
         - name: init-workspace
-          image: vcp.ocir.io/axtvnrdemzo7/cf-worker-dogfood:sha-30ff71e
+          image: vcp.ocir.io/axtvnrdemzo7/cf-worker-dogfood:sha-c2dc69f
           imagePullPolicy: IfNotPresent
           command: ["sh", "-c", "mkdir -p /var/cf/data/work /var/cf/data/cache && chown 1000:1000 /var/cf/data/work /var/cf/data/cache"]
           securityContext:
@@ -51,7 +51,7 @@ spec:
               mountPath: /var/cf/data
       containers:
         - name: worker
-          image: vcp.ocir.io/axtvnrdemzo7/cf-worker-dogfood:sha-30ff71e
+          image: vcp.ocir.io/axtvnrdemzo7/cf-worker-dogfood:sha-c2dc69f
           imagePullPolicy: IfNotPresent
           ports:
             - name: health
