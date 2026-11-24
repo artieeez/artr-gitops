@@ -1,0 +1,12 @@
+# CF_DATA_DIR: run artifacts (one file per sha256, AD-071).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cf-server-data
+  namespace: code-factory
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: nfs-client
+  resources:
+    requests:
+      storage: 5Gi

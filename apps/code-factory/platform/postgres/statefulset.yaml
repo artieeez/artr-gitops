@@ -1,0 +1,69 @@
+# The server's database (AD-041). One replica on nfs-client: the cluster's only storage is
+# the shared block volume behind the NFS server (apps/platform/storage).
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cf-postgres
+  namespace: code-factory
+  labels:
+    app: cf-postgres
+spec:
+  serviceName: cf-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cf-postgres
+  template:
+    metadata:
+      labels:
+        app: cf-postgres
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 999
+      containers:
+        - name: postgres
+          image: docker.io/postgres:17.11
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: cf
+            - name: POSTGRES_USER
+              value: cf
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cf-postgres
+                  key: password
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "cf", "-d", "cf"]
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "cf", "-d", "cf"]
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: nfs-client
+        resources:
+          requests:
+            storage: 5Gi

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cf-server
+  namespace: code-factory
+spec:
+  selector:
+    app: cf-server
+  ports:
+    - name: http
+      port: 4400
+      targetPort: http

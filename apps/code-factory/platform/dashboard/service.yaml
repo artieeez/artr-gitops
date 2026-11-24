@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cf-dashboard
+  namespace: code-factory
+spec:
+  selector:
+    app: cf-dashboard
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

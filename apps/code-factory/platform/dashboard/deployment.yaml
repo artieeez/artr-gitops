@@ -1,0 +1,39 @@
+# code-factory dashboard: the static build behind nginx (Dockerfile target `dashboard`).
+# Image tag bumped by artieeez/code-factory .github/workflows/deploy.yml.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cf-dashboard
+  namespace: code-factory
+  labels:
+    app: cf-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cf-dashboard
+  template:
+    metadata:
+      labels:
+        app: cf-dashboard
+    spec:
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: ocir-pull
+      containers:
+        - name: dashboard
+          image: vcp.ocir.io/axtvnrdemzo7/cf-dashboard:sha-0000000
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 64Mi
