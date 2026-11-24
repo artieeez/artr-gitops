@@ -81,11 +81,13 @@ seal_server() {
     "OIDC_CLIENT_ID=$(value "$live" OIDC_CLIENT_ID required)" \
     "OIDC_CLIENT_SECRET=$(value "$live" OIDC_CLIENT_SECRET required)" \
     "LINEAR_TEAM=$(value "$live" LINEAR_TEAM optional)" \
+    "LINEAR_HOOK_TOKEN=$(value "$live" LINEAR_HOOK_TOKEN optional)" \
     "LINEAR_API_KEY=$(value "$live" LINEAR_API_KEY optional)" \
     "LINEAR_WEBHOOK_SECRET=$(value "$live" LINEAR_WEBHOOK_SECRET optional)" \
     "GITHUB_APP_ID=$(value "$live" GITHUB_APP_ID optional)" \
     "GITHUB_INSTALLATION_ID=$(value "$live" GITHUB_INSTALLATION_ID optional)" \
     "GITHUB_APP_SLUG=$(value "$live" GITHUB_APP_SLUG optional)" \
+    "GITHUB_HOOK_TOKEN=$(value "$live" GITHUB_HOOK_TOKEN optional)" \
     "GITHUB_APP_PRIVATE_KEY=$(value "$live" GITHUB_APP_PRIVATE_KEY optional)" \
     "GITHUB_WEBHOOK_SECRET=$(value "$live" GITHUB_WEBHOOK_SECRET optional)"
 }
