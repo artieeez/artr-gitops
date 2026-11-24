@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: cf-worker-dogfood
+  namespace: code-factory
+spec:
+  encryptedData:
+    CF_WORKER_TOKEN: AgBG1f0+7d2o9BOSLgvNtDPc3E2gK2mmOMlElOJw/Rlc2suC6tAbi/kjN8ELAbyF30R9J0tXKK98WINEvNuqnuuMecKYuKjiqVpAm/WAJFAKN5lT0WmIiZGIlm6HiLwRfS1FWXBzWOsbffs0ZMCnSatTRUlRkjgtYjL6+9j2qR87ZjsCY8WGS43GMJzSN6Ra98q8Ar8/eexxE/gbiOjllX9tUWfsVsSM7SqYwRwjO7XL4bBDjvgk/Vh5uyfLJqY5QV8g7KN4/ZDlkccI17G8H2x66wSavzufelwv6J25kGxIpG3SqVgmcD6gK6wHecZ0071Bv4LQS38hrxGPTHIUMdOPjSXn/23Nb7/vYUfmPcGkBuyH6JU/5C3phxcJCts/QZ0WoKe3MEt72T9W9aerz3W5p+WxRWHPsmJofJJZKQZmbM9B+IiKpYCZMaN3OxQha/sCz6W5K7QIDo3sxtIbhpBW3ck8NWfl5Sgqii+zvYF7xZJYYIKIka1iigI9SidmYKwD753naIIFL6BBOJ+rJ/HcVUelMAutmV5p8ggcr1LdyW4tuzFy+BmSOWjPRhRW6m1SKo2MO6RfTTPdW5D20qmTBY1H6WUir8PJE0aXNt7yBkIQOfbODPhV/Q2ju8iRLb/ar9NiDwupjkgglNJGmQN8R4BfB6JavOOgOTZXKQQJFpp2OoJKhwFGgv66gjF4nb4jWNP0x9OAER4Nn74OO6yRDFZqoBcuY2M3x3Na+adwjn8Qn1pngqysOIHZfcYTbg==
+  template:
+    metadata:
+      name: cf-worker-dogfood
+      namespace: code-factory
