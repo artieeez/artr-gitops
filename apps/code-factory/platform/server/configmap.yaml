@@ -30,19 +30,22 @@ data:
           # the App's slug: deliveries sent by <appSlug>[bot] give no event (AD-075)
           appSlug: ${GITHUB_APP_SLUG}
           repos: [artieeez/code-factory]
-      # linear:
-      #   plugin: linear@0.1
-      #   hookToken: ${LINEAR_HOOK_TOKEN}
-      #   config: { team: ${LINEAR_TEAM} }
-    # workflows:
-    #   dogfood:
-    #     bind: { tracker: linear, forge: github }
-    #     # defaults shown; states and the repo are checked against Linear and GitHub at register
-    #     settings:
-    #       ready: Factory
-    #       working: In Progress
-    #       review: In Review
-    #       done: Done
-    #       abandoned: Canceled
-    #       repo: artieeez/code-factory
-    #       base: main
+      # Linear team ART (workspace artur-webber); webhook "code-factory dogfood" (Issue,
+      # Comment) to https://factory.artr.com.br/hooks/linear/<hookToken>
+      linear:
+        plugin: linear@0.1
+        hookToken: ${LINEAR_HOOK_TOKEN}
+        config: { team: ${LINEAR_TEAM} }
+    workflows:
+      dogfood:
+        bind: { tracker: linear, forge: github }
+        # the defaults, spelled out; states and the repo are checked against Linear and GitHub
+        # at register
+        settings:
+          ready: Factory
+          working: In Progress
+          review: In Review
+          done: Done
+          abandoned: Canceled
+          repo: artieeez/code-factory
+          base: main
