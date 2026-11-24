@@ -280,7 +280,7 @@ spec:
         # idles instead of crash-looping (a crashing sidecar makes the pod
         # NotReady and drops the Tailscale SSH endpoint).
         - name: cron
-          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-9460eac
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-2cfd1ef
           workingDir: /home/arturwebber
           imagePullPolicy: IfNotPresent
           command:
@@ -639,7 +639,7 @@ spec:
         # idles instead of crash-looping (a crashing sidecar makes the pod
         # NotReady and drops the Tailscale SSH endpoint).
         - name: cron
-          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-9460eac
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-2cfd1ef
           workingDir: /home/arturwebber
           imagePullPolicy: IfNotPresent
           command:
