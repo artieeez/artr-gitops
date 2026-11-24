@@ -158,6 +158,10 @@ spec:
           env:
             - name: HOME
               value: /home/arturwebber
+            # Orkastery machine name for the shared factory (`ork fabrica`):
+            # the pod hostname changes on every restart.
+            - name: ORK_MAQUINA
+              value: coding-box
             # herdr-core socket, shared with the ssh container (sshd_config SetEnv).
             - name: HC_SOCKET
               value: /run/hc/hc.sock
@@ -269,6 +273,66 @@ spec:
               port: ssh
             initialDelaySeconds: 5
             periodSeconds: 20
+        # cron: supercronic on ~/.crontab (the image's `crontab` shim edits it;
+        # `ork fabrica batida instalar` writes the Orkastery pulse beat there).
+        # Same env as the coding-box container minus hc, so jobs find node,
+        # claude, gh and the logins. Until the promoted image has cron-run it
+        # idles instead of crash-looping (a crashing sidecar makes the pod
+        # NotReady and drops the Tailscale SSH endpoint).
+        - name: cron
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-2cfd1ef
+          workingDir: /home/arturwebber
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              command -v cron-run >/dev/null && exec cron-run
+              echo "cron: image has no cron-run yet (promote coding-box >= PR #35); idling" >&2
+              exec sleep infinity
+          env:
+            - name: HOME
+              value: /home/arturwebber
+            - name: ORK_MAQUINA
+              value: coding-box
+            - name: PATH
+              value: /home/arturwebber/.local/bin:/home/arturwebber/.gem/bin:/opt/mise-root/local/bin:/opt/mise/shims:/opt/nvim/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+            - name: SHELL
+              value: /bin/bash
+            - name: TMPDIR
+              value: /tmp
+            - name: DISABLE_AUTOUPDATER
+              value: "1"
+            - name: GH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: coding-box-secrets
+                  key: GH_TOKEN
+            - name: CLAUDE_CODE_OAUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: coding-box-secrets
+                  key: CLAUDE_CODE_OAUTH_TOKEN
+          securityContext:
+            runAsUser: 10000
+            runAsGroup: 10000
+          volumeMounts:
+            - name: data
+              mountPath: /home/arturwebber
+              subPath: home
+            - name: data
+              mountPath: /opt/data/workspace
+              subPath: workspace
+            - name: config
+              mountPath: /etc/claude-code/managed-settings.json
+              subPath: managed-settings.json
+              readOnly: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 2Gi
         # Throwaway Postgres for test runs (no Docker in the pod). Loopback
         # only, so only this pod reaches it; emptyDir, gone on restart.
         # fsync off: test data only.
@@ -464,6 +528,10 @@ spec:
           env:
             - name: HOME
               value: /home/arturwebber
+            # Orkastery machine name for the shared factory (`ork fabrica`):
+            # the pod hostname changes on every restart.
+            - name: ORK_MAQUINA
+              value: coding-box-2
             - name: HC_SOCKET
               value: /run/hc/hc.sock
             - name: PATH
@@ -564,6 +632,66 @@ spec:
               port: ssh
             initialDelaySeconds: 5
             periodSeconds: 20
+        # cron: supercronic on ~/.crontab (the image's `crontab` shim edits it;
+        # `ork fabrica batida instalar` writes the Orkastery pulse beat there).
+        # Same env as the coding-box container minus hc, so jobs find node,
+        # claude, gh and the logins. Until the promoted image has cron-run it
+        # idles instead of crash-looping (a crashing sidecar makes the pod
+        # NotReady and drops the Tailscale SSH endpoint).
+        - name: cron
+          image: vcp.ocir.io/axtvnrdemzo7/coding-box:sha-2cfd1ef
+          workingDir: /home/arturwebber
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              command -v cron-run >/dev/null && exec cron-run
+              echo "cron: image has no cron-run yet (promote coding-box >= PR #35); idling" >&2
+              exec sleep infinity
+          env:
+            - name: HOME
+              value: /home/arturwebber
+            - name: ORK_MAQUINA
+              value: coding-box-2
+            - name: PATH
+              value: /home/arturwebber/.local/bin:/home/arturwebber/.gem/bin:/opt/mise-root/local/bin:/opt/mise/shims:/opt/nvim/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+            - name: SHELL
+              value: /bin/bash
+            - name: TMPDIR
+              value: /tmp
+            - name: DISABLE_AUTOUPDATER
+              value: "1"
+            - name: GH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: coding-box-secrets
+                  key: GH_TOKEN
+            - name: CLAUDE_CODE_OAUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: coding-box-secrets
+                  key: CLAUDE_CODE_OAUTH_TOKEN
+          securityContext:
+            runAsUser: 10000
+            runAsGroup: 10000
+          volumeMounts:
+            - name: data
+              mountPath: /home/arturwebber
+              subPath: home
+            - name: data
+              mountPath: /opt/data/workspace
+              subPath: workspace
+            - name: config
+              mountPath: /etc/claude-code/managed-settings.json
+              subPath: managed-settings.json
+              readOnly: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 2Gi
         - name: postgres
           image: docker.io/postgres:17.11
           imagePullPolicy: IfNotPresent
