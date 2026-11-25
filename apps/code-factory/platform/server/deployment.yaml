@@ -56,7 +56,7 @@ spec:
               value: https://factory.artr.com.br
             # the env GitHub instance's repos (comma-separated); the rest of GITHUB_* is in cf-server
             - name: GITHUB_REPOS
-              value: artieeez/code-factory
+              value: artieeez/code-factory,artieeez/cf-playground-dashboard
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
