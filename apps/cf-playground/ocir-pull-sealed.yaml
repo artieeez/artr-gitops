@@ -1,0 +1,14 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: ocir-pull
+  namespace: cf-playground
+spec:
+  encryptedData:
+    .dockerconfigjson: AgAB9iSgH/8Itq5RFnwMenV47/HFS30ozLhnjSrldjST0/gEz6Do7D0CYik5XFOcZpN0Gr+0IT2pIhgujkIG83pBbiz7CE8kf02juF/qMCQ9XmeQjYkNuL3TpA/viqJR/0+5WT1b/1wB6z6jhE2xx86/s0a06hx8knonaMj2iFWHLWQEsrKOC42vVK4fWiMaDMyX4VlDhzRkjB107pSjzOkMonxWguo+VGYlQzD2iQUKDmB1941/vdpqF2mE9IoLadvtqcI0zHK0ud/NtjuTwfX+OlAKOlAUTjbMQgR99gY1bGnCfKk6stn0ue22JQ9IDoR/uYl6nQswhEOignTAkLGIQbrg+yGkRSTvrogWZ6xsjXfufTJ9G08fAjIyO3Lx8lGzAO1hzl3pBU/9oK+HfCKK+XMPt2ZmwZThKoaxEQwOK/6MlFJS/MnV6ue3tQe2P3fQ4q7zlkoU8lpMZ6d31LqBMqs5FMzrXCiHQ+e0czT7iWTOYL5INUX7sATzQlOU0/y6oZrLdfMBnbbXBlEhs8duKrTzLoit6//i91jSeSbI+/iKv6pgZ8Azw8Mc6dqQnKuc/40BdvpvZYArLzwIkEFskwki4h4s+XvtgLzm1UKGIPkfEELaEgKPxZeMFOCXhNSbhpFCy22p4oxtakpdofijtdj9TrpKH/VaM8fknxXNfSl//ywoo7GCoOgP9ak6J6eJ7m7BmwV+mgeOW6yfbv0YAoSeSkElg8wngceTnQGIHuLcQNR9ahrxLLKPucMavbzYe9JEI413aOmOl56Kt6JylArCTtf4j0/Gi9gPMEwBZ8OZyuVlQNX5QaTC6KNXXd0NN9tYdc9ezcEcFHUlOtkAvx4JDMIq73Rrid9M3FVE6pnsku0IcPu9lc0URYFSPQEkRk+3wH4+1l44mKP7xO+fpzuLV4WHE/VgSHj72SrPsdt4JVpk9KPwlay65oRO6kNPWFvxQKKht2bAYK0XvEH/kAbESruq8aaDEsCPP9I44L20STHFfU23xh2bz4gUp8RDi4Mx1NNvJhG1VTGQ
+  template:
+    metadata:
+      name: ocir-pull
+      namespace: cf-playground
+    type: kubernetes.io/dockerconfigjson
