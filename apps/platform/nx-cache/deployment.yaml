@@ -1,0 +1,74 @@
+# Nx remote cache (enxtur/nx-caching-server): implements Nx's self-hosted
+# cache OpenAPI spec (Nx >= 20.8). One token per repository via AUTH_TOKENS;
+# each token only sees /data/<name>/. See apps/platform/nx-cache/README.md.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nx-cache
+  namespace: platform
+  labels:
+    app: nx-cache
+spec:
+  replicas: 1
+  # Cache lives on the node's local disk (emptyDir), so it starts empty
+  # after every restart or rollout. Disposable by design: a cold cache only
+  # means one full CI build. Kept off the shared NFS disk so it can never
+  # fill the volume that Postgres, Prometheus and the SQLite apps live on.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: nx-cache
+  template:
+    metadata:
+      labels:
+        app: nx-cache
+    spec:
+      containers:
+        - name: nx-cache
+          image: docker.io/enxtur/nx-caching-server:v1.3.7
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8090
+          env:
+            - name: STORAGE_DIR
+              value: /data
+            - name: PORT
+              value: "8090"
+            # Entries not read or written for this long are deleted. The sweep
+            # also runs at this interval, so an entry lives at most ~2x this.
+            - name: CLEANUP_THRESHOLD
+              value: 72h
+            - name: AUTH_TOKENS
+              valueFrom:
+                secretKeyRef:
+                  name: nx-cache-tokens
+                  key: AUTH_TOKENS
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 30
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          emptyDir:
+            # Exceeding this evicts the pod (cache restarts empty).
+            sizeLimit: 5Gi

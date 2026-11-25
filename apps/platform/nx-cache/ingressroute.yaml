@@ -1,0 +1,18 @@
+# Public so GitHub Actions and laptops can reach it; the server rejects any
+# request to /v1/cache/* without a valid bearer token (401).
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: nx-cache
+  namespace: platform
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`nx-cache.artr.com.br`)
+      kind: Rule
+      services:
+        - name: nx-cache
+          port: 8090
+  tls:
+    secretName: wildcard-artr-com-br-tls
