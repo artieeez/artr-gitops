@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: nx-cache-tokens
+  namespace: platform
+spec:
+  encryptedData:
+    AUTH_TOKENS: AgAMzOs4f6lU8fK5TzdIb/HwMSizranCBnWjEHJYdipoKGSRM34+lz4vgc9sd3mCtfvNYhSNE/wcsS6VVw+Ksa0awQ/6tOy8rPP1s+MCvBp6HiSoYR6scbbkig+X5eqlr+qjliWqcm1NVtD3nGtHK9b8oG7Iq9mepUBn6LoMZ0vB5QupoMm/piWd4wM/ccGXTM5gNLz3VeFk0mRS5qymhRamRxsnOlGmO+YQRn+urFFLqovdsljDF6MuLsa7xom1uZxYSsvnIdPHSvsxNJgLWAQyRfAUooSJW2OeQGSXz3Hya+ryN6I88vfXXDyXvqK3ikCDBgbgwPX2g8W3yBdTN38XkXHpS6Ok2ZKN4pJuIOay+3exDe0hGKQhH69KQB5TjxyVH7OYPiPAGkaW0fGrRwCpSbHHYPzJd1eRyquDf/qVzhLC4qSDAQeYPtznbuVdgtKJJPylQvNUOalj5uTnoU+L2LNRAO2KeKafqs356ygBwCYHAirrGnNBpbTS5pzJh0gH+KhHVEDxFG/1Z6RMd0mBxWvEQ4hhgueTRgjBqKmBYw0hszDB4IDQT5Nx9JKRxaO5lzGxWXxq5dKxJr7Z5ivah8c6boWix+ezUqXL8+RRP3KCIioGAJ226y+WDqRvJWOLXeIuZUXYnsxxAQrz8pJkpEVNN31Ad/0rYhq5oxRvYXaXncKgyrJ3D7t0z9XRWkrDVjeGOaU882YJZN8kbs5F8rrvvJorWPfs1OGd+J8pR6DqF2ZsM85nSDH/uUtUKat82o71OGxHQJPdP4RDAiD1vLZZCk53zOe6xCeIyQ==
+  template:
+    metadata:
+      name: nx-cache-tokens
+      namespace: platform
