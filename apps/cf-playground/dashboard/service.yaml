@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cf-playground-dashboard
+  namespace: cf-playground
+spec:
+  selector:
+    app: cf-playground-dashboard
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

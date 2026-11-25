@@ -3,12 +3,14 @@
 #   cf-postgres        password + url (DATABASE_URL) for the server's database
 #   cf-server          CF_SECRETS_KEY, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, and the plugin
 #                      secrets once factory.yaml enables them (LINEAR_*, GITHUB_*)
-#   cf-worker-dogfood  CF_WORKER_TOKEN (Workers page / `cf worker create`); no GitHub key, the
-#                      server mints the worker's tokens with the App's (AD-072)
+#   cf-worker-<wf>     CF_WORKER_TOKEN (Workers page / `cf worker create`) for workflow <wf>:
+#                      dogfood (default), pr-assistant or sdd; no GitHub key, the server
+#                      mints the worker's tokens with the App's (AD-072)
 #   ocir-pull          OCIR pull credentials, copied from coding-box's live Secret
 #
-#   ./scripts/seal-code-factory.sh                 all four
-#   ./scripts/seal-code-factory.sh postgres|server|worker|ocir
+#   ./scripts/seal-code-factory.sh                 all four (worker = dogfood)
+#   ./scripts/seal-code-factory.sh postgres|server|ocir
+#   ./scripts/seal-code-factory.sh worker [dogfood|pr-assistant|sdd]
 #
 # Values come from the live code-factory Secret first, so a re-seal loses nothing. Missing
 # ones are generated (postgres password, CF_SECRETS_KEY) or prompted (hidden); an empty answer
@@ -31,6 +33,8 @@ trap 'rm -rf "$TMP"' EXIT
 
 WHAT="${1:-all}"
 case "$WHAT" in all|postgres|server|worker|ocir) ;; *) die "unknown target '$WHAT' (all|postgres|server|worker|ocir)" ;; esac
+WORKFLOW="${2:-dogfood}"
+case "$WORKFLOW" in dogfood|pr-assistant|sdd) ;; *) die "unknown workflow '$WORKFLOW' (dogfood|pr-assistant|sdd)" ;; esac
 
 secret_json() { kubectl -n "$1" get secret "$2" -o json 2>/dev/null || true; }
 key_of() { jq -r --arg k "$2" '.data[$k] // empty' <<<"$1" | base64 -d; }
@@ -94,8 +98,8 @@ seal_server() {
 
 seal_worker() {
   local live
-  live="$(secret_json "$NS" cf-worker-dogfood)"
-  secret cf-worker-dogfood "$OUT_DIR/workers/dogfood" \
+  live="$(secret_json "$NS" "cf-worker-$WORKFLOW")"
+  secret "cf-worker-$WORKFLOW" "$OUT_DIR/workers/$WORKFLOW" \
     "CF_WORKER_TOKEN=$(value "$live" CF_WORKER_TOKEN required)"
 }
 

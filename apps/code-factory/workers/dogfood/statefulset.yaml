@@ -1,5 +1,5 @@
-# dogfood worker (artieeez/code-factory examples/dogfood): two replicas, one per OKE node.
-#   worker    node examples/dogfood/worker.ts; agents run Claude Code with the server's agent
+# dogfood worker (artieeez/cf-dogfood-worker): two replicas, one per OKE node.
+#   worker    the dogfood workflow's worker; agents run Claude Code with the server's agent
 #             accounts (AD-055)
 #   postgres  throwaway Postgres for code-factory's test runs (CF_TEST_POSTGRES_URL), loopback
 #             only, emptyDir with fsync off, like apps/coding-box
@@ -7,7 +7,7 @@
 # "Worker replicas on k8s"): a restarted pod keeps its name (the worker's host) and its run
 # folders, so the workflow's `affinity: 'required'` runs survive it. The volume also holds
 # pnpm's store, shared by the pod's runs.
-# Image tag bumped by artieeez/code-factory .github/workflows/deploy-workers.yml.
+# Image tag bumped by artieeez/cf-dogfood-worker's CI.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
