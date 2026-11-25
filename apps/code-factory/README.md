@@ -11,7 +11,7 @@
 | Workload | Image | Notes |
 | --- | --- | --- |
 | `cf-postgres` | `postgres:17.11` | StatefulSet, 5 Gi on `nfs-client` |
-| `cf-server` | `cf-server` | NestJS on 4400; init container runs `prisma migrate deploy`; artifacts on PVC `cf-server-data`; `factory.yaml` from ConfigMap `cf-factory` |
+| `cf-server` | `cf-server` | NestJS on 4400; init container runs `prisma migrate deploy`; artifacts on PVC `cf-server-data`; config from env and Secret `cf-server` (no config file, code-factory AD-089) |
 | `cf-dashboard` | `cf-dashboard` | static build behind nginx on 8080 |
 | `cf-worker-<workflow>` | `cf-worker-<workflow>` | StatefulSet, anti-affinity by node; run folders and pnpm's store on an `nfs-client` volume per pod, so a restarted pod keeps its name and folders (code-factory AD-076). dogfood: 2 replicas, 20 Gi, a Postgres sidecar on `127.0.0.1:5432` for test runs (`CF_TEST_POSTGRES_URL`). pr-assistant: 1 replica, 2 slots, 20 Gi. sdd: 1 replica, 5 Gi |
 
@@ -46,9 +46,10 @@ webhooks.
    `check_suite`, `pull_request`, `pull_request_review`, `issue_comment`,
    `pull_request_review_comment`. Its PRs are the App bot's, so artieeez can approve them.
 6. Plugins: seal `LINEAR_*` and `GITHUB_*` (App id, installation id, slug, private key,
-   webhook secret) into `cf-server`, uncomment `plugins:` and `workflows:` in
-   `platform/server/configmap.yaml`, and point the Linear and GitHub App webhooks at
-   `https://factory.artr.com.br/hooks/<instance>/<token>`.
+   webhook secret, hook token) into `cf-server`; the server makes one `github` and one
+   `linear` instance from them. Point the Linear and GitHub App webhooks at
+   `https://factory.artr.com.br/hooks/<instance>/<token>`, and bind each workflow's slots and
+   settings on the dashboard.
 
 ## Adding a worker
 
@@ -64,6 +65,11 @@ webhooks.
 
 ## Changing the server's config
 
-The server reads `factory.yaml` (ConfigMap `cf-factory`) and Secret `cf-server` only at start.
-Bump `code-factory/config-rev` on `platform/server/deployment.yaml` in the same commit, so
-Argo CD rolls the pod.
+The server reads no config file (code-factory AD-089). Sign-in (`CF_OIDC_*`) and the plugins'
+default instances (`GITHUB_*`, `LINEAR_*`, `CF_<PLUGIN>_HOOK_TOKEN`) come from env in
+`platform/server/deployment.yaml` and Secret `cf-server`; workflow bindings and settings are
+set on the dashboard. The image sets `CF_HOST=0.0.0.0`, so the server refuses to start
+without `CF_OIDC_ISSUER`.
+
+The server reads its env only at start. When you change Secret `cf-server`, bump
+`code-factory/config-rev` on the deployment in the same commit, so Argo CD rolls the pod.
