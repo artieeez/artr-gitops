@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: cf-worker-pr-assistant
+  namespace: code-factory
+spec:
+  encryptedData:
+    CF_WORKER_TOKEN: AgCJHbTA8z1EXtxH9Qs9qbHKvpfPfRmK6I8BskJzvuK70Di2puxlvVA/LeXrz1Q5PQ7oEm/HCXkMpFMznBao/Ie+QtSaZvvVlKTnGpWF5zhbYYkhjmRuxmjeO48sYoKAIYSFmMbGowEeZ/ktj7i9oPxRlj3AxkQAoEdLFTJAo8KkNc34nVi2IPoK4IrHQAuWQKY8LDDA/+zxIwm+8rxJuz9oziJrBE5ZFYWaiFSP7RB5uIZbZJg54/ArnsHn62gbGz1XxAQbxYOuL8iB3G1wef1k+jCHsu2nOx2pLrfKrZYyNw1pBWkf7XFbxRs2BdczpVxroSU00Y94lIxrdQNUjWHguXgd0j8Crfcf8Msqq8k+weMZZKq5b0e/0FZnsukFU4OnBx4YPfG/EAXUkZN4yVEOB13wRiw3HlQoGm8NTecNE8k79i73+gEhevbgv4EilgVC7bImKj2OmolGLP5mKTHfN7gyAD9p9CIRDnt2ULVr2BwEFHElKzDjC6AWoH4poHlS7sZUaaZFLl/lRn/koeYXALzDa6SKDDpyrYZy/vEaTtz0nm033OSsKBnkj1xF+8rCR5BQBbixc9GWcs9qSr8f0MkXFpnB9XMjYUt5vyzo+U9qLFm02inzxwTvMbFNlmjfsB6mK8j+jvdYI2SiNJtvojpPpWsbwyIu2qOUNx9ReeKIplHrYlmLiQvoyYqVv7q9qqVnLs7sLSxIp6O54eEtRh+phPGrp5r8ctHKFjYblyjEGLYIsbpYcETsvgO1Fw==
+  template:
+    metadata:
+      name: cf-worker-pr-assistant
+      namespace: code-factory

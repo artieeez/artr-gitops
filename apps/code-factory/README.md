@@ -6,7 +6,7 @@
 | App | Path | What |
 | --- | --- | --- |
 | `code-factory` | `platform/` | Postgres, server, dashboard, IngressRoute |
-| `code-factory-workers` | `workers/` | one StatefulSet per workflow, one replica per node; `pr-assistant/` and `sdd/` are scaffolds the Application excludes for now |
+| `code-factory-workers` | `workers/` | one StatefulSet per worker |
 
 | Workload | Image | Notes |
 | --- | --- | --- |
@@ -21,8 +21,8 @@ Image tags are bumped by GitHub Actions after CI passes on `main`: code-factory'
 | Workflow | Image | Repo | Synced |
 | --- | --- | --- | --- |
 | `dogfood` | `cf-worker-dogfood` | artieeez/cf-dogfood-worker | yes |
-| `pr-assistant` | `cf-worker-pr-assistant` | artieeez/pr-assistant-worker | no, excluded |
-| `sdd` | `cf-worker-sdd` | artieeez/cf-sdd-worker | no, excluded |
+| `pr-assistant` | `cf-worker-pr-assistant` | artieeez/pr-assistant-worker | yes |
+| `sdd` | `cf-worker-sdd` | artieeez/cf-sdd-worker | yes |
 
 ## Routing
 
@@ -53,8 +53,8 @@ webhooks.
 
 ## Adding a worker
 
-`pr-assistant/` and `sdd/` are scaffolded from `dogfood/` but excluded in
-`argocd/applications/code-factory-workers.yaml` (`directory.exclude`). To turn one on:
+Copy a folder such as `pr-assistant/`, and exclude it in
+`argocd/applications/code-factory-workers.yaml` (`directory.exclude`) until it is ready. To turn it on:
 
 1. The OCIR repository `cf-worker-<workflow>` exists (oracle-cluster) and the worker's repo has
    pushed an image and bumped the `sha-0000000` placeholder in its `statefulset.yaml`.
