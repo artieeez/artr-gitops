@@ -1,0 +1,18 @@
+# playground.artr.com.br: the cf-playground dashboard, a static SPA. Public, no TinyAuth.
+# TLS: the wildcard cert, copied into this namespace by Reflector (cert-manager/wildcard-certificates.yaml).
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: cf-playground
+  namespace: cf-playground
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`playground.artr.com.br`)
+      kind: Rule
+      services:
+        - name: cf-playground-dashboard
+          port: 80
+  tls:
+    secretName: wildcard-artr-com-br-tls

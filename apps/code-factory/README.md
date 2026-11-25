@@ -6,7 +6,7 @@
 | App | Path | What |
 | --- | --- | --- |
 | `code-factory` | `platform/` | Postgres, server, dashboard, IngressRoute |
-| `code-factory-workers` | `workers/` | one StatefulSet per workflow, one replica per node |
+| `code-factory-workers` | `workers/` | one StatefulSet per workflow, one replica per node; `pr-assistant/` and `sdd/` are scaffolds the Application excludes for now |
 
 | Workload | Image | Notes |
 | --- | --- | --- |
@@ -15,9 +15,14 @@
 | `cf-dashboard` | `cf-dashboard` | static build behind nginx on 8080 |
 | `cf-worker-<workflow>` | `cf-worker-<workflow>` | StatefulSet (2 replicas, anti-affinity by node); run folders and pnpm's store on a 20 Gi `nfs-client` volume per pod, so a restarted pod keeps its name and folders (code-factory AD-076); a Postgres sidecar on `127.0.0.1:5432` for test runs (`CF_TEST_POSTGRES_URL`) |
 
-Image tags are bumped by code-factory's GitHub Actions after CI passes on `main`:
-`deploy.yml` (server, dashboard) and `deploy-workers.yml` (workflows listed in its
-`deploy/workers.json`).
+Image tags are bumped by GitHub Actions after CI passes on `main`: code-factory's `deploy.yml`
+(server, dashboard), and each worker's own repo for `workers/<workflow>/statefulset.yaml`:
+
+| Workflow | Image | Repo | Synced |
+| --- | --- | --- | --- |
+| `dogfood` | `cf-worker-dogfood` | artieeez/cf-dogfood-worker | yes |
+| `pr-assistant` | `cf-worker-pr-assistant` | artieeez/pr-assistant-worker | no, excluded |
+| `sdd` | `cf-worker-sdd` | artieeez/cf-sdd-worker | no, excluded |
 
 ## Routing
 
@@ -44,6 +49,19 @@ webhooks.
    webhook secret) into `cf-server`, uncomment `plugins:` and `workflows:` in
    `platform/server/configmap.yaml`, and point the Linear and GitHub App webhooks at
    `https://factory.artr.com.br/hooks/<instance>/<token>`.
+
+## Adding a worker
+
+`pr-assistant/` and `sdd/` are scaffolded from `dogfood/` but excluded in
+`argocd/applications/code-factory-workers.yaml` (`directory.exclude`). To turn one on:
+
+1. The OCIR repository `cf-worker-<workflow>` exists (oracle-cluster) and the worker's repo has
+   pushed an image and bumped the `sha-0000000` placeholder in its `statefulset.yaml`.
+2. On the Workers page create a worker for the workflow and copy its `cfw_` token.
+3. `./scripts/seal-code-factory.sh worker <workflow>` writes
+   `workers/<workflow>/cf-worker-<workflow>-sealed.yaml`.
+4. In the same commit, drop `<workflow>/*` from the Application's `exclude`, and check the
+   replica count and the Postgres sidecar against the workflow's needs.
 
 ## Changing the server's config
 
