@@ -13,11 +13,6 @@ spec:
     path: apps/code-factory/workers
     directory:
       recurse: true
-      # Scaffolds not deployed yet: their images (built by artieeez/pr-assistant-worker and
-      # artieeez/cf-sdd-worker) don't exist and their cf-worker-<workflow> Secrets aren't sealed.
-      # Remove a folder from this list in the commit that adds its sealed Secret
-      # (apps/code-factory/README.md "Adding a worker").
-      exclude: '{pr-assistant/*,sdd/*}'
   destination:
     server: https://kubernetes.default.svc
     namespace: code-factory

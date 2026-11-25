@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: cf-worker-sdd
+  namespace: code-factory
+spec:
+  encryptedData:
+    CF_WORKER_TOKEN: AgBn2b8/I+ud3+KeFRX9t6PMPzyV0UPBgB3ImND+YaGnnIJgUNRfqIt/SSyo4rylgbnltMFIBNNZxsK6oG06DIs80V6YLw+krI5KCsHs/cF03LMeSm9uRZ/EaRGBVQuOcKfhmiV6TsePRopGPoCLLTjeoe+iOJkvctEpViYi0qx0UJtnP079bdWyVyKg2Wcge7oQxbDgv2h/9W7a2ZOmoQJ2ekQ8kvXX4hbV0CuvXc8Qtcknu0OJeXflLyQ81izazNdf+h/ggQ6dT7Pmdn4tSlRBt9sV7KX6sGWvVTf3r/9gd0F3mGWJefYLTth0bFltxj4qLB4jsyM9FjudBlLlscdVyv7qONqMQXcehepDrxLCSp7k+liiWaeRSm4NlNXHtsm/vZtHcQNU8zHUML9MdIvjknwd8qVg2xKRSQte9XDbb1DOHAO/Lxl1JS443QiGXanBi9Nv1Q+FFuNWiPOgpVHvP5cD9xm+3qonkMz8ipspCpUHTWW26XDe4BJdcSF4j4w4zBR2zsNz9vasAFjsKo6tQI6EkwU42OQrvZ9y2LRRlIEN0eb9152VS8NsMi09kUOHBjJCrKM3dXeI1vk9HL6hgCuXC49c6lfb14winZI2LLEvDDvyp2EKZB8dn1J8KZdqk2Qp6PyVsjFNgmszQ1nMsSmT9JZSlkoLNA/nSMTaYXbSdO5rWcEVOhiOrJqnRlTpYNYY+YGMw8VmNocBysqo9HPR6KEMmZlJ+eMujX1yx+JN/I3mc55TTU9NFyyvEQ==
+  template:
+    metadata:
+      name: cf-worker-sdd
+      namespace: code-factory
