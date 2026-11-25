@@ -13,17 +13,18 @@ A self-hosted [Nx](https://nx.dev) remote cache at `https://nx-cache.artr.com.br
 
 ## First deploy
 
-1. Create a DNS record in Cloudflare that points `nx-cache.artr.com.br` at the cluster, the same way the other `*.artr.com.br` hosts do.
-2. Seal the tokens. List every repository that should use the cache:
+DNS needs nothing: the `*.artr.com.br` wildcard already points at the cluster, and Traefik routes by host.
+
+1. Seal the tokens. List every repository that should use the cache:
 
    ```bash
    ./scripts/seal-nx-cache.sh my-monorepo code-factory
    ```
 
    A new name gets a token that is printed only once. Store it right away in that repository's CI secrets.
-3. Commit `apps/platform/nx-cache/` and `argocd/applications/platform/platform-nx-cache.yaml`. `artr-platform` picks up the new Application.
+2. Commit `apps/platform/nx-cache/` and `argocd/applications/platform/platform-nx-cache.yaml`. `artr-platform` picks up the new Application.
 
-The pod stays in `CreateContainerConfigError` until the sealed Secret exists, so do step 2 before you push.
+The pod stays in `CreateContainerConfigError` until the sealed Secret exists, so do step 1 before you merge.
 
 ## Adding or rotating a repository
 
