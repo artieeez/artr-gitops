@@ -1,13 +1,12 @@
-# pr-assistant worker (artieeez/pr-assistant-worker). SCAFFOLD, NOT SYNCED: argocd/applications/code-factory-workers.yaml
-# excludes this folder until the image exists and the cf-worker-pr-assistant Secret is sealed
-# (README "Adding a worker").
-#   worker    the workflow's worker; agents run Claude Code with the server's agent accounts
-#   postgres  throwaway Postgres for test runs (CF_TEST_POSTGRES_URL), loopback only, copied
-#             from dogfood; drop it if this workflow's runs never need a database
+# pr-assistant worker (artieeez/pr-assistant-worker): workflows pr-review and pr-answer on the
+# repos in their `repos` setting (dashboard). NOT SYNCED YET: argocd/applications/code-factory-workers.yaml
+# excludes this folder until the cf-worker-pr-assistant Secret is sealed (README "Adding a worker").
+# Agents run Claude Code with the server's agent accounts and only read code, so no Postgres sidecar.
 # A StatefulSet with a volume per pod, like dogfood (code-factory AD-076): a restarted pod
 # keeps its name and its run folders.
-# Image tag bumped by artieeez/pr-assistant-worker's CI: keep the `image:` lines below.
-# sha-0000000 is a placeholder until that CI pushes the first image.
+# The image sets CF_WORKSPACE_ROOT=/var/cf/work, CF_HEALTH_PORT=4500 and CF_AGENT_RUNNER=claude-code.
+# Image tag bumped by artieeez/pr-assistant-worker's Deploy workflow (when GITOPS_BUMP=true):
+# keep the `image:` lines below. sha-0000000 is a placeholder until then.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -64,11 +63,13 @@ spec:
           env:
             - name: CF_SERVER
               value: http://cf-server.code-factory.svc.cluster.local:4400
-            - name: CF_TEST_POSTGRES_URL
-              value: postgresql://postgres:postgres@127.0.0.1:5432/postgres
-            # links in the workflow's Linear comments
+            # run links in the workflows' PR comments
             - name: CF_DASHBOARD_URL
               value: https://factory.artr.com.br
+            # policy concurrency is 2, and a run's lenses and skeptics only run side by side
+            # with more than one slot
+            - name: CF_WORKER_SLOTS
+              value: "2"
           readinessProbe:
             httpGet:
               path: /ready
@@ -94,50 +95,6 @@ spec:
             - name: data
               mountPath: /var/cf/cache
               subPath: cache
-        - name: postgres
-          image: docker.io/postgres:17.11
-          imagePullPolicy: IfNotPresent
-          args:
-            - -c
-            - listen_addresses=127.0.0.1
-            - -c
-            - max_connections=500
-            - -c
-            - fsync=off
-            - -c
-            - full_page_writes=off
-            - -c
-            - synchronous_commit=off
-          env:
-            - name: POSTGRES_USER
-              value: postgres
-            - name: POSTGRES_PASSWORD
-              value: postgres
-            - name: POSTGRES_INITDB_ARGS
-              value: --locale=C --encoding=UTF8
-          readinessProbe:
-            exec:
-              command: ["pg_isready", "-h", "127.0.0.1", "-U", "postgres"]
-            initialDelaySeconds: 5
-            periodSeconds: 10
-          resources:
-            requests:
-              cpu: 50m
-              memory: 128Mi
-            limits:
-              memory: 1Gi
-          volumeMounts:
-            - name: postgres-data
-              mountPath: /var/lib/postgresql/data
-            - name: postgres-shm
-              mountPath: /dev/shm
-      volumes:
-        - name: postgres-data
-          emptyDir: {}
-        - name: postgres-shm
-          emptyDir:
-            medium: Memory
-            sizeLimit: 256Mi
   volumeClaimTemplates:
     - metadata:
         name: data

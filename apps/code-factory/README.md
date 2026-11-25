@@ -13,7 +13,7 @@
 | `cf-postgres` | `postgres:17.11` | StatefulSet, 5 Gi on `nfs-client` |
 | `cf-server` | `cf-server` | NestJS on 4400; init container runs `prisma migrate deploy`; artifacts on PVC `cf-server-data`; `factory.yaml` from ConfigMap `cf-factory` |
 | `cf-dashboard` | `cf-dashboard` | static build behind nginx on 8080 |
-| `cf-worker-<workflow>` | `cf-worker-<workflow>` | StatefulSet (2 replicas, anti-affinity by node); run folders and pnpm's store on a 20 Gi `nfs-client` volume per pod, so a restarted pod keeps its name and folders (code-factory AD-076); a Postgres sidecar on `127.0.0.1:5432` for test runs (`CF_TEST_POSTGRES_URL`) |
+| `cf-worker-<workflow>` | `cf-worker-<workflow>` | StatefulSet, anti-affinity by node; run folders and pnpm's store on an `nfs-client` volume per pod, so a restarted pod keeps its name and folders (code-factory AD-076). dogfood: 2 replicas, 20 Gi, a Postgres sidecar on `127.0.0.1:5432` for test runs (`CF_TEST_POSTGRES_URL`). pr-assistant: 1 replica, 2 slots, 20 Gi. sdd: 1 replica, 5 Gi |
 
 Image tags are bumped by GitHub Actions after CI passes on `main`: code-factory's `deploy.yml`
 (server, dashboard), and each worker's own repo for `workers/<workflow>/statefulset.yaml`:
@@ -60,8 +60,7 @@ webhooks.
 2. On the Workers page create a worker for the workflow and copy its `cfw_` token.
 3. `./scripts/seal-code-factory.sh worker <workflow>` writes
    `workers/<workflow>/cf-worker-<workflow>-sealed.yaml`.
-4. In the same commit, drop `<workflow>/*` from the Application's `exclude`, and check the
-   replica count and the Postgres sidecar against the workflow's needs.
+4. In the same commit, drop `<workflow>/*` from the Application's `exclude`.
 
 ## Changing the server's config
 
