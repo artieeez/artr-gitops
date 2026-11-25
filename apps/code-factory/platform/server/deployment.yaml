@@ -20,9 +20,9 @@ spec:
       labels:
         app: cf-server
       annotations:
-        # a pod reads factory.yaml (ConfigMap cf-factory) and Secret cf-server only at start,
-        # and nothing restarts it when they change: bump this in the commit that changes them
-        code-factory/config-rev: "5"
+        # a pod reads its env and Secret cf-server only at start, and nothing restarts it when
+        # the Secret changes: bump this in the commit that changes it
+        code-factory/config-rev: "6"
     spec:
       automountServiceAccountToken: false
       imagePullSecrets:
@@ -48,12 +48,44 @@ spec:
             - name: http
               containerPort: 4400
           envFrom:
-            # CF_SECRETS_KEY, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, and later LINEAR_*, GITHUB_*
+            # CF_SECRETS_KEY, GITHUB_*, LINEAR_* (the plugins' env instances, AD-089)
             - secretRef:
                 name: cf-server
+          # The server reads no config file (code-factory AD-089): sign-in and the plugins'
+          # default instances come from env; workflow bindings and settings from the dashboard.
           env:
             - name: CF_PUBLIC_URL
               value: https://factory.artr.com.br
+            # the image sets CF_HOST=0.0.0.0, which the server refuses without CF_OIDC_ISSUER
+            - name: CF_OIDC_ISSUER
+              value: https://pocketid.artr.com.br
+            - name: CF_OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: cf-server
+                  key: OIDC_CLIENT_ID
+            - name: CF_OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: cf-server
+                  key: OIDC_CLIENT_SECRET
+            - name: CF_OIDC_ADMIN_GROUPS
+              value: admin
+            - name: CF_OIDC_OPERATOR_GROUPS
+              value: admin
+            - name: CF_OIDC_VIEWER_GROUPS
+              value: admin_view_only
+            # webhooks at https://factory.artr.com.br/hooks/<github|linear>/<token>
+            - name: CF_GITHUB_HOOK_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cf-server
+                  key: GITHUB_HOOK_TOKEN
+            - name: CF_LINEAR_HOOK_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: cf-server
+                  key: LINEAR_HOOK_TOKEN
             # the env GitHub instance's repos (comma-separated); the rest of GITHUB_* is in cf-server
             - name: GITHUB_REPOS
               value: artieeez/code-factory,artieeez/cf-playground-dashboard
@@ -82,13 +114,7 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/cf
-            - name: factory
-              mountPath: /etc/cf
-              readOnly: true
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: cf-server-data
-        - name: factory
-          configMap:
-            name: cf-factory
