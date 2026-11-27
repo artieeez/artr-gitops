@@ -22,7 +22,7 @@ spec:
         - name: ocir-pull
       containers:
         - name: dashboard
-          image: vcp.ocir.io/axtvnrdemzo7/cf-dashboard:sha-04baf5d@sha256:d504f2e84537bf25b265506550b369105667de981b69034228c1f5fae9ff806e
+          image: vcp.ocir.io/axtvnrdemzo7/cf-dashboard:sha-f855286@sha256:12ef11f4af0a8b9749c248665a25bd7f2b529d3db122d5fb81b621a83d3f154a
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
