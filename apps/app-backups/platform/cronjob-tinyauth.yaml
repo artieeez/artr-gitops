@@ -31,7 +31,7 @@ spec:
               # bumps the tag/digest pair. Runs as root on purpose: it installs
               # its tools at start (see docs/app-backups.md) and the NFS export
               # is no_root_squash, which is how it reads data dirs owned by other uids.
-              image: public.ecr.aws/amazonlinux/amazonlinux:2023@sha256:3f018977be7a3473a0a473ed105b244b8bdec8683ecb24962f675db23017137b
+              image: public.ecr.aws/amazonlinux/amazonlinux:2023@sha256:47a249649c57ca32b2d4bd5f46149383d5852610eb2c6230e33ce9c3ab8c8459
               imagePullPolicy: IfNotPresent
               command:
                 - /scripts/backup.sh
