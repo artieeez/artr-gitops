@@ -41,7 +41,7 @@ spec:
       terminationGracePeriodSeconds: 120
       initContainers:
         - name: init-workspace
-          image: vcp.ocir.io/axtvnrdemzo7/cf-worker-pr-assistant:sha-bb183cf
+          image: vcp.ocir.io/axtvnrdemzo7/cf-worker-pr-assistant:sha-4bece01@sha256:e23a96310774dd71b3ecab8762d72330b34f872be30b35888fcb7849d6c7d59e
           imagePullPolicy: IfNotPresent
           command: ["sh", "-c", "mkdir -p /var/cf/data/work /var/cf/data/cache && chown 1000:1000 /var/cf/data/work /var/cf/data/cache"]
           securityContext:
@@ -51,7 +51,7 @@ spec:
               mountPath: /var/cf/data
       containers:
         - name: worker
-          image: vcp.ocir.io/axtvnrdemzo7/cf-worker-pr-assistant:sha-bb183cf
+          image: vcp.ocir.io/axtvnrdemzo7/cf-worker-pr-assistant:sha-4bece01@sha256:e23a96310774dd71b3ecab8762d72330b34f872be30b35888fcb7849d6c7d59e
           imagePullPolicy: IfNotPresent
           ports:
             - name: health
