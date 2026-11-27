@@ -48,7 +48,7 @@ spec:
             - name: http
               containerPort: 4400
           envFrom:
-            # CF_SECRETS_KEY, GITHUB_*, LINEAR_* (the plugins' env instances, AD-089)
+            # CF_SECRETS_KEY, LINEAR_* (Linear's env instance, AD-089); GitHub is a dashboard instance
             - secretRef:
                 name: cf-server
           # The server reads no config file (code-factory AD-089): sign-in and the plugins'
@@ -75,20 +75,12 @@ spec:
               value: admin
             - name: CF_OIDC_VIEWER_GROUPS
               value: admin_view_only
-            # webhooks at https://factory.artr.com.br/hooks/<github|linear>/<token>
-            - name: CF_GITHUB_HOOK_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: cf-server
-                  key: GITHUB_HOOK_TOKEN
+            # Linear's webhook at https://factory.artr.com.br/hooks/linear/<token>; GitHub is set up on the dashboard
             - name: CF_LINEAR_HOOK_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: cf-server
                   key: LINEAR_HOOK_TOKEN
-            # the env GitHub instance's repos (comma-separated); the rest of GITHUB_* is in cf-server
-            - name: GITHUB_REPOS
-              value: artieeez/code-factory,artieeez/cf-playground-dashboard
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:

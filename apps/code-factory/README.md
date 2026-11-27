@@ -41,14 +41,15 @@ webhooks.
    Application (`argocd/applications/code-factory-workers.yaml`, path `workers/`) in the same
    commit: the workers only sync once they have a token. Until then `deploy-workers.yml`
    bumps `workers/<workflow>/statefulset.yaml` and nothing deploys it.
-5. GitHub App, owned by artieeez and installed on `artieeez/code-factory` only: permissions
-   `contents`, `pull_requests`, `issues` write, `checks` read, `actions` write; events
-   `check_suite`, `pull_request`, `pull_request_review`, `issue_comment`,
-   `pull_request_review_comment`. Its PRs are the App bot's, so artieeez can approve them.
-6. Plugins: seal `LINEAR_*` and `GITHUB_*` (App id, installation id, slug, private key,
-   webhook secret, hook token) into `cf-server`; the server makes one `github` and one
-   `linear` instance from them. Point the Linear and GitHub App webhooks at
-   `https://factory.artr.com.br/hooks/<instance>/<token>`, and bind each workflow's slots and
+5. GitHub: an admin makes the App on the dashboard (**Integrations > GitHub > Set up >
+   Create on GitHub**, instance `github`), owned by artieeez, and installs it on
+   `artieeez/code-factory`, `artieeez/cf-playground-dashboard` and `artieeez/artr-gitops`.
+   Its key and webhook secret are sealed in the database with `CF_SECRETS_KEY`. Then, in the
+   App's settings, set `checks` to read and write (cf-ci-worker's PR check). Its PRs are the
+   App bot's, so artieeez can approve them.
+6. Linear: seal `LINEAR_*` and `LINEAR_HOOK_TOKEN` into `cf-server`; the server makes one
+   `linear` instance from them. Point the Linear webhook at
+   `https://factory.artr.com.br/hooks/linear/<token>`, and bind each workflow's slots and
    settings on the dashboard.
 
 ## Adding a worker
@@ -66,7 +67,7 @@ Copy a folder such as `pr-assistant/`, and exclude it in
 ## Changing the server's config
 
 The server reads no config file (code-factory AD-089). Sign-in (`CF_OIDC_*`) and the plugins'
-default instances (`GITHUB_*`, `LINEAR_*`, `CF_<PLUGIN>_HOOK_TOKEN`) come from env in
+default instances (`LINEAR_*`, `CF_LINEAR_HOOK_TOKEN`) come from env in
 `platform/server/deployment.yaml` and Secret `cf-server`; workflow bindings and settings are
 set on the dashboard. The image sets `CF_HOST=0.0.0.0`, so the server refuses to start
 without `CF_OIDC_ISSUER`.
