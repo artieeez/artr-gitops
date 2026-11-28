@@ -199,12 +199,6 @@ spec:
                 secretKeyRef:
                   name: coding-box-secrets
                   key: GH_TOKEN
-            # `claude setup-token` (subscription) — no browser in the pod.
-            - name: CLAUDE_CODE_OAUTH_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: coding-box-secrets
-                  key: CLAUDE_CODE_OAUTH_TOKEN
           securityContext:
             runAsUser: 10000
             runAsGroup: 10000
@@ -308,11 +302,6 @@ spec:
                 secretKeyRef:
                   name: coding-box-secrets
                   key: GH_TOKEN
-            - name: CLAUDE_CODE_OAUTH_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: coding-box-secrets
-                  key: CLAUDE_CODE_OAUTH_TOKEN
           securityContext:
             runAsUser: 10000
             runAsGroup: 10000
@@ -563,11 +552,6 @@ spec:
                 secretKeyRef:
                   name: coding-box-secrets
                   key: GH_TOKEN
-            - name: CLAUDE_CODE_OAUTH_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: coding-box-secrets
-                  key: CLAUDE_CODE_OAUTH_TOKEN
           securityContext:
             runAsUser: 10000
             runAsGroup: 10000
@@ -667,11 +651,6 @@ spec:
                 secretKeyRef:
                   name: coding-box-secrets
                   key: GH_TOKEN
-            - name: CLAUDE_CODE_OAUTH_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: coding-box-secrets
-                  key: CLAUDE_CODE_OAUTH_TOKEN
           securityContext:
             runAsUser: 10000
             runAsGroup: 10000

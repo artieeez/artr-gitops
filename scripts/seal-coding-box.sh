@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # seal-coding-box.sh — seal coding-box's three Secrets (namespace coding-box):
 #   coding-box-ssh      authorized_keys (Mac, phone, Herdr apps) + sshd host key
-#   coding-box-secrets  GH_TOKEN, CLAUDE_CODE_OAUTH_TOKEN
+#   coding-box-secrets  GH_TOKEN
 #   ocir-pull           OCIR pull credentials (private coding-box image)
 #
 #   ./scripts/seal-coding-box.sh                   all three
@@ -89,7 +89,7 @@ seal_secrets() {
   local live old k v reuse args=()
   live="$(secret_json "$NS" coding-box-secrets)"
   old="$(secret_json hermes hermes-secrets)"
-  for k in GH_TOKEN CLAUDE_CODE_OAUTH_TOKEN; do
+  for k in GH_TOKEN; do
     v="" reuse=1
     case "${ROTATE:-0}" in
       1) reuse=0 ;;
@@ -111,7 +111,7 @@ seal_secrets() {
   jq -n --arg ns "$NS" "${args[@]}" \
     '{apiVersion:"v1", kind:"Secret", type:"Opaque",
       metadata:{name:"coding-box-secrets", namespace:$ns},
-      stringData:{GH_TOKEN:$GH_TOKEN, CLAUDE_CODE_OAUTH_TOKEN:$CLAUDE_CODE_OAUTH_TOKEN}}' \
+      stringData:{GH_TOKEN:$GH_TOKEN}}' \
     | seal "$OUT_DIR/coding-box-secrets-sealed.yaml"
 }
 
