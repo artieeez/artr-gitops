@@ -31,7 +31,7 @@ spec:
         fsGroup: 1000
       initContainers:
         - name: migrate
-          image: vcp.ocir.io/axtvnrdemzo7/cf-server:sha-baa7b5c@sha256:697193ede6f8d1f79b9aaa2ec2b48744696a6159965c3d53766408a52c966c89
+          image: vcp.ocir.io/axtvnrdemzo7/cf-server:sha-157ade7@sha256:6ee7965f61fc33ceaf855f42100af1264baf062d14622433c9a38dfea491d364
           imagePullPolicy: IfNotPresent
           command: ["node_modules/.bin/prisma", "migrate", "deploy"]
           env:
@@ -42,7 +42,7 @@ spec:
                   key: url
       containers:
         - name: server
-          image: vcp.ocir.io/axtvnrdemzo7/cf-server:sha-baa7b5c@sha256:697193ede6f8d1f79b9aaa2ec2b48744696a6159965c3d53766408a52c966c89
+          image: vcp.ocir.io/axtvnrdemzo7/cf-server:sha-157ade7@sha256:6ee7965f61fc33ceaf855f42100af1264baf062d14622433c9a38dfea491d364
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
