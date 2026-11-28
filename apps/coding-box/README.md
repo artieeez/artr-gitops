@@ -7,7 +7,7 @@ formerly `pi-cloud`), placed on separate nodes (`podAntiAffinity` on
 
 | Container | Role |
 | --- | --- |
-| `coding-box` | `herdr-core serve` (`hc`). The Herdr apps' terminals run here, with `GH_TOKEN` and the Claude login (`CLAUDE_CODE_OAUTH_TOKEN`) |
+| `coding-box` | `herdr-core serve` (`hc`). The Herdr apps' terminals run here, with `GH_TOKEN`. Claude has no token in the env: log in once per account with `claude-0` / `claude-1` (`/login`); the login lives in `~/.claude-N` on the PVC |
 | `ssh` | Non-root sshd (UID 10000, user `arturwebber`, key-only, port 2222). No secrets in its env; `hc connect` attaches to the `coding-box` container's herdr-core over the shared socket `/run/hc/hc.sock` |
 | `cron` | [supercronic](https://github.com/aptible/supercronic) on `~/.crontab` (`cron-run`). Edit it with `crontab` from any shell on the box; it reloads on change. Same logins as `coding-box`, so jobs can run `claude`, `gh` and `ork` (the Orkastery pulse beat goes here: `ork fabrica batida instalar`) |
 | `postgres` | Postgres 17 on `127.0.0.1:5432`, user/password `postgres`. emptyDir with fsync off: **wiped on every restart**, for test runs only |
@@ -85,11 +85,11 @@ Commit `apps/coding-box/coding-box-ssh-sealed.yaml`. After Argo CD syncs, run
 | Secret | Keys |
 | --- | --- |
 | `coding-box-ssh` | `authorized_keys`, `ssh_host_ed25519_key(.pub)` |
-| `coding-box-secrets` | `GH_TOKEN`, `CLAUDE_CODE_OAUTH_TOKEN` (`claude setup-token`) |
+| `coding-box-secrets` | `GH_TOKEN` |
 | `ocir-pull` | OCIR `.dockerconfigjson` |
 
-Rotate the tokens: `ROTATE=1 ./scripts/seal-coding-box.sh secrets` prompts for
-each one (input hidden). Commit, then restart the Deployment.
+Rotate the token: `ROTATE=1 ./scripts/seal-coding-box.sh secrets` prompts for
+it (input hidden). Commit, then restart the Deployment.
 
 ## Image
 
